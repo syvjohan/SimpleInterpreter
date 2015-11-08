@@ -155,7 +155,7 @@ void evalWhile(char *expression) {
 
 		//parse strings.
 		//Values are always *char.
-		if (strCmp("lhs", "rhs") == 0) {
+		if (strCmp(lhs, rhs) == 0) {
 			int start = getCurrentScopeStart();
 			index = start;
 			return;
