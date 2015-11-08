@@ -68,11 +68,13 @@
     <ClCompile Include="Lexical.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Reg.c" />
+    <ClCompile Include="Scope.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Lexical.h" />
     <ClInclude Include="Reg.h" />
+    <ClInclude Include="Scope.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

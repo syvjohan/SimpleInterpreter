@@ -5,8 +5,14 @@
 
 #include "Heap.h"
 #include "Reg.h"
+#include "Scope.h"
+
+#define NAMESIZE 30
+#define ADDRESSSIZE 20
+#define VALUESIZE 50
 
 char *code = NULL;
+int index = 0;
 
 char* readFile(const char *path) {
 	FILE *file;
@@ -49,8 +55,9 @@ void allocateMem(char *code) {
 	memcpy(size, start, len);
 	size[len] = '\0';
 
-	//Allocate heap.
-	init((size_t)size);
+	//Allocate heap memory.
+	int s = atoi(size);
+	initializeHeap(s);
 }
 
 //Call by reference changes the passed argument no need for returning a value.
@@ -58,7 +65,7 @@ void trimString(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
-		if (cStr[i] != ' ') {
+		if (cStr[i] != ' ' && cStr[i] != '#') {
 			cStr[j++] = cStr[i];
 		}
 		i++;
@@ -69,6 +76,7 @@ void trimString(char *cStr) {
 
 int strCmp(const char *cStr1, const char *cStr2) {
 	int i = 0;
+	if (strlen(cStr1) <= 0 || strlen(cStr2) <= 0) { return 0; }
 	while (cStr1[i] != '\0') {
 		if (cStr1[i] != cStr2[i]) {
 			return 0;
@@ -83,9 +91,9 @@ void evalAlias(char *expression) {
 	char *sep1 = strpbrk(expression, ":");
 	char *sep2 = strpbrk(expression, "=");
 	char *sep3 = strpbrk(expression, ";");
-	char name[30];
-	char address[20];
-	char val[50];
+	char name[NAMESIZE];
+	char address[ADDRESSSIZE];
+	char val[VALUESIZE];
 
 	int lenName = len - strlen(sep1);
 	memcpy(name, expression, lenName);
@@ -113,16 +121,64 @@ void evalAlias(char *expression) {
 	trimString(address);
 	if (val != NULL) {
 		trimString(val);
-		//send value for parsing.
+		//parse val if it is an regular expression.
 	}
+
+	int a = atoi(address);
+	insertAt(a, val, name);
 }
 
 void evalDo(char *expression) {
+	char *bodyStart = strpbrk(expression, "{");
+	if (bodyStart == NULL) {
+		//Missing start body tag do CRASH!.
+	}
 
+	incrementScope(index -1, NULL);
 }
 
 void evalWhile(char *expression) {
+	char *bodyEnd = strpbrk(expression, ";");
+	incrementScope(NULL, index);
 
+	//eval if end or goto start.
+	char *sepEqual = strstr(expression, "==");
+	char *sepNotEqual = strstr(expression, "!=");
+	int lenEx = strlen(expression);
+
+	char lhs[50];
+	char rhs[50];
+	if (sepNotEqual != NULL) {
+		int len = lenEx - strlen(sepNotEqual);
+		memcpy(lhs, expression, len);
+		memcpy(rhs, expression + len +2, strlen(sepNotEqual));
+
+		//parse strings.
+		//Values are always *char.
+		if (strCmp("lhs", "rhs") == 0) {
+			int start = getCurrentScopeStart();
+			index = start;
+			return;
+		}
+
+
+	} else if (sepEqual != NULL) {
+		int len = lenEx - strlen(sepEqual);
+		memcpy(lhs, expression, len);
+		memcpy(rhs, expression + len +2, strlen(sepEqual));
+
+		//parse strings.
+		//Values are always *char.
+		if (strCmp(lhs, rhs) == 1) {
+			int start = getCurrentScopeStart();
+			index = start;
+			return;
+		}
+
+
+	} else {
+		// Missing compare operator do CRASH.
+	}
 }
 
 void evalCall(char *expression) {
@@ -148,19 +204,18 @@ void evalCmp(char *expression) {
 void tokenize(char *code) {
 	allocateMem(code);
 
-	int i = 0;
-	while (code[i] != '\0') {
-		if (code[i] == ':') {
+	while (code[index] != '\0') {
+		if (code[index] == ':') {
 			//get keyword
-			char *end = strpbrk(code + i, " ");
+			char *end = strpbrk(code + index, " ");
 			char keyword[20];
-			int len = i + strlen(end) +1 - strlen(code);
+			int len = index + strlen(end) + 1 - strlen(code);
 			len = abs(len);//transform to positive value.
-			memcpy(keyword, code + i +1, len);
+			memcpy(keyword, code + index + 1, len);
 			keyword[len] = '\0';
 
 			//get expression.
-			char *sc = strpbrk(code + i +1 +len, ";");
+			char *sc = strpbrk(code + index + 1 + len, ";");
 			char expression[50];
 			int lenEx = strlen(end) - strlen(sc);
 			memcpy(expression, end + 1, lenEx);
@@ -168,23 +223,30 @@ void tokenize(char *code) {
 
 			if (strCmp(keyword,"alias")) {
 				evalAlias(expression);
-			} else if (keyword == "do") {
+			} else if (strCmp(keyword, "do")) {
 				evalDo(expression);
-			} else if (keyword == "while") {
+			} else if (strCmp(keyword, "while")) {
 				evalWhile(expression);
-			} else if (keyword == "call") {
+			} else if (strCmp(keyword, "call")) {
 				evalCall(expression);
-			} else if (keyword == "subroutine") {
+			} else if (strCmp(keyword, "subroutine")) {
 				evalSubroutine(expression);
-			} else if (keyword == "printv") {
+			} else if (strCmp(keyword, "printv")) {
 				evalPrintv(expression);
-			} else if (keyword == "printa") {
+			} else if (strCmp(keyword, "printa")) {
 				evalPrinta(expression);
-			} else if (keyword == "cmp") {
+			} else if (strCmp(keyword, "cmp")) {
 				evalCmp(expression);
-			} 
+			} else {
+
+			}
+
+			printf("%s \n", keyword);
+
+			//update index operator
+			//index += lenEx;
 		}
-		++i;
+		++index;
 	}
 }
 

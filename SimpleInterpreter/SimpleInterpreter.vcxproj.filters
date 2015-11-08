@@ -27,6 +27,9 @@
     <ClCompile Include="Lexical.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Scope.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Reg.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Lexical.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

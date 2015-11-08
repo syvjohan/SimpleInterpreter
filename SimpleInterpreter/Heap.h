@@ -1,8 +1,8 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-void init(size_t size);
-void insertAt(int index, char *cStr);
+void initializeHeap(size_t heapSize);
+void insertAt(int index, char *value, char *name);
 char* getValueAt(int position);
 
 #endif //!HEAP_H

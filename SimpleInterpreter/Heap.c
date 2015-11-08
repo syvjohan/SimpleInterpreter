@@ -1,30 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct object_s {
-	char *name;
-}object_t;
+#define NAMESIZE 30
 
-object_t obj[10];
+typedef struct index_s {
+	char name[NAMESIZE];
+	int startPos;
+	int endPos;
+}index_t;
 
 typedef struct heap_s {
 	char *container;
+	index_t *index;
 	size_t size;
 }heap_t;
 
 heap_t heap;
 
 void setHeapSize(size_t size) {
+	heap.container = malloc(size * sizeof(char));
+	heap.index = (index_t *)malloc(size * sizeof(index_t));
 	heap.size = size;
-	heap.container = (char *)malloc(size * sizeof(char));
 }
 
 size_t getHeapSize(void) {
 	return heap.size;
 }
 
-void insertAt(int index, char *cStr) {
-	heap.container[index] = cStr;
+void insertAt(int index, char *value, char *name) {
+	int k = 0;
+	int i;
+	for (i = index; i != heap.size && value[k] != '\0'; ++i) {
+		heap.container[i] = value[k];
+		++k;
+	}
+	heap.container[i] = '\0';
+
+	//Index.
+	heap.index->startPos = index;
+	int len = strlen(value);
+	heap.index->endPos = index + len;
+
+	int j;
+	for (j = 0; j != NAMESIZE && name[j] != '\0'; ++j) {
+		heap.index->name[j] = name[j];
+	}
+	heap.index->name[j] = '\0';
 }
 
 char* getValueAt(int position) {
@@ -40,11 +61,11 @@ char* getValueAt(int position) {
 	return cStr;
 }
 
-void Init(size_t heapSize) {
+void initializeHeap(size_t heapSize) {
 	setHeapSize(heapSize);
 }
 
 void freeHeap(void) {
-	heap.container;
+	free(heap.container);
 }
 
