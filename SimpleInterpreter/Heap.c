@@ -83,7 +83,7 @@ char* getValue(int index) {
 	int len = heap.index->endPos - heap.index->startPos;
 	tmp = (char *)malloc(len +1 * sizeof(char));
 
-	memcpy(tmp, heap.container, len);
+	memcpy(tmp, heap.container + index, len);
 	tmp[len] = '\0';
 	return tmp;
 }

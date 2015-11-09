@@ -84,6 +84,19 @@ void trim(char *cStr) {
 	return cStr;
 }
 
+void trimHeap(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != ' ' && cStr[i] != '&' && cStr[i] != '#' && cStr[i] != ')' && cStr[i] != '(' && cStr[i] != ';') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+	return cStr;
+}
+
 char* parseReg(char *cStr) {
 	trim(cStr);
 
@@ -128,9 +141,20 @@ char* parseReg(char *cStr) {
 	
 }
 
+char* parseHeap(char *cStr) {
+	trimHeap(cStr);
+	return getValue(atoi(cStr));
+}
+
 char* parseManager(char *cStr) {
 	trim(cStr);
 	operator_t firstOp = findOperator(cStr, 0);
+
+	//check if it is a memory address
+	char *hashtag = strstr(cStr, "#");
+	if (hashtag != NULL) {
+		return parseHeap(cStr);
+	}
 
 	//only one value
 	if (firstOp.pos == -1) {

@@ -157,8 +157,15 @@ void evalWhile(char *expression) {
 		rhs[len] = '\0';
 
 		//parse strings.
-		parseManager(lhs);
-		parseManager(rhs);
+		char *tmpL = parseManager(lhs);
+		memset(&lhs, 0, 50);
+		*lhs = tmpL;
+
+		char *tmpR = parseManager(rhs);
+		memset(&rhs, 0, 50);
+		*rhs = tmpR;
+
+
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 0) {
 			int start = getCurrentScopeStart();
