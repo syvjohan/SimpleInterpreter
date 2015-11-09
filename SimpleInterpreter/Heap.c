@@ -17,6 +17,8 @@ typedef struct heap_s {
 
 heap_t heap;
 
+char *tmp;
+
 void setHeapSize(size_t size) {
 	heap.container = malloc(size * sizeof(char));
 	heap.index = (index_t *)malloc(size * sizeof(index_t));
@@ -65,7 +67,34 @@ void initializeHeap(size_t heapSize) {
 	setHeapSize(heapSize);
 }
 
+//Returns name index.
+int searchForName(char *name) {
+	int i = 0;
+	while (heap.size != i) {
+		if (strCmp(name, heap.index->name)) {
+			return heap.index->startPos;
+		}
+		++i;
+	}
+	return -1;
+}
+
+char* getValue(int index) {
+	int len = heap.index->endPos - heap.index->startPos;
+	tmp = (char *)malloc(len +1 * sizeof(char));
+
+	memcpy(tmp, heap.container, len);
+	tmp[len] = '\0';
+	return tmp;
+}
+
+void freeTmpValue() {
+	free(tmp);
+	tmp = NULL;
+}
+
 void freeHeap(void) {
 	free(heap.container);
+	heap.container = NULL;
 }
 

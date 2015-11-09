@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,123 +11,135 @@ typedef struct reg_s {
 
 reg_t reg[3];
 
-void set(int mem, char *value) {
+void set(char *mem, char *value) {
 	int len = strlen(value);
 	if (len > 31) {
 		//to many characters do CRASH!
 	}
 
-	if (mem == 1) {
+	if (strCmp(mem, "A")) {
 		*reg[0].container = &value;
 		reg[0].container[len] = '\0';
-	} else if (mem == 2) {
+	} else if (strCmp(mem, "B")) {
 		*reg[1].container = &value;
 		reg[1].container[len] = '\0';
-	} else if (mem == 3) {
+	} else if (strCmp(mem, "C")) {
 		*reg[2].container = &value;
 		reg[2].container[len] = '\0';
-	} else {
+	} else if (strCmp(mem, "A")) {
 		*reg[3].container = &value;
 		reg[3].container[len] = '\0';
-	}
-}
-
-char* get(int mem) {
-	if (mem == 1) {
-		return reg[0].container;
-	} else if (mem == 2) {
-		return reg[1].container;
-	} else if (mem == 3) {
-		return reg[2].container;
 	} else {
-		return reg[3].container;
+		//Trying to acces a none existing register do CRASH!
 	}
 }
 
-void add(int mem, char *val) {
+char* get(char *mem) {
+	if (strCmp(mem, "A")) {
+		return reg[0].container;
+	} else if (strCmp(mem, "B")) {
+		return reg[1].container;
+	} else if (strCmp(mem, "C")) {
+		return reg[2].container;
+	} else if (strCmp(mem, "A")) {
+		return reg[3].container;
+	} else {
+		//Trying to acces a none existing register do CRASH!
+	}
+}
+
+void add(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
-	if (mem == 1) {
+	if (strCmp(mem, "A")) {
 		int v1 = atoi(reg[0].container);
 		sum = v1 + v;
 		sprintf(reg[0].container, "%i", sum);
-	} else if (mem == 2) {
+	} else if (strCmp(mem, "B")) {
 		int v2 = atoi(reg[1].container);
 		sum = v2 + v;
 		sprintf(reg[1].container, "%i", sum);
-	} else if (mem == 3) {
+	} else if (strCmp(mem, "C")) {
 		int v3 = atoi(reg[2].container);
 		sum = v3 + v;
 		sprintf(reg[2].container, "%i", sum);
-	} else {
+	} else if (strCmp(mem, "D")) {
 		int v4 = atoi(reg[3].container);
 		sum = v4 + v;
 		sprintf(reg[3].container, "%i", sum);
+	} else {
+		//Trying to acces a none existing register do CRASH!
 	}
 }
 
-void sub(int mem, char *val) {
+void sub(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
-	if (mem == 1) {
+	if (strCmp(mem, "A")) {
 		int v1 = atoi(reg[0].container);
 		sum = v1 - v;
 		sprintf(reg[0].container, "%i", sum);
-	} else if (mem == 2) {
+	} else if (strCmp(mem, "B")) {
 		int v2 = atoi(reg[1].container);
 		sum = v2 - v;
 		sprintf(reg[1].container, "%i", sum);
-	} else if (mem == 3) {
+	} else if (strCmp(mem, "C")) {
 		int v3 = atoi(reg[2].container);
 		sum = v3 - v;
 		sprintf(reg[2].container, "%i", sum);
-	} else {
+	} else if (strCmp(mem, "D")) {
 		int v4 = atoi(reg[3].container);
 		sum = v4 - v;
 		sprintf(reg[3].container, "%i", sum);
+	} else {
+		//Trying to acces a none existing register do CRASH!
 	}
 }
 
-void mul(int mem, char *val) {
+void mul(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
-	if (mem == 1) {
+	if (strCmp(mem, "A")) {
 		int v1 = atoi(reg[0].container);
 		sum = v1 * v;
 		sprintf(reg[0].container, "%i", sum);
-	} else if (mem == 2) {
+	} else if (strCmp(mem, "B")) {
 		int v2 = atoi(reg[1].container);
 		sum = v2 * v;
 		sprintf(reg[1].container, "%i", sum);
-	} else if (mem == 3) {
+	} else if (strCmp(mem, "C")) {
 		int v3 = atoi(reg[2].container);
 		sum = v3 * v;
 		sprintf(reg[2].container, "%i", sum);
-	} else {
+	} else if (strCmp(mem, "D")) {
 		int v4 = atoi(reg[3].container);
 		sum = v4 * v;
 		sprintf(reg[3].container, "%i", sum);
+	} else {
+		//Trying to acces a none existing register do CRASH!
 	}
 }
 
-void div(int mem, char *val) {
+void division(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
-	if (mem == 1) {
+	if (strCmp(mem, "A")) {
 		int v1 = atoi(reg[0].container);
 		sum = v1 / v;
 		sprintf(reg[0].container, "%i", sum);
-	} else if (mem == 2) {
+	} else if (strCmp(mem, "B")) {
 		int v2 = atoi(reg[1].container);
 		sum = v2 / v;
 		sprintf(reg[1].container, "%i", sum);
-	} else if (mem == 3) {
+	} else if (strCmp(mem, "C")) {
 		int v3 = atoi(reg[2].container);
 		sum = v3 / v;
 		sprintf(reg[2].container, "%i", sum);
-	} else {
+	} else if (strCmp(mem, "D")) {
 		int v4 = atoi(reg[3].container);
 		sum = v4 / v;
 		sprintf(reg[3].container, "%i", sum);
+	} else {
+		//Trying to acces a none existing register do CRASH!
 	}
 }

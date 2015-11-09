@@ -4,10 +4,10 @@
 void init();
 
 char* get(int mem);
-void set(int mem, char *val);
-void add(int mem, char *val);
-void sub(int mem, char *val);
-void mul(int mem, char *val);
-void div(int mem, char *val);
+void set(char *mem, char *val);
+void add(char *mem, char *val);
+void sub(char *mem, char *val);
+void mul(char *mem, char *val);
+void division(int *mem, char *val);
 
 #endif //!REG_H

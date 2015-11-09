@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -122,6 +121,7 @@ void evalAlias(char *expression) {
 	if (val != NULL) {
 		trimString(val);
 		//parse val if it is an regular expression.
+		parseManager(val);
 	}
 
 	int a = atoi(address);
@@ -151,30 +151,43 @@ void evalWhile(char *expression) {
 	if (sepNotEqual != NULL) {
 		int len = lenEx - strlen(sepNotEqual);
 		memcpy(lhs, expression, len);
+		lhs[len] = '\0';
+
 		memcpy(rhs, expression + len +2, strlen(sepNotEqual));
+		rhs[len] = '\0';
 
 		//parse strings.
+		parseManager(lhs);
+		parseManager(rhs);
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 0) {
 			int start = getCurrentScopeStart();
 			index = start;
 			return;
+		} else {
+			decrementScope();
 		}
 
 
 	} else if (sepEqual != NULL) {
 		int len = lenEx - strlen(sepEqual);
 		memcpy(lhs, expression, len);
+		lhs[len] = '\0';
+
 		memcpy(rhs, expression + len +2, strlen(sepEqual));
+		rhs[len] = '\0';
 
 		//parse strings.
+		parseManager(lhs);
+		parseManager(rhs);
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 1) {
 			int start = getCurrentScopeStart();
 			index = start;
 			return;
+		} else {
+			decrementScope();
 		}
-
 
 	} else {
 		// Missing compare operator do CRASH.
@@ -201,13 +214,24 @@ void evalCmp(char *expression) {
 
 }
 
+void evalReg(char *expression, char *keyword) {
+	keyword[4] = '.';
+	parseReg(strcat(keyword, expression));
+}
+
 void tokenize(char *code) {
 	allocateMem(code);
 
 	while (code[index] != '\0') {
 		if (code[index] == ':') {
 			//get keyword
-			char *end = strpbrk(code + index, " ");
+			char *end1 = strpbrk(code + index, " ");
+			char *end2 = strpbrk(code + index, ".");
+			char *end = end2;
+			if (strlen(end1) > strlen(end2)) {
+				end = end1;
+			}
+
 			char keyword[20];
 			int len = index + strlen(end) + 1 - strlen(code);
 			len = abs(len);//transform to positive value.
@@ -237,7 +261,16 @@ void tokenize(char *code) {
 				evalPrinta(expression);
 			} else if (strCmp(keyword, "cmp")) {
 				evalCmp(expression);
-			} else {
+			} else if (strCmp(keyword, "regA")) {
+				evalReg(expression, keyword);
+			} else if (strCmp(keyword, "regB")) {
+				evalReg(expression, keyword);
+			} else if (strCmp(keyword, "regC")) {
+				evalReg(expression, keyword);
+			} else if (strCmp(keyword, "regD")) {
+				evalReg(expression, keyword);
+			}
+			else {
 
 			}
 
