@@ -3,7 +3,7 @@
 
 void incrementScope(int start, int end);
 void decrementScope();
-char* getCurrentScopeStart();
-char* getCurrentScopeEnd();
+int getCurrentScopeStart();
+int getCurrentScopeEnd();
 
 #endif //!SCOPE_H

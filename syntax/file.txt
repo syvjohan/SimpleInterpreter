@@ -4,4 +4,4 @@ SYSMEMALLOCHEAP 64;
 
 :do {
 	:regA.add(1); 
-} :while &str + :regA.get() != #64);
+} :while (&str + :regA.get() != #64);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct operator_s {
 	int pos;
@@ -75,13 +76,12 @@ void trim(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
-		if (cStr[i] != ' ' && cStr[i] != '&') {
+		if (cStr[i] != ' ' && cStr[i] != '(') {
 			cStr[j++] = cStr[i];
 		} 
 		i++;
 	}
 	cStr[j] = '\0';
-	return cStr;
 }
 
 void trimHeap(char *cStr) {
@@ -94,7 +94,6 @@ void trimHeap(char *cStr) {
 		i++;
 	}
 	cStr[j] = '\0';
-	return cStr;
 }
 
 char* parseReg(char *cStr) {
@@ -120,7 +119,7 @@ char* parseReg(char *cStr) {
 	char *findClosePar = strpbrk(cStr, ")");
 	char arg[50];
 	int argLen = strlen(findClosePar) -1;
-	memcpy(arg, cStr + 9, argLen);
+	memcpy(arg, cStr + 8, argLen);
 	arg[argLen] = '\0';
 
 	//TODO! Parse arg.
@@ -138,22 +137,25 @@ char* parseReg(char *cStr) {
 	} else if (strCmp(operation, "mul")) {
 		mul(mem, arg);
 	}
-	
+	return "";
 }
 
-char* parseHeap(char *cStr) {
+char* parseHeap(char *cStr, int isReference) {
 	trimHeap(cStr);
+	if (isReference) {
+		return cStr;
+	}
 	return getValue(atoi(cStr));
 }
 
-char* parseManager(char *cStr) {
+char* parseManager(char *cStr, int isReference) {
 	trim(cStr);
 	operator_t firstOp = findOperator(cStr, 0);
 
-	//check if it is a memory address
+	//Check if it is a hard coded memory address
 	char *hashtag = strstr(cStr, "#");
 	if (hashtag != NULL) {
-		return parseHeap(cStr);
+		return parseHeap(cStr, isReference);
 	}
 
 	//only one value
@@ -168,10 +170,10 @@ char* parseManager(char *cStr) {
 
 	char lhs[50];
 	char rhs[50];
-	memcpy(lhs, cStr, firstOp);
+	memcpy(lhs, cStr, firstOp.pos);
 	lhs[firstOp.pos] = '\0';
 
-	memcpy(rhs, cStr + firstOp.pos +1, secondOp);
+	memcpy(rhs, cStr + firstOp.pos +1, secondOp.pos);
 	rhs[secondOp.pos] = '\0';
 
 	char *lhsIsStr = strstr(lhs, ":");
@@ -180,10 +182,28 @@ char* parseManager(char *cStr) {
 	char *resultLhs = NULL;
 	char *resultRhs = NULL;
 
+	int lhsIsAddress = 0;
+	int rhsIsAddress = 0;
+
+	static char result[50];
+
 	//It is an variable.
 	if (lhsIsStr == NULL) {
-		int res = searchForName(lhs);
-		resultLhs = getValue(res);
+
+		//Check if is a reference to a memory location.
+		char *bitwiseAnd = strstr(lhs, "&");
+		if (bitwiseAnd != NULL) {
+			int len = strlen(bitwiseAnd);
+			memcpy(lhs, bitwiseAnd + 1, len);
+			lhs[len] = '\0';
+
+			resultLhs = getIndexAsString(lhs);
+			lhsIsAddress = 1;
+		} else {
+			int res = getIndexAsInt(lhs);
+			resultLhs = getValue(res);
+		}
+
 	} else {
 		char keyword[4];
 		memcpy(keyword, lhsIsStr + 1, 3);
@@ -208,21 +228,24 @@ char* parseManager(char *cStr) {
 		int isDigitsRhs = checkForDigits(resultRhs);
 
 		//lhs is text string and rhs is digit.
-		if (isDigitsLhs == -1 && isDigitsRhs == 1) {
-			return *(resultLhs + atoi(resultRhs));
-		} else if (isDigitsLhs == 1 && isDigitsRhs == -1) {
+		if (isDigitsLhs == -1 && isDigitsRhs == 1 && !lhsIsAddress) {
+			sprintf(result, "%s", *(resultLhs + atoi(resultRhs)));
+		}
+		else if (isDigitsLhs == 1 && isDigitsRhs == -1) {
 			//Wrong syntax do CRASH!
 		}
 		//Both are digits
 		else if (isDigitsLhs == 1 && isDigitsRhs == 1) {
 			if (firstOp.op == '+') {
-				return atoi(resultLhs) + atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) + atoi(resultRhs));
 			} else if (firstOp.op == '-') {
-				return atoi(resultLhs) - atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) - atoi(resultRhs));
 			} else if (firstOp.op == '*') {
-				return atoi(resultLhs) * atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) * atoi(resultRhs));
 			} else if (firstOp.op == '/') {
-				return atoi(resultLhs) / atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) / atoi(resultRhs));
+			} else {
+				//Wrong syntax do CRASH!
 			}
 		}
 		//Both are text strings.
@@ -240,8 +263,18 @@ char* parseManager(char *cStr) {
 	}
 
 	if (rhsIsStr == NULL) {
-		int res = searchForName(rhs);
-		resultRhs = getValue(res);
+		char *bitwiseAnd = strstr(rhs, "&");
+		if (bitwiseAnd != NULL) {
+			int len = strlen(bitwiseAnd);
+			memcpy(rhs, bitwiseAnd + 1, len);
+			rhs[len] = '\0';
+
+			resultRhs = getIndexAsString(rhs);
+			rhsIsAddress = 1;
+		} else {
+			int res = getIndexAsInt(rhs);
+			resultRhs = getValue(res);
+		}
 	} else {
 		char keyword[4];
 		memcpy(keyword, rhsIsStr +1, 3);
@@ -266,22 +299,28 @@ char* parseManager(char *cStr) {
 		int isDigitsRhs = checkForDigits(resultRhs);
 
 		//lhs is text string and rhs is digit.
-		if (isDigitsLhs == -1 && isDigitsRhs == 1) {
-			return *(resultLhs + atoi(resultRhs));
-		} 
+		if (isDigitsLhs == -1 && isDigitsRhs == 1 && !lhsIsAddress) {
+			sprintf(result, "%s", *(resultLhs + atoi(resultRhs)));
+		}
+		//lhs is address and rhs is digit and lhs is a reference.
+		else if (isDigitsLhs == 1 && isDigitsRhs == 1 && lhsIsAddress) {
+			sprintf(result, "%d", atoi(resultLhs) + atoi(resultRhs));
+		}
 		else if (isDigitsLhs == 1 && isDigitsRhs == -1) {
 			//Wrong syntax do CRASH!
 		} 
 		//Both are digits
 		else if (isDigitsLhs == 1 && isDigitsRhs == 1) {
 			if (firstOp.op == '+') {
-				return atoi(resultLhs) + atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) + atoi(resultRhs));
 			} else if (firstOp.op == '-') {
-				return atoi(resultLhs) - atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) - atoi(resultRhs));
 			} else if (firstOp.op == '*') {
-				return atoi(resultLhs) * atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) * atoi(resultRhs));
 			} else if (firstOp.op == '/') {
-				return atoi(resultLhs) / atoi(resultRhs);
+				sprintf(result, "%d", atoi(resultLhs) / atoi(resultRhs));
+			} else {
+				//Wrong syntax do CRASH!
 			}
 		} 
 		//Both are text strings.
@@ -297,6 +336,5 @@ char* parseManager(char *cStr) {
 			}
 		}
 	}
-
-	freeTmpValue();
+	return result;
 }

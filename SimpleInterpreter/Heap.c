@@ -52,7 +52,7 @@ void insertAt(int index, char *value, char *name) {
 
 char* getValueAt(int position) {
 	int i = 0;
-	char *cStr = NULL;
+	static char *cStr = NULL;
 	while (heap.container[position] != '\0') {
 		cStr[i] = heap.container[position];
 
@@ -68,11 +68,25 @@ void initializeHeap(size_t heapSize) {
 }
 
 //Returns name index.
-int searchForName(char *name) {
+int getIndexAsInt(char *name) {
 	int i = 0;
 	while (heap.size != i) {
 		if (strCmp(name, heap.index->name)) {
 			return heap.index->startPos;
+		}
+		++i;
+	}
+	return -1;
+}
+
+//Returns name index.
+char* getIndexAsString(char *name) {
+	int i = 0;
+	while (heap.size != i) {
+		if (strCmp(name, heap.index->name)) {
+			static char buffer[20];
+			sprintf(buffer, "%d", heap.index->startPos);
+			return buffer;
 		}
 		++i;
 	}

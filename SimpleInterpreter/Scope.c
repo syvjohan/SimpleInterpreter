@@ -25,11 +25,11 @@ void incrementScope(int start, int end) {
 		isEnd = 0;
 	}
 
-	if (end == NULL) {
+	if (end < 0) {
 		scope[len].start = start;
 		isStart = 1;
 
-	} else if (start == NULL) {
+	} else if (start < 0) {
 		scope[len].end = end;
 		isEnd = 1;
 	}

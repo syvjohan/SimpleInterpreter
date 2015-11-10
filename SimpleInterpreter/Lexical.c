@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include "Heap.h"
 #include "Reg.h"
 #include "Scope.h"
+#include "Parser.h"
 
 #define NAMESIZE 30
 #define ADDRESSSIZE 20
@@ -70,13 +72,12 @@ void trimString(char *cStr) {
 		i++;
 	}
 	cStr[j] = '\0';
-	return cStr;
 }
 
 int strCmp(const char *cStr1, const char *cStr2) {
 	int i = 0;
 	if (strlen(cStr1) <= 0 || strlen(cStr2) <= 0) { return 0; }
-	while (cStr1[i] != '\0') {
+	while (cStr1[i] != '\0' || cStr2[i] != '\0') {
 		if (cStr1[i] != cStr2[i]) {
 			return 0;
 		}
@@ -121,7 +122,7 @@ void evalAlias(char *expression) {
 	if (val != NULL) {
 		trimString(val);
 		//parse val if it is an regular expression.
-		parseManager(val);
+		parseManager(val, 0);
 	}
 
 	int a = atoi(address);
@@ -134,12 +135,14 @@ void evalDo(char *expression) {
 		//Missing start body tag do CRASH!.
 	}
 
-	incrementScope(index -1, NULL);
+	incrementScope(index +3, -1);
 }
 
 void evalWhile(char *expression) {
 	char *bodyEnd = strpbrk(expression, ";");
-	incrementScope(NULL, index);
+	if (getCurrentScopeEnd() != index) {
+		incrementScope(-1, index);
+	}
 
 	//eval if end or goto start.
 	char *sepEqual = strstr(expression, "==");
@@ -156,23 +159,36 @@ void evalWhile(char *expression) {
 		memcpy(rhs, expression + len +2, strlen(sepNotEqual));
 		rhs[len] = '\0';
 
+		//reference = 1, value = 0.
+		int isReference = 0;
+		char *bitwiseAnd = strstr(lhs, "&");
+		char *hashtag = strstr(rhs, "#");
+
+		if (bitwiseAnd != NULL && hashtag != NULL) {
+			isReference = 1;
+		} else if (bitwiseAnd != NULL) {
+			//Wrong syntax cannot compare address with value, do CRASH!
+		}
+
 		//parse strings.
-		char *tmpL = parseManager(lhs);
+		char *tmpL = parseManager(lhs, isReference);
 		memset(&lhs, 0, 50);
-		*lhs = tmpL;
+		memcpy(lhs, tmpL, strlen(tmpL));
 
-		char *tmpR = parseManager(rhs);
-		memset(&rhs, 0, 50);
-		*rhs = tmpR;
+		char *tmpR = parseManager(rhs, isReference);
+		//memset(&rhs, 0, 50);
+		memcpy(rhs, tmpR, strlen(tmpR));
 
-
+		printf("i = %s\n", lhs);
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 0) {
 			int start = getCurrentScopeStart();
 			index = start;
+			printf("Values are not equal\n");
 			return;
 		} else {
 			decrementScope();
+			printf("Values are equal\n");
 		}
 
 
@@ -184,9 +200,20 @@ void evalWhile(char *expression) {
 		memcpy(rhs, expression + len +2, strlen(sepEqual));
 		rhs[len] = '\0';
 
+		//reference = 1, value = 0.
+		int isReference = 0;
+		char *bitwiseAnd = strstr(lhs, "&");
+		char *hashtag = strstr(lhs, "#");
+		if (bitwiseAnd != NULL && hashtag != NULL) {
+			isReference = 1;
+		} else if (bitwiseAnd != NULL) {
+			//Wrong syntax cannot compare address with value, do CRASH!
+		}
+
 		//parse strings.
-		parseManager(lhs);
-		parseManager(rhs);
+		parseManager(lhs, isReference);
+		parseManager(rhs, isReference);
+
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 1) {
 			int start = getCurrentScopeStart();
@@ -228,7 +255,6 @@ void evalReg(char *expression, char *keyword) {
 
 void tokenize(char *code) {
 	allocateMem(code);
-
 	while (code[index] != '\0') {
 		if (code[index] == ':') {
 			//get keyword
@@ -278,7 +304,7 @@ void tokenize(char *code) {
 				evalReg(expression, keyword);
 			}
 			else {
-
+				//Wrong syntax keyword does not exist, do CRASH!
 			}
 
 			printf("%s \n", keyword);

@@ -5,7 +5,8 @@ void initializeHeap(size_t heapSize);
 void insertAt(int index, char *value, char *name);
 char* getValueAt(int position);
 
-int searchForName(char *name);
+int getIndexAsInt(char *name);
+char* getIndexAsString(char *name);
 char* getValue(int index);
 
 void freeHeap();
