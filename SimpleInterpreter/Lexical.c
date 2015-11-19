@@ -11,9 +11,19 @@
 #define NAMESIZE 30
 #define ADDRESSSIZE 20
 #define VALUESIZE 50
+#define INSTRUCTIONSIZE 100
 
 char *code = NULL;
+
 int index = 0;
+int start = 0;
+int end = 0;
+
+int ignore = 0;
+
+char keyword[NAMESIZE];
+char expression[VALUESIZE];
+int cmpResult = 0;
 
 char* readFile(const char *path) {
 	FILE *file;
@@ -47,26 +57,24 @@ char* readFile(const char *path) {
 	return code;
 }
 
-void allocateMem(char *code) {
-	char *start = strpbrk(code, "SYSMEMALLOCHEAP");
-	start += 16;
-	char *end = strpbrk(code, ";");
-	char size[10];
-	int len = strlen(start) - strlen(end);
-	memcpy(size, start, len);
-	size[len] = '\0';
-
-	//Allocate heap memory.
-	int s = atoi(size);
-	initializeHeap(s);
-}
-
 //Call by reference changes the passed argument no need for returning a value.
 void trimString(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
 		if (cStr[i] != ' ' && cStr[i] != '#') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}
+
+void removeParanthesis(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != ')' && cStr[i] != '(') {
 			cStr[j++] = cStr[i];
 		}
 		i++;
@@ -86,7 +94,35 @@ int strCmp(const char *cStr1, const char *cStr2) {
 	return 1;
 }
 
-void evalAlias(char *expression) {
+char* getKeyword() {
+	return keyword;
+}
+
+void setKeyword(char *cStr) {
+	memset(keyword, 0, strlen(keyword));
+	memcpy(keyword, cStr, strlen(cStr));
+}
+
+char* getExpression() {
+	return expression;
+}
+
+void setExpression(char *cStr) {
+	memset(expression, 0, strlen(expression));
+	memcpy(expression, cStr, strlen(cStr));
+}
+
+void allocateMem() {
+	char *expression = getExpression();
+	trimString(expression);
+	
+	//Allocate heap memory.
+	int s = atoi(expression);
+	initializeHeap(s);
+}
+
+void evalAlias() {
+	char *expression = getExpression();
 	int len = strlen(expression);
 	char *sep1 = strpbrk(expression, ":");
 	char *sep2 = strpbrk(expression, "=");
@@ -100,9 +136,9 @@ void evalAlias(char *expression) {
 	name[lenName] = '\0';
 
 	int lenAddress;
-	if (sep2 != NULL) {
-		lenAddress = strlen(sep1) - strlen(sep2) -2;
-	} else if (sep3 == NULL) {
+	if (sep2) {
+		lenAddress = strlen(sep1) - strlen(sep2) -1; //-2
+	} else if (sep3) {
 		//Something is wrong do CRASH!.
 	} else {
 		lenAddress = strlen(sep1) +1 - strlen(sep3) - 2;
@@ -111,15 +147,15 @@ void evalAlias(char *expression) {
 	memcpy(address, sep1 + 1, lenAddress);
 	address[lenAddress] = '\0';
 
-	if (sep2 != NULL) {
-		int lenValue = strlen(sep2) - strlen(sep3) -1;
-		memcpy(val, sep2 +1, lenValue);
+	if (sep2) {
+		int lenValue = strlen(sep2) -3;
+		memcpy(val, sep2 +2, lenValue);
 		val[lenValue] = '\0';
 	}
 	
 	trimString(name);
 	trimString(address);
-	if (val != NULL) {
+	if (val) {
 		trimString(val);
 		//parse val if it is an regular expression.
 		parseManager(val, 0);
@@ -129,16 +165,61 @@ void evalAlias(char *expression) {
 	insertAt(a, val, name);
 }
 
-void evalDo(char *expression) {
-	char *bodyStart = strpbrk(expression, "{");
-	if (bodyStart == NULL) {
-		//Missing start body tag do CRASH!.
-	}
-
-	incrementScope(index +3, -1);
+void evalDo(int len) {
+	end = index;
+	index -= len;
+	start = index;
+	incrementScope(index, -1);
 }
 
-void evalWhile(char *expression) {
+void evalName() {
+	char *expression = getExpression();
+	trimString(expression);
+
+	char *equal = strstr(expression, "=");
+	if (equal) {
+		int lenRhs = strlen(equal) -3;
+		int lenLhs = strlen(expression) - lenRhs;
+
+		char lhs[VALUESIZE];
+		char rhs[VALUESIZE];
+
+		memcpy(lhs, expression, lenLhs);
+		lhs[lenLhs] = '\0';
+
+		memcpy(rhs, equal +2, lenRhs);
+		rhs[lenRhs] = '\0';
+
+		int isReferenceRhs = 0;
+		int isReferenceLhs = 0;
+		char *findReferenceRhs = strstr(rhs, "&");
+		char *findReferenceLhs = strstr(lhs, "&");
+		if (findReferenceRhs) {
+			isReferenceRhs = 1;
+		}
+
+		if (findReferenceLhs) {
+			isReferenceLhs = 1;
+		}
+
+		char *lhsRes = parseManager(lhs, isReferenceLhs);
+		char *rhsRes = parseManager(rhs, isReferenceRhs);
+
+		if (isReferenceLhs) {
+
+			insertAt(atoi(lhsRes), rhsRes, "");
+			
+		} else {
+			//Lhs (left hand sign) need to be a modifiable value(&), do CRASH!!!
+		}
+
+	} else {
+		//Equal operator missing, do CRASH!!!
+	}
+}
+
+void evalWhile() {
+	char *expression = getExpression();
 	char *bodyEnd = strpbrk(expression, ";");
 	if (getCurrentScopeEnd() != index) {
 		incrementScope(-1, index);
@@ -149,9 +230,9 @@ void evalWhile(char *expression) {
 	char *sepNotEqual = strstr(expression, "!=");
 	int lenEx = strlen(expression);
 
-	char lhs[50];
-	char rhs[50];
-	if (sepNotEqual != NULL) {
+	char lhs[VALUESIZE];
+	char rhs[VALUESIZE];
+	if (sepNotEqual) {
 		int len = lenEx - strlen(sepNotEqual);
 		memcpy(lhs, expression, len);
 		lhs[len] = '\0';
@@ -164,15 +245,15 @@ void evalWhile(char *expression) {
 		char *bitwiseAnd = strstr(lhs, "&");
 		char *hashtag = strstr(rhs, "#");
 
-		if (bitwiseAnd != NULL && hashtag != NULL) {
+		if (bitwiseAnd && hashtag) {
 			isReference = 1;
-		} else if (bitwiseAnd != NULL) {
+		} else if (bitwiseAnd) {
 			//Wrong syntax cannot compare address with value, do CRASH!
 		}
 
 		//parse strings.
 		char *tmpL = parseManager(lhs, isReference);
-		memset(&lhs, 0, 50);
+		memset(&lhs, 0, VALUESIZE);
 		memcpy(lhs, tmpL, strlen(tmpL));
 
 		char *tmpR = parseManager(rhs, isReference);
@@ -182,7 +263,7 @@ void evalWhile(char *expression) {
 		printf("i = %s\n", lhs);
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 0) {
-			int start = getCurrentScopeStart();
+			start = getCurrentScopeStart();
 			index = start;
 			printf("Values are not equal\n");
 			return;
@@ -191,8 +272,7 @@ void evalWhile(char *expression) {
 			printf("Values are equal\n");
 		}
 
-
-	} else if (sepEqual != NULL) {
+	} else if (sepEqual) {
 		int len = lenEx - strlen(sepEqual);
 		memcpy(lhs, expression, len);
 		lhs[len] = '\0';
@@ -204,9 +284,9 @@ void evalWhile(char *expression) {
 		int isReference = 0;
 		char *bitwiseAnd = strstr(lhs, "&");
 		char *hashtag = strstr(lhs, "#");
-		if (bitwiseAnd != NULL && hashtag != NULL) {
+		if (bitwiseAnd && hashtag) {
 			isReference = 1;
-		} else if (bitwiseAnd != NULL) {
+		} else if (bitwiseAnd) {
 			//Wrong syntax cannot compare address with value, do CRASH!
 		}
 
@@ -216,7 +296,7 @@ void evalWhile(char *expression) {
 
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 1) {
-			int start = getCurrentScopeStart();
+			start = getCurrentScopeStart();
 			index = start;
 			return;
 		} else {
@@ -244,73 +324,199 @@ void evalPrinta(char *expression) {
 
 }
 
-void evalCmp(char *expression) {
+void evalCmp() {
+	char *expression = getExpression();
+	removeParanthesis(expression);
+	char *opComma = strstr(expression, ",");
+	
 
+	int lenRhs = strlen(opComma);
+	int lenLhs = strlen(expression) - lenRhs;
+	char lhs[VALUESIZE];
+	char rhs[VALUESIZE];
+	if (opComma) {
+		memcpy(lhs, expression, lenLhs);
+		lhs[lenLhs] = '\0';
+		memcpy(rhs, opComma + 1, lenRhs);
+		rhs[lenRhs] = '\0';
+
+		//check if they are alias.
+		int val1 = getIndexAsInt(lhs);
+		int val2 = getIndexAsInt(rhs);
+		
+		char *tmp;
+		int len;
+		if (val1 != -1) {
+			tmp = getValueAt(val1);
+			len = strlen(tmp);
+			memcpy(lhs, tmp, len);
+			lhs[len] = '\0';
+			tmp = NULL;
+		}
+		
+		if (val2 != -1) {
+			tmp = getValueAt(val2);
+			len = strlen(tmp);
+			memcpy(rhs, tmp, len);
+			rhs[len] = '\0';
+		}
+		
+		cmpResult = strCmp(lhs, rhs);
+	}
 }
 
-void evalReg(char *expression, char *keyword) {
-	keyword[4] = '.';
-	parseReg(strcat(keyword, expression));
+void evalReg() {
+	parseReg(getKeyword(), getExpression());
 }
 
-void tokenize(char *code) {
-	allocateMem(code);
-	while (code[index] != '\0') {
-		if (code[index] == ':') {
-			//get keyword
-			char *end1 = strpbrk(code + index, " ");
-			char *end2 = strpbrk(code + index, ".");
-			char *end = end2;
-			if (strlen(end1) > strlen(end2)) {
-				end = end1;
+void splitInstruction(char *instruction) {
+	trimString(instruction);
+	char tmp[INSTRUCTIONSIZE];
+	char tmp2[INSTRUCTIONSIZE];
+	int len = 0;
+
+	char *WHILE = strstr(instruction, ":while");
+
+	if (!WHILE) {
+		//is alias
+		char *isalias = NULL;
+		char *name;
+		int size = getHeapSize();
+		int i;
+		for (i = 0; i != size; ++i) {
+			name = getName(i);
+			isalias = strstr(instruction, name);
+			if (isalias) {
+				//if it is a text string instead of a variable name.
+				char *str = strstr(isalias, "\"");
+				if (str) {
+					return;
+				}
+				setExpression(instruction);
+				evalName();
+				break;
 			}
+		}
+	}
 
-			char keyword[20];
-			int len = index + strlen(end) + 1 - strlen(code);
-			len = abs(len);//transform to positive value.
-			memcpy(keyword, code + index + 1, len);
-			keyword[len] = '\0';
+	char *sysMemAllocHeap = strstr(instruction, "sysMemAllocHeap");
+	char *alias = strstr(instruction, ":alias");
+	char *DO = strstr(instruction, ":do");
+	char *reg = strstr(instruction, ":reg");
+	char *cmp = strstr(instruction, ":cmp");
+	char *nequal = strstr(instruction, "nequal");
 
-			//get expression.
-			char *sc = strpbrk(code + index + 1 + len, ";");
-			char expression[50];
-			int lenEx = strlen(end) - strlen(sc);
-			memcpy(expression, end + 1, lenEx);
-			expression[lenEx] = '\0';
+	if (sysMemAllocHeap) {
+		setKeyword("sysMemAllocHeap");
+		len = strlen(sysMemAllocHeap) - 15;
+		memcpy(tmp, sysMemAllocHeap + 15, len);
+		tmp[len] = '\0';
+		setExpression(tmp);
+		allocateMem();
+	} 
 
-			if (strCmp(keyword,"alias")) {
-				evalAlias(expression);
-			} else if (strCmp(keyword, "do")) {
-				evalDo(expression);
-			} else if (strCmp(keyword, "while")) {
-				evalWhile(expression);
-			} else if (strCmp(keyword, "call")) {
-				evalCall(expression);
-			} else if (strCmp(keyword, "subroutine")) {
-				evalSubroutine(expression);
-			} else if (strCmp(keyword, "printv")) {
-				evalPrintv(expression);
-			} else if (strCmp(keyword, "printa")) {
-				evalPrinta(expression);
-			} else if (strCmp(keyword, "cmp")) {
-				evalCmp(expression);
-			} else if (strCmp(keyword, "regA")) {
-				evalReg(expression, keyword);
-			} else if (strCmp(keyword, "regB")) {
-				evalReg(expression, keyword);
-			} else if (strCmp(keyword, "regC")) {
-				evalReg(expression, keyword);
-			} else if (strCmp(keyword, "regD")) {
-				evalReg(expression, keyword);
+	if (alias) {
+		setKeyword(":alias");
+		len = strlen(alias) -6;
+		memcpy(tmp, alias +6, len);
+		tmp[len] = '\0';
+		setExpression(tmp);
+		evalAlias();
+	} 
+
+	if (DO) {
+		int totLen = 0;
+		char *bracket = strstr(DO, "{");
+		if (bracket) {
+			setKeyword(":do");
+			totLen = strlen(bracket) -1;
+		} else {
+			// Open bracket missing do CRASH!!
+		}
+
+		//Filter do from rest of expression, recursion.
+		char *rest = strstr(DO +3, ":");
+		if (rest) {
+			len = strlen(rest);
+			memcpy(tmp, rest, len);
+			tmp[len] = '\0';
+			splitInstruction(rest);
+		}
+
+		evalDo(totLen);
+	}
+
+	if (reg) {
+		memcpy(tmp2, reg +1, 4);
+		tmp2[4] = '\0';
+		setKeyword(tmp2);
+
+		len = strlen(reg) - 5;
+		memcpy(tmp, reg + 5, len);
+		tmp[len] = '\0';
+		setExpression(tmp);
+		evalReg();
+	}
+
+	if (WHILE) {
+		setKeyword(":while");
+		len = strlen(WHILE) - 6;
+		memcpy(tmp, WHILE + 7, len);
+		tmp[len] = '\0';
+		setExpression(tmp);
+		evalWhile();
+		return;
+	}
+
+	if (cmp) {
+		setKeyword(":cmp");
+		len = strlen(cmp) - 3;
+		memcpy(tmp, cmp + 4, len);
+		tmp[len] = '\0';
+		setExpression(tmp);
+		evalCmp();
+
+		if (cmpResult) {
+			ignore = 0;
+		} else {
+			//ignore :nequal.
+			ignore = 1;
+		}
+	}
+
+	if (nequal && cmpResult) {
+		ignore = 1;
+	}
+}
+
+void getInstructions(char *code) {
+	int comment = 0;
+	char instruction[INSTRUCTIONSIZE];
+
+	while (code[index] != '\0') {	
+		if (code[index] == '/' && code[index +1] == '*') {
+				comment = 1;
+		} else if (code[index] == '*' && code[index +1] == '/') {
+			comment = 0;
+			start = index + 1;
+		}
+
+		if (code[index] == '}') { 
+			ignore = 0; 
+		}
+
+		if (code[index] == ';' || code[index] == '{') {
+			if (comment == 0 && ignore == 0) {
+				end = index;
+				int len = end - start;
+				len = abs(len);
+				memcpy(instruction, code + start, len);
+				instruction[len] = '\0';
+				start = end + 1;
+				splitInstruction(instruction);
+				printf("%s", instruction);
 			}
-			else {
-				//Wrong syntax keyword does not exist, do CRASH!
-			}
-
-			printf("%s \n", keyword);
-
-			//update index operator
-			//index += lenEx;
+			start = index;
 		}
 		++index;
 	}

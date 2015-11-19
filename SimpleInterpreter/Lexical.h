@@ -2,7 +2,9 @@
 #define LEXICAL_H
 
 char* readFile(const char *path);
-void tokenize(char *code);
+void getInstructions(char *code);
+void splitInstruction(char *instruction);
+
 void freeMem(void);
 
 #endif //!LEXICAL_H

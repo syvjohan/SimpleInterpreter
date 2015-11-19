@@ -12,40 +12,47 @@ operator_t findOperator(const char *cStr, const int startPos) {
 	char *opMinus = strstr(cStr + startPos, "-");
 	char *opMul = strstr(cStr + startPos, "*");
 	char *opDiv = strstr(cStr + startPos, "/");
+	char *opEqual = strstr(cStr + startPos, "=");
 
 	int len = strlen(cStr);
 	int pl = INT_MAX;
 	int mi = INT_MAX;
 	int di = INT_MAX;
 	int mu = INT_MAX;
+	int eq = INT_MAX;
 
 	if (opPlus != NULL) {
 		pl = len - strlen(opPlus);
-	} else if (opMinus != NULL) {
+	} else if (opMinus) {
 		mi = len - strlen(opMinus);
-	} else if (opMul != NULL) {
-		di = len - strlen(opDiv);
-	} else if (opDiv != NULL) {
-		mu = len - strlen(opMul);
+	} else if (opMul) {
+		di = len - strlen(opMul);
+	} else if (opDiv) {
+		mu = len - strlen(opDiv);
+	} else if (opEqual) {
+		eq = len - strlen(opEqual);
 	}
 
 	operator_t newOp;
 	newOp.op = ' ';
 	newOp.pos = -1;
 
-	if (pl < mi && pl < di && pl < mu) {
+	if (pl < mi && pl < di && pl < mu && pl < eq) {
 		newOp.pos = pl;
 		newOp.op = opPlus[0];
-	} else if (mi < pl && mi < di && mi < mu) {
+	} else if (mi < pl && mi < di && mi < mu && mi < eq) {
 		newOp.pos = mi;
 		newOp.op = opMinus[0];
-	} else if (di < pl && di < mi && di < mu) {
+	} else if (di < pl && di < mi && di < mu && di < eq) {
 		newOp.pos = di;
 		newOp.op = opDiv[0];
-	} else if (mu < pl && mu < di && mu < mi) {
+	} else if (mu < pl && mu < di && mu < mi && mu < eq) {
 		newOp.pos = mu;
 		newOp.op = opMul[0];
-	} 
+	} else if (eq < pl && eq < mu && eq < di && eq < mi) {
+		newOp.pos = eq;
+		newOp.op = opEqual[0];
+	}
 	return newOp;
 }
 
@@ -96,30 +103,21 @@ void trimHeap(char *cStr) {
 	cStr[j] = '\0';
 }
 
-char* parseReg(char *cStr) {
-	trim(cStr);
-
-	char *brokenBar = strstr(cStr, ":");
-	if (brokenBar != NULL) {
-		int len = strlen(brokenBar);
-		char tmp[50];
-		memcpy(tmp, brokenBar +1, len);
-		cStr = tmp;
-		cStr[len] = '\0';
-	}
+char* parseReg(char *keyword, char *expression) {
+	trim(keyword);
+	trim(expression);
 
 	char mem[2];
-	memcpy(mem, cStr + 3, 1);
+	memcpy(mem, keyword +3, 2);
 	mem[1] = '\0';
 
 	char operation[4];
-	memcpy(operation, cStr + 5, 3);
+	memcpy(operation, expression +1, 3);
 	operation[3] = '\0';
 
-	char *findClosePar = strpbrk(cStr, ")");
 	char arg[50];
-	int argLen = strlen(findClosePar) -1;
-	memcpy(arg, cStr + 8, argLen);
+	int argLen = strlen(expression) - 5;
+	memcpy(arg, expression + 4, argLen);
 	arg[argLen] = '\0';
 
 	//TODO! Parse arg.
@@ -154,7 +152,7 @@ char* parseManager(char *cStr, int isReference) {
 
 	//Check if it is a hard coded memory address
 	char *hashtag = strstr(cStr, "#");
-	if (hashtag != NULL) {
+	if (hashtag) {
 		return parseHeap(cStr, isReference);
 	}
 
@@ -192,25 +190,40 @@ char* parseManager(char *cStr, int isReference) {
 
 		//Check if is a reference to a memory location.
 		char *bitwiseAnd = strstr(lhs, "&");
-		if (bitwiseAnd != NULL) {
+		if (bitwiseAnd) {
 			int len = strlen(bitwiseAnd);
 			memcpy(lhs, bitwiseAnd + 1, len);
 			lhs[len] = '\0';
 
 			resultLhs = getIndexAsString(lhs);
+			if (resultLhs == "") {
+				//alias name does not exist on heap, do CRASH!!!
+			}
 			lhsIsAddress = 1;
 		} else {
 			int res = getIndexAsInt(lhs);
+			if (res == NULL) {
+				//alias name does not exist on heap, do CRASH!!!
+			}
 			resultLhs = getValue(res);
 		}
 
 	} else {
-		char keyword[4];
+		char keyword[5];
 		memcpy(keyword, lhsIsStr + 1, 3);
 		keyword[3] = '\0';
 
+		char *dot = strstr(lhsIsStr, ".");
+		char ex[50];
+		memcpy(ex, dot, strlen(dot));
+		ex[strlen(dot)] = '\0';
+
 		if (strCmp(keyword, "reg")) {
-			resultLhs = parseReg(lhsIsStr);
+			char mem[2];
+			memcpy(mem, lhsIsStr + 4, 1);
+			mem[1] = '\0';
+			strcat(keyword, mem);
+			resultRhs = parseReg(keyword, ex);
 
 		} else if (strCmp(keyword, "stk")) {
 
@@ -264,7 +277,7 @@ char* parseManager(char *cStr, int isReference) {
 
 	if (rhsIsStr == NULL) {
 		char *bitwiseAnd = strstr(rhs, "&");
-		if (bitwiseAnd != NULL) {
+		if (bitwiseAnd) {
 			int len = strlen(bitwiseAnd);
 			memcpy(rhs, bitwiseAnd + 1, len);
 			rhs[len] = '\0';
@@ -276,12 +289,21 @@ char* parseManager(char *cStr, int isReference) {
 			resultRhs = getValue(res);
 		}
 	} else {
-		char keyword[4];
+		char keyword[5];
 		memcpy(keyword, rhsIsStr +1, 3);
 		keyword[3] = '\0';
 
+		char *dot = strstr(rhsIsStr, ".");
+		char ex[50];
+		memcpy(ex, dot, strlen(dot));
+		ex[strlen(dot)] = '\0';
+
 		if (strCmp(keyword, "reg")) {
-			resultRhs = parseReg(rhsIsStr);
+			char mem[2];
+			memcpy(mem, rhsIsStr + 4, 1);
+			mem[1] = '\0';
+			strcat(keyword, mem);
+			resultRhs = parseReg(keyword, ex);
 
 		} else if (strCmp(keyword, "stk")) {
 
@@ -305,6 +327,9 @@ char* parseManager(char *cStr, int isReference) {
 		//lhs is address and rhs is digit and lhs is a reference.
 		else if (isDigitsLhs == 1 && isDigitsRhs == 1 && lhsIsAddress) {
 			sprintf(result, "%d", atoi(resultLhs) + atoi(resultRhs));
+		}
+		else if (resultLhs == "" && resultRhs != "" && lhsIsAddress) {
+			return resultRhs;
 		}
 		else if (isDigitsLhs == 1 && isDigitsRhs == -1) {
 			//Wrong syntax do CRASH!

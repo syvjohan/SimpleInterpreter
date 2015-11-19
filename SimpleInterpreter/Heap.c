@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <windows.h>
 
 #define NAMESIZE 30
 
@@ -9,70 +10,88 @@ typedef struct index_s {
 	int endPos;
 }index_t;
 
-typedef struct heap_s {
-	char *container;
-	index_t *index;
-	size_t size;
-}heap_t;
-
-heap_t heap;
+char *heapContainer;
+index_t *heapIndex;
+size_t heapSize;
 
 char *tmp;
 
 void setHeapSize(size_t size) {
-	heap.container = malloc(size * sizeof(char));
-	heap.index = (index_t *)malloc(size * sizeof(index_t));
-	heap.size = size;
+	heapIndex = (index_t *)malloc(size * sizeof(index_t));
+	heapContainer = malloc(size * sizeof(char));
+	heapSize = size;
 }
 
 size_t getHeapSize(void) {
-	return heap.size;
+	return heapSize;
 }
 
 void insertAt(int index, char *value, char *name) {
+	if (heapIndex[index].endPos + strlen(value) > heapSize) {
+		printf("Overflowing the heap, do CRASH!!!\n");
+		printf("\n endposition: %i ", heapIndex[index].endPos);
+		//Overflowing the heap, do CRASH!!!
+		Sleep(5000);
+	}
+
 	int k = 0;
 	int i;
-	for (i = index; i != heap.size && value[k] != '\0'; ++i) {
-		heap.container[i] = value[k];
+	for (i = index; i != heapSize && value[k] != '\0'; ++i) {
+		heapContainer[i] = value[k];
 		++k;
 	}
-	heap.container[i] = '\0';
+	heapContainer[i] = '\0';
 
 	//Index.
-	heap.index->startPos = index;
 	int len = strlen(value);
-	heap.index->endPos = index + len;
-
+	if (name == "") {
+		heapIndex[index].endPos += strlen(value);
+	} else {
+		heapIndex[index].startPos = index;
+		heapIndex[index].endPos = index + len;
+	}
+	
 	int j;
 	for (j = 0; j != NAMESIZE && name[j] != '\0'; ++j) {
-		heap.index->name[j] = name[j];
+		heapIndex[index].name[j] = name[j];
 	}
-	heap.index->name[j] = '\0';
+	heapIndex[index].name[j] = '\0';
+}
+
+char* getName(int index) {
+	return heapIndex[index].name;
 }
 
 char* getValueAt(int position) {
 	int i = 0;
-	static char *cStr = NULL;
-	while (heap.container[position] != '\0') {
-		cStr[i] = heap.container[position];
+	char cStr[50];
+	while (heapContainer[position] != '\0') {
+		cStr[i] = heapContainer[position];
 
 		++position;
 		++i;
 	}
+	cStr[i] = '\0';
 
 	return cStr;
 }
 
-void initializeHeap(size_t heapSize) {
-	setHeapSize(heapSize);
+void initializeHeap(size_t size) {
+	setHeapSize(size);
+
+	int i;
+	for (i = 0; i != heapSize; ++i) {
+		heapIndex[i].endPos = 0;
+		heapIndex[i].startPos = 0;
+	}
 }
 
 //Returns name index.
 int getIndexAsInt(char *name) {
 	int i = 0;
-	while (heap.size != i) {
-		if (strCmp(name, heap.index->name)) {
-			return heap.index->startPos;
+	while (heapSize != i) {
+		if (strCmp(name, heapIndex[i].name)) {
+			return heapIndex[i].startPos;
 		}
 		++i;
 	}
@@ -82,33 +101,41 @@ int getIndexAsInt(char *name) {
 //Returns name index.
 char* getIndexAsString(char *name) {
 	int i = 0;
-	while (heap.size != i) {
-		if (strCmp(name, heap.index->name)) {
+	while (heapSize != i) {
+		if (strCmp(name, heapIndex[i].name)) {
 			static char buffer[20];
-			sprintf(buffer, "%d", heap.index->startPos);
+			sprintf(buffer, "%d", heapIndex[i].startPos);
 			return buffer;
 		}
 		++i;
 	}
-	return -1;
+	return "";
 }
 
 char* getValue(int index) {
-	int len = heap.index->endPos - heap.index->startPos;
+	int len = heapIndex[index].endPos - heapIndex[index].startPos;
 	tmp = (char *)malloc(len +1 * sizeof(char));
 
-	memcpy(tmp, heap.container + index, len);
+	memcpy(tmp, heapContainer + index, len);
 	tmp[len] = '\0';
 	return tmp;
 }
 
 void freeTmpValue() {
-	free(tmp);
-	tmp = NULL;
+	if (tmp) {
+		free(tmp);
+		tmp = NULL;
+	}
 }
 
 void freeHeap(void) {
-	free(heap.container);
-	heap.container = NULL;
-}
+	if (heapContainer) {
+		free(heapContainer);
+		heapContainer = NULL;
+	}
 
+	if (heapIndex) {
+		free(heapIndex);
+		heapIndex = NULL;
+	}
+}

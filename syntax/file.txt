@@ -1,7 +1,8 @@
-SYSMEMALLOCHEAP 64;
+:sysMemAllocHeap 64;
 
-:alias str : #0 = "hej"; /*important to write '\0' otherwise 'g' will be inserted where 'e' is instead of after 'j', str points to 'h'. Observe that it will result in buffer overflow in both cases.*/
+:alias str : #0 = "hej"; /*important to write */
+:alias baba : #10 = "hej";
 
-:do {
-	:regA.add(1); 
-} :while (&str + :regA.get() != #64);
+:cmp(str, baba) { :alias greger : #33 = "ratt"; }
+:nequal { :alias fel : #50 = "dudu";} 
+:alias labban : #50 = "fel";

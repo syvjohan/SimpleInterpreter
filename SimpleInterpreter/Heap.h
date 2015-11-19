@@ -8,6 +8,9 @@ char* getValueAt(int position);
 int getIndexAsInt(char *name);
 char* getIndexAsString(char *name);
 char* getValue(int index);
+char* getName(int index);
+
+size_t getHeapSize(void);
 
 void freeHeap();
 void freeTmpValue();
