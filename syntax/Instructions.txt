@@ -1,0 +1,58 @@
+:sysMemAllocHeap 64; /*Mandatory. Total memmory space that is allocated in bytes. */
+:sysCreateStack 32; /*Optional. Creates the stack on the heap and reservs 32 bytes on the heap(begin from top), LIFO. */
+
+:include("../anotherfile");
+
+/*this is also a comment*/
+
+:subroutine name {};
+:call name; //calling the subroutine name.
+
+:alias x : #32 = "hej\0"; //on heap.
+:alias z : #36 = 123; //on heap.
+:alias j : #40 = NULL; //on heap
+
+:stk.pop();
+:stk.push(x +3);
+:stk.push(#10 +3); //pushes four letters on stack(4 bytes).
+:stk.push("hej"); //pushes four letters on stack(4 bytes).
+:stk.get(); //Get top element.
+
+:regA.set(x); //Resets reg and store the value x points to.
+:regA.get(); //Get the value x points to, if no value exist reg = NULL.
+:regA.add(x); //add the number stored with x, if no value exist reg = x. 
+:regA.sub(x); //sub the number stored with x, if no value exist reg = 0. 
+:regA.mul(x); //mul the number stored with x, if no value exist reg = 0. 
+:regA.div(x); //div the number stored with x, if no value exist reg = 0. 
+
+:cmp(x, y) {} :nequal {}
+:do {}:while();
+:while();
+
+struct myStruct_s {
+	....
+	....
+	....
+} myStruct_t;
+:alias p : #44 = myStruct_t; //size is 4 bytes.
+
+:printv(x); //print value.
+:printa(x); //print address.
+
+//Supported operators.
++
+-
+<
+>
+=
+!=
+==
+
+
+//Rules
+
+Variable name cant contain numbers.
+
+
+:printv(:regA.get()); //print number 5.
+:printa(:regA()); /*Will return NULL since you cannot get address of a register since they dont exist in memory, instead they exist in the cpu's internal memory.*/

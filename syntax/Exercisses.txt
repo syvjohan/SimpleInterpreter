@@ -1,0 +1,223 @@
+Assignment 1: 
+Simulate  a "stack overflow"(use recursion).
+
+Solution:
+//ass.main.q
+	:SYSMEMALLOCHEAP 64;
+	:SYSCREATESTACK 32;
+
+	alias i : #0 = 0;
+	:subroutine stackoverflow {
+		:stk.push = i; //When we try to push i to memmory place #32 we will produce what is called a "stack overflow".
+		call stackoverflow; //Calling the subroutine again, this is recursion!
+	}
+
+
+-------------------------------------------------------------------------------------------------
+Assignment 2:
+Simulate a "buffer overflow"(use loop).
+
+Solution:
+//ass.main.q
+	:SYSMEMALLOCHEAP 64;
+	:SYSCPUINTERNALMEMA 4;
+
+	alias str : #0 = "hej\0"; /*important to write '\0' otherwise 'g' will be inserted where 'e' is instead of after 'j', str points to 'h'. Observe that it will result in buffer overflow in both cases.*/
+	do {
+		:reg.add = 1;
+		(str + :reg.get) += "g";
+	} while((str + :reg.get) != #64); //& means comparing memory location and withput it comparing values in memory location. 
+
+
+-------------------------------------------------------------------------------------------------
+Assignment 3:
+Create a subroutine that adds two numbers(subroutine shall only contain calculation). Print the result value and address outside the subroutine(use cpu's internal memory only!), write a comment after each print and briefly describe the outcomming result.
+
+Solution:
+//ass.main.q
+	:SYSMEMALLOCHEAP 64;
+	:SYSCPUINTERNALMEMA 4;
+	:SYSCPUINTERNALMEMB 4;
+
+	:regA.set = 2;
+	:regB.set = 3;
+	call add;
+
+	printv = regA.get; //print number 5.
+	printa = :regA; /*Will return NULL since you cannot get address of a register since they dont exist in memory, instead they exist in the cpu's internal memory.*/
+
+	:subroutine add {
+		:regA.add = :regB.get;
+	}
+
+
+-------------------------------------------------------------------------------------------------
+Assignment 4:
+Simulate a function that calculate the length of a string(strlen), use the stack.
+
+Solution:
+//ass.main.q	
+	:SYSMEMALLOCHEAP 64;
+	:SYSCPUINTERNALMEMA 4;
+	:SYSCREATESTACK 32;
+
+	:alias str : #36 = "thisIsAString\0";
+	:alias len : #32;
+	call strlen();
+
+	:subroutine strlen() {
+		:stk.push = 0;
+		:while((str + :stk.get) != '\0') {
+			:regA.set = :stk.get;
+			:stk.pop; /*Pop the stack to prevent stack overflow in case str contains > 32 letters */
+			:stk.push = :regA.get;
+		}
+
+		len = :stk.get;
+		:stk.pop; /* Clean the stack */
+	}
+
+
+-------------------------------------------------------------------------------------------------
+Assignment 5:
+Print the value and address from an undefined pointer, dont forgett to write and briefly explain the results from the printing statements.
+
+Solution:
+//ass.main.q
+	:SYSMEMALLOCHEAP 64;
+	:SYSCPUINTERNALMEMA 4;
+
+	:alias x : #32;
+
+	:printa = x; /* alias points to address #32 */
+	:printa = x; /* alias points to what is storred inside #32 in this case that is nothing "undefined behavior" but since we only ovverwrites memory instead of cleaning it there is a possibility that the memory address could contain old data. */
+
+
+-------------------------------------------------------------------------------------------------
+Assignment 6:
+Create a struct myStruct that contains a string and a lenght for that string, create a pointer to myStruct. Create a subroutine that sets the values inside myStruct (lenght shall be >= 6). Print the value of the pointer,print second letter of the string and print the address to the second letter of the string. dont forgett to write and briefly explain the results from the printing statements.
+
+
+Solution:
+//ass.main.q
+	:SYSMEMALLOCHEAP 64;
+	:SYSCPUINTERNALMEMA 4;
+
+	typedef struct myStruct_s {
+		alias len : #36; //4 bytes
+		alias str : #40; //1 byte
+	}myStruct_t;
+
+	alias p : #32 = myStruct_t; //pointer to myStruct, size 4 bytes.
+	call init;
+
+	:printv = #32; /* it will print number 6. */ 
+	:printv = p + 6 /* it will print 'h'. */
+	:printa = p + 6 /* it will print #41  */
+
+	 :subroutine init {
+	 	p.str = "hello\0";
+	 	p.len = 6;
+	 }
+
+-----------------------------------------------------------------------------------------------------
+Below assignments shall be implemented in c, please do not proced with these unless you are finish with above assignments. When implement below assignment dont forget what you have just learned above, the purpose of above assignments was to help you understand memory!
+
+
+-----------------------------------------------------------------------------------------------------
+Assignment 7:
+Print the address from an NULL pointer, dont forgett to write and briefly explain the results from the printing statement.
+
+Solution:
+//main.c
+#include <stdlib.h>
+
+int main() {
+
+	int *p = NULL;
+
+	printf("%p\n", (void*) &p);
+
+	system("pause");
+	return 0;
+}
+
+
+-----------------------------------------------------------------------------------------------------
+Assignment 8:
+Implement a function that add two numbers and describe what is happening in the registers.
+
+Solution:
+//main.c
+#include <stdlib.h>
+
+int main() {
+	add(2, 3);
+
+	system("pause");
+	return 0;
+}
+
+int add(int v1, int v2) {
+	/*__asm {
+		mov eax, v1;
+		mov ebx, v2;
+		add eax, ebx;
+	}*/
+
+	return v1 + v2;
+}
+
+
+-----------------------------------------------------------------------------------------------------
+Assignment 9:
+Implemet a function that calculates the lenght of a char pointer. Think in terms of pointers and not arrays(forbbiden to use [] instead use *).
+
+Solution:
+//main.c
+#include <stdlib.h>
+
+int main() {
+	char *cStr = "hello\0";
+	printf("%i\n", strlen(cStr));
+
+	system("pause");
+	return 0;
+}
+
+int strlen(char *cStr) {
+	size_t len = 0;
+
+	while (*(cStr + len) != '\0') {
+		++len;
+	}
+	return len;
+}
+
+
+-----------------------------------------------------------------------------------------------------
+Assignment 10:
+Create 2 NULL pointers(int), Save 5 in the address the first pointer is pointing to, print the newly inserted value. Let the second pointer point to the address of the first pointer, print the second pointer. Briefly describe and try to think in terms of pointers and not arrays(forbbiden to use [] instead use *).
+
+
+Solution:
+//main.c
+#include <stdlib.h>
+
+int main() {
+	int *p1 = NULL;
+	int *p2 = NULL;
+
+	p1 = 5; //saves 5 to the address p1 is pointing to.
+	printf("%i\n", p1);
+	
+	p2 = &p1; //p2 points to the first memory address of p1.
+	printf("%i\n", *(p2 + 0)); //dereferencing the pointer to get the value.
+
+	system("pause");
+	return 0;
+}
+
+
+-----------------------------------------------------------------------------------------------------
+Well done and thank you for your time :).

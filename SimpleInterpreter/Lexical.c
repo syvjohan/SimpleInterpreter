@@ -1,31 +1,20 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include "Lexical.h"
 
-#include "Heap.h"
-#include "Reg.h"
-#include "Scope.h"
-#include "Parser.h"
+Lexical::Lexical() {}
 
-#define NAMESIZE 30
-#define ADDRESSSIZE 20
-#define VALUESIZE 50
-#define INSTRUCTIONSIZE 100
+Lexical::~Lexical() {
+	if (code) {
+		delete [] code;
+		code = NULL;
+	}
 
-char *code = NULL;
+	if (subroutines) {
+		delete [] subroutines;
+		subroutines = NULL;
+	}
+}
 
-int index = 0;
-int start = 0;
-int end = 0;
-
-int ignore = 0;
-
-char keyword[NAMESIZE];
-char expression[VALUESIZE];
-int cmpResult = 0;
-
-char* readFile(const char *path) {
+char* Lexical::readFile(const char *path) {
 	FILE *file;
 	file = fopen(path, "r");
 
@@ -37,11 +26,11 @@ char* readFile(const char *path) {
 
 	//get size of file.
 	fseek(file, 0, SEEK_END);
-	size_t fileSize = ftell(file);
+	fileSize = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
 	//allocate sizeof file +1.
-	char *code = (char *)malloc((fileSize + 1) * sizeof(char));
+	code = (char *)malloc((fileSize + 1) * sizeof(char));
 
 	//read file into string
 	int c;
@@ -57,8 +46,12 @@ char* readFile(const char *path) {
 	return code;
 }
 
+void Lexical::setCode(char *cStr) {
+	code = cStr;
+}
+
 //Call by reference changes the passed argument no need for returning a value.
-void trimString(char *cStr) {
+void Lexical::trimString(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
@@ -70,7 +63,7 @@ void trimString(char *cStr) {
 	cStr[j] = '\0';
 }
 
-void removeParanthesis(char *cStr) {
+void Lexical::removeParanthesis(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
@@ -82,46 +75,100 @@ void removeParanthesis(char *cStr) {
 	cStr[j] = '\0';
 }
 
-int strCmp(const char *cStr1, const char *cStr2) {
-	int i = 0;
-	if (strlen(cStr1) <= 0 || strlen(cStr2) <= 0) { return 0; }
-	while (cStr1[i] != '\0' || cStr2[i] != '\0') {
-		if (cStr1[i] != cStr2[i]) {
-			return 0;
-		}
-		++i;
-	}
-	return 1;
-}
-
-char* getKeyword() {
+char* Lexical::getKeyword() {
 	return keyword;
 }
 
-void setKeyword(char *cStr) {
+void Lexical::setKeyword(char *cStr) {
 	memset(keyword, 0, strlen(keyword));
 	memcpy(keyword, cStr, strlen(cStr));
 }
 
-char* getExpression() {
+char* Lexical::getExpression() {
 	return expression;
 }
 
-void setExpression(char *cStr) {
+void Lexical::setExpression(char *cStr) {
 	memset(expression, 0, strlen(expression));
 	memcpy(expression, cStr, strlen(cStr));
 }
 
-void allocateMem() {
+void Lexical::allocateMem() {
 	char *expression = getExpression();
 	trimString(expression);
 	
 	//Allocate heap memory.
 	int s = atoi(expression);
-	initializeHeap(s);
+	parser.heap.initializeHeap(s);
 }
 
-void evalAlias() {
+void Lexical::initlizeCurrentSubroutine() {
+	currentSubroutine.endPos = -1;
+	currentSubroutine.startPos = -1;
+}
+
+void Lexical::expandSubroutineSize(void) {
+	int multiplier = 2;
+	subroutinesMax *= multiplier;
+
+	if (subroutines == NULL) {
+		subroutinesMax = 1;
+		subroutines = DBG_NEW subroutine_s[subroutinesMax];
+	} else {
+		subroutine_s *tmpArr = subroutines;
+
+		subroutines = DBG_NEW subroutine_s[multiplier * sizeof(subroutine_s)];
+		memcpy(subroutines, tmpArr, subroutinesLen * sizeof(subroutine_s));
+
+		free(tmpArr);
+	}
+}
+
+//Makes it possible to call a subroutine that has been declared after it is called.
+void Lexical::getAllSubroutines(void) {
+	initlizeCurrentSubroutine();
+	int i = 0;
+	do {
+		char *findSub = strstr(code + i, ":subroutine");
+		if (findSub) {
+			char *findOpenBracket = strstr(findSub, "{");
+			int len = strlen(findSub) - strlen(findOpenBracket) - 11;
+			if (findOpenBracket) {
+				char name[NAMESIZE];
+				memcpy(name, findSub + 11, len);
+				name[len] = '\0';
+				trimString(name);
+
+				char *ret = strstr(findSub, "};");
+				if (ret) {
+					subroutine_s subroutine;
+					subroutine.endPos = ret - code;
+					subroutine.startPos = findOpenBracket - code;
+					memcpy(subroutine.name, name, len);
+					subroutine.name[len] = '\0';
+
+					if (subroutinesLen == subroutinesMax) {
+						expandSubroutineSize();
+					}
+
+					subroutines[subroutinesLen] = subroutine;
+                                     					++subroutinesLen;
+
+					i = subroutine.endPos; //sets the program counter to a new value.
+				} else {
+					//Missing end of subroutine }; do CRASH!!
+				}
+			} else {
+				//Missing subroutine open bracket, do CRASH!!!
+			}
+		} else {
+			//No more subroutines to find end.
+			return;
+		}
+	} while (i < fileSize);
+}
+
+void Lexical::evalAlias() {
 	char *expression = getExpression();
 	int len = strlen(expression);
 	char *sep1 = strpbrk(expression, ":");
@@ -155,24 +202,43 @@ void evalAlias() {
 	
 	trimString(name);
 	trimString(address);
+
+	//alias name need to contain at least one letter.
+	if (strlen(name) < 1) {
+		//alias name can only contain letters.
+		if (parser.checkForAlpha(name) == -1) {
+			//do CRASH!!!
+		}
+		//do CRASH!!!
+	}
+
+	//alias name need to contain at least one letter.
+	if (strlen(address) < 1) {
+		//address can only contain digits and need to start with a #.
+		if (parser.checkForDigits(address) == -1) {
+			//do CRASH!!!
+		}
+		//do CRASH!!!
+	}
+
 	if (val) {
 		trimString(val);
 		//parse val if it is an regular expression.
-		parseManager(val, 0);
+		parser.parseManager(val, 0);
 	}
 
 	int a = atoi(address);
-	insertAt(a, val, name);
+	parser.heap.insertAt(a, val, name);
 }
 
-void evalDo(int len) {
-	end = index;
+void Lexical::evalDo(int len) {
+	endIndex = index;
 	index -= len;
-	start = index;
-	incrementScope(index, -1);
+	startIndex = index;
+	scope.incrementScope(index, -1);
 }
 
-void evalName() {
+void Lexical::evalName() {
 	char *expression = getExpression();
 	trimString(expression);
 
@@ -202,12 +268,12 @@ void evalName() {
 			isReferenceLhs = 1;
 		}
 
-		char *lhsRes = parseManager(lhs, isReferenceLhs);
-		char *rhsRes = parseManager(rhs, isReferenceRhs);
+		char *lhsRes = parser.parseManager(lhs, isReferenceLhs);
+		char *rhsRes = parser.parseManager(rhs, isReferenceRhs);
 
 		if (isReferenceLhs) {
 
-			insertAt(atoi(lhsRes), rhsRes, "");
+			parser.heap.insertAt(atoi(lhsRes), rhsRes, "");
 			
 		} else {
 			//Lhs (left hand sign) need to be a modifiable value(&), do CRASH!!!
@@ -218,11 +284,11 @@ void evalName() {
 	}
 }
 
-void evalWhile() {
+void Lexical::evalWhile() {
 	char *expression = getExpression();
 	char *bodyEnd = strpbrk(expression, ";");
-	if (getCurrentScopeEnd() != index) {
-		incrementScope(-1, index);
+	if (scope.getCurrentScopeEnd() != index) {
+		scope.incrementScope(-1, index);
 	}
 
 	//eval if end or goto start.
@@ -252,23 +318,23 @@ void evalWhile() {
 		}
 
 		//parse strings.
-		char *tmpL = parseManager(lhs, isReference);
+		char *tmpL = parser.parseManager(lhs, isReference);
 		memset(&lhs, 0, VALUESIZE);
 		memcpy(lhs, tmpL, strlen(tmpL));
 
-		char *tmpR = parseManager(rhs, isReference);
+		char *tmpR = parser.parseManager(rhs, isReference);
 		//memset(&rhs, 0, 50);
 		memcpy(rhs, tmpR, strlen(tmpR));
 
 		printf("i = %s\n", lhs);
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 0) {
-			start = getCurrentScopeStart();
-			index = start;
+			startIndex = scope.getCurrentScopeStart();
+			index = startIndex;
 			printf("Values are not equal\n");
 			return;
 		} else {
-			decrementScope();
+			scope.decrementScope();
 			printf("Values are equal\n");
 		}
 
@@ -291,16 +357,16 @@ void evalWhile() {
 		}
 
 		//parse strings.
-		parseManager(lhs, isReference);
-		parseManager(rhs, isReference);
+		parser.parseManager(lhs, isReference);
+		parser.parseManager(rhs, isReference);
 
 		//Values are always *char.
 		if (strCmp(lhs, rhs) == 1) {
-			start = getCurrentScopeStart();
-			index = start;
+			startIndex = scope.getCurrentScopeStart();
+			index = startIndex;
 			return;
 		} else {
-			decrementScope();
+			scope.decrementScope();
 		}
 
 	} else {
@@ -308,23 +374,38 @@ void evalWhile() {
 	}
 }
 
-void evalCall(char *expression) {
+
+void Lexical::evalCall() {
+	char *expression = getExpression();
+	int found = 0;
+	int i;
+	for (i = 0; i != subroutinesLen; ++i) {
+		if (strCmp(subroutines[i].name, expression)) {
+			oldIndex = index;
+			index = subroutines[i].startPos;
+			currentSubroutine = subroutines[i];
+			break;
+		}
+	}
+	
+	if (!found) {
+		//Subroutine name does not exist, do CRASH!!!
+	}
+}
+
+void Lexical::evalSubroutine(char *expression) {
 
 }
 
-void evalSubroutine(char *expression) {
+void Lexical::evalPrintv(char *expression) {
 
 }
 
-void evalPrintv(char *expression) {
+void Lexical::evalPrinta(char *expression) {
 
 }
 
-void evalPrinta(char *expression) {
-
-}
-
-void evalCmp() {
+void Lexical::evalIf() {
 	char *expression = getExpression();
 	removeParanthesis(expression);
 	char *opComma = strstr(expression, ",");
@@ -341,13 +422,13 @@ void evalCmp() {
 		rhs[lenRhs] = '\0';
 
 		//check if they are alias.
-		int val1 = getIndexAsInt(lhs);
-		int val2 = getIndexAsInt(rhs);
+		int val1 = parser.heap.getIndexAsInt(lhs);
+		int val2 = parser.heap.getIndexAsInt(rhs);
 		
 		char *tmp;
 		int len;
 		if (val1 != -1) {
-			tmp = getValueAt(val1);
+			tmp = parser.heap.getValueAt(val1);
 			len = strlen(tmp);
 			memcpy(lhs, tmp, len);
 			lhs[len] = '\0';
@@ -355,7 +436,7 @@ void evalCmp() {
 		}
 		
 		if (val2 != -1) {
-			tmp = getValueAt(val2);
+			tmp = parser.heap.getValueAt(val2);
 			len = strlen(tmp);
 			memcpy(rhs, tmp, len);
 			rhs[len] = '\0';
@@ -365,11 +446,11 @@ void evalCmp() {
 	}
 }
 
-void evalReg() {
-	parseReg(getKeyword(), getExpression());
+void Lexical::evalReg() {
+	parser.parseReg(getKeyword(), getExpression());
 }
 
-void splitInstruction(char *instruction) {
+void Lexical::splitInstruction(char *instruction) {
 	trimString(instruction);
 	char tmp[INSTRUCTIONSIZE];
 	char tmp2[INSTRUCTIONSIZE];
@@ -381,10 +462,10 @@ void splitInstruction(char *instruction) {
 		//is alias
 		char *isalias = NULL;
 		char *name;
-		int size = getHeapSize();
+		int size = parser.heap.getHeapSize();
 		int i;
 		for (i = 0; i != size; ++i) {
-			name = getName(i);
+			name = parser.heap.getName(i);
 			isalias = strstr(instruction, name);
 			if (isalias) {
 				//if it is a text string instead of a variable name.
@@ -403,8 +484,10 @@ void splitInstruction(char *instruction) {
 	char *alias = strstr(instruction, ":alias");
 	char *DO = strstr(instruction, ":do");
 	char *reg = strstr(instruction, ":reg");
-	char *cmp = strstr(instruction, ":cmp");
-	char *nequal = strstr(instruction, "nequal");
+	char *IF = strstr(instruction, ":if");
+	char *ELSE = strstr(instruction, ":else");
+	char *call = strstr(instruction, ":call");
+	char *subroutine = strstr(instruction, ":subroutine");
 
 	if (sysMemAllocHeap) {
 		setKeyword("sysMemAllocHeap");
@@ -467,14 +550,14 @@ void splitInstruction(char *instruction) {
 		evalWhile();
 		return;
 	}
-
-	if (cmp) {
-		setKeyword(":cmp");
-		len = strlen(cmp) - 3;
-		memcpy(tmp, cmp + 4, len);
+	 
+	if (IF) {
+		setKeyword(":if");
+		len = strlen(IF) - 2;
+		memcpy(tmp, IF + 3, len);
 		tmp[len] = '\0';
 		setExpression(tmp);
-		evalCmp();
+		evalIf();
 
 		if (cmpResult) {
 			ignore = 0;
@@ -484,12 +567,25 @@ void splitInstruction(char *instruction) {
 		}
 	}
 
-	if (nequal && cmpResult) {
+	if (ELSE && cmpResult) {
+		ignore = 1;
+	}
+
+	if (call) {
+		setKeyword(":call");
+		len = strlen(call) - 5;
+		memcpy(tmp, call + 5, len);
+		tmp[len] = '\0';
+		setExpression(tmp);
+		evalCall();
+	}
+
+	if (subroutine) {
 		ignore = 1;
 	}
 }
 
-void getInstructions(char *code) {
+void Lexical::getInstructions() {
 	int comment = 0;
 	char instruction[INSTRUCTIONSIZE];
 
@@ -498,30 +594,32 @@ void getInstructions(char *code) {
 				comment = 1;
 		} else if (code[index] == '*' && code[index +1] == '/') {
 			comment = 0;
-			start = index + 1;
+			startIndex = index + 1;
 		}
 
 		if (code[index] == '}') { 
 			ignore = 0; 
 		}
 
+		if (index == currentSubroutine.endPos) {
+			currentSubroutine.endPos = -1;
+			currentSubroutine.startPos = -1;
+			index = oldIndex;
+		}
+
 		if (code[index] == ';' || code[index] == '{') {
 			if (comment == 0 && ignore == 0) {
-				end = index;
-				int len = end - start;
+				endIndex = index;
+				int len = endIndex - startIndex;
 				len = abs(len);
-				memcpy(instruction, code + start, len);
+				memcpy(instruction, code + startIndex, len);
 				instruction[len] = '\0';
-				start = end + 1;
+				startIndex = endIndex + 1;
 				splitInstruction(instruction);
 				printf("%s", instruction);
 			}
-			start = index;
+			startIndex = index;
 		}
 		++index;
 	}
-}
-
-void freeMem(void) {
-	free(code);
 }

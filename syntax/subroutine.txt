@@ -1,0 +1,11 @@
+:SysMemAllocHeap 64;
+
+:regA.set(2);
+:regB.set(3);
+
+:subroutine add {
+	:regA.add(:regB.get());
+
+};
+
+:call add;

@@ -1,18 +1,15 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "Parser.h"
 
-typedef struct operator_s {
-	int pos;
-	char op;
-}operator_t;
+Parser::Parser() {}
 
-operator_t findOperator(const char *cStr, const int startPos) {
-	char *opPlus = strstr(cStr + startPos, "+");
-	char *opMinus = strstr(cStr + startPos, "-");
-	char *opMul = strstr(cStr + startPos, "*");
-	char *opDiv = strstr(cStr + startPos, "/");
-	char *opEqual = strstr(cStr + startPos, "=");
+Parser::~Parser() {}
+
+operator_s Parser::findOperator(const char *cStr, const int startPos) {
+	const char *opPlus = strstr(cStr + startPos, "+");
+	const char *opMinus = strstr(cStr + startPos, "-");
+	const char *opMul = strstr(cStr + startPos, "*");
+	const char *opDiv = strstr(cStr + startPos, "/");
+	const char *opEqual = strstr(cStr + startPos, "=");
 
 	int len = strlen(cStr);
 	int pl = INT_MAX;
@@ -33,7 +30,7 @@ operator_t findOperator(const char *cStr, const int startPos) {
 		eq = len - strlen(opEqual);
 	}
 
-	operator_t newOp;
+	operator_s newOp;
 	newOp.op = ' ';
 	newOp.pos = -1;
 
@@ -56,7 +53,7 @@ operator_t findOperator(const char *cStr, const int startPos) {
 	return newOp;
 }
 
-int checkForAlpha(const char *cStr) {
+int Parser::checkForAlpha(const char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (!((cStr[i] >= 'a' && cStr[i] <= 'z') || (cStr[i] >= 'A' && cStr[i] <= 'Z'))) {
@@ -67,7 +64,7 @@ int checkForAlpha(const char *cStr) {
 	return 1;
 }
 
-int checkForDigits(const char *cStr) {
+int Parser::checkForDigits(const char *cStr) {
 	int i = 0;
 	if (cStr[0] == '\0') { return -1; }
 	while (cStr[i] != '\0') {
@@ -79,7 +76,7 @@ int checkForDigits(const char *cStr) {
 	return 1;
 }
 
-void trim(char *cStr) {
+void Parser::trim(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
@@ -91,7 +88,7 @@ void trim(char *cStr) {
 	cStr[j] = '\0';
 }
 
-void trimHeap(char *cStr) {
+void Parser::trimHeap(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
@@ -103,7 +100,23 @@ void trimHeap(char *cStr) {
 	cStr[j] = '\0';
 }
 
-char* parseReg(char *keyword, char *expression) {
+char* Parser::parseRegArg(char *keyword, char *arg) {
+	operator_s op = findOperator(arg, 0);
+	if (op.pos != -1) {
+
+	} else {
+		//only one parameter.
+		char *reg = strstr(arg, ":reg");
+		if (reg) {
+			parseReg(keyword, reg);
+		}
+		//numbers or alias name or text string.
+	}
+
+	return NULL;
+}
+
+char* Parser::parseReg(char *keyword, char *expression) {
 	trim(keyword);
 	trim(expression);
 
@@ -121,34 +134,35 @@ char* parseReg(char *keyword, char *expression) {
 	arg[argLen] = '\0';
 
 	//TODO! Parse arg.
+	//arg = parseRegArg(keyword, arg));
 
 	if (strCmp(operation, "set")) {
-		set(mem, arg);
+		reg.set(mem, arg);
 	} else if (strCmp(operation, "get")) {
-		return get(mem);
+		return reg.get(mem);
 	} else if (strCmp(operation, "add")) {
-		add(mem, arg);
+		reg.add(mem, arg);
 	} else if (strCmp(operation, "sub")) {
-		sub(mem, arg);
+		reg.sub(mem, arg);
 	} else if (strCmp(operation, "div")) {
-		division(mem, arg);
+		reg.division(mem, arg);
 	} else if (strCmp(operation, "mul")) {
-		mul(mem, arg);
+		reg.mul(mem, arg);
 	}
 	return "";
 }
 
-char* parseHeap(char *cStr, int isReference) {
+char* Parser::parseHeap(char *cStr, int isReference) {
 	trimHeap(cStr);
 	if (isReference) {
 		return cStr;
 	}
-	return getValue(atoi(cStr));
+	return heap.getValue(atoi(cStr));
 }
 
-char* parseManager(char *cStr, int isReference) {
+char* Parser::parseManager(char *cStr, int isReference) {
 	trim(cStr);
-	operator_t firstOp = findOperator(cStr, 0);
+	operator_s firstOp = findOperator(cStr, 0);
 
 	//Check if it is a hard coded memory address
 	char *hashtag = strstr(cStr, "#");
@@ -161,7 +175,7 @@ char* parseManager(char *cStr, int isReference) {
 		return cStr;
 	}
 
-	operator_t secondOp = findOperator(cStr, firstOp.pos + 1);
+	operator_s secondOp = findOperator(cStr, firstOp.pos + 1);
 	if (secondOp.pos == -1) {
 		secondOp.pos = strlen(cStr);
 	}
@@ -195,17 +209,17 @@ char* parseManager(char *cStr, int isReference) {
 			memcpy(lhs, bitwiseAnd + 1, len);
 			lhs[len] = '\0';
 
-			resultLhs = getIndexAsString(lhs);
+			resultLhs = heap.getIndexAsString(lhs);
 			if (resultLhs == "") {
 				//alias name does not exist on heap, do CRASH!!!
 			}
 			lhsIsAddress = 1;
 		} else {
-			int res = getIndexAsInt(lhs);
+			int res = heap.getIndexAsInt(lhs);
 			if (res == NULL) {
 				//alias name does not exist on heap, do CRASH!!!
 			}
-			resultLhs = getValue(res);
+			resultLhs = heap.getValue(res);
 		}
 
 	} else {
@@ -282,11 +296,11 @@ char* parseManager(char *cStr, int isReference) {
 			memcpy(rhs, bitwiseAnd + 1, len);
 			rhs[len] = '\0';
 
-			resultRhs = getIndexAsString(rhs);
+			resultRhs = heap.getIndexAsString(rhs);
 			rhsIsAddress = 1;
 		} else {
-			int res = getIndexAsInt(rhs);
-			resultRhs = getValue(res);
+			int res = heap.getIndexAsInt(rhs);
+			resultRhs = heap.getValue(res);
 		}
 	} else {
 		char keyword[5];
@@ -314,7 +328,7 @@ char* parseManager(char *cStr, int isReference) {
 		if (resultRhs == NULL) {
 			//rhs value is undefined.
 		} else if (resultLhs == NULL) {
-			//ths value is undefined.
+			//lhs value is undefined.
 		}
 
 		int isDigitsLhs = checkForDigits(resultLhs);

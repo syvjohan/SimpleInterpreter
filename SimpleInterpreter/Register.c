@@ -1,40 +1,39 @@
+#include "Register.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+Register::Register() {}
 
-//Register
-#define SYSCPUINTERNALMEM 4
+Register::~Register() {}
 
-typedef struct reg_s {
-	char container[SYSCPUINTERNALMEM];
-}reg_t;
-
-reg_t reg[3];
-
-void set(char *mem, char *value) {
+//Kontrollera beräkningar med negativa nummer.
+//Detta kommer inte fungera den måsste veta om det är siffror eller bokstäver den ska lagra.
+void Register::set(char *mem, char *value) {
 	int len = strlen(value);
 	if (len > 31) {
 		//to many characters do CRASH!
 	}
 
 	if (strCmp(mem, "A")) {
-		*reg[0].container = &value;
+		memset(&reg[0], 0, SYSCPUINTERNALMEM);
+		*reg[0].container = *value;
 		reg[0].container[len] = '\0';
 	} else if (strCmp(mem, "B")) {
-		*reg[1].container = &value;
+		memset(&reg[1], 0, SYSCPUINTERNALMEM);
+		*reg[1].container = *value;
 		reg[1].container[len] = '\0';
 	} else if (strCmp(mem, "C")) {
-		*reg[2].container = &value;
+		memset(&reg[2], 0, SYSCPUINTERNALMEM);
+		*reg[2].container = *value;
 		reg[2].container[len] = '\0';
 	} else if (strCmp(mem, "A")) {
-		*reg[3].container = &value;
+		memset(&reg[3], 0, SYSCPUINTERNALMEM);
+		*reg[3].container = *value;
 		reg[3].container[len] = '\0';
 	} else {
 		//Trying to acces a none existing register do CRASH!
 	}
 }
 
-char* get(char *mem) {
+char* Register::get(char *mem) {
 	if (strCmp(mem, "A")) {
 		return reg[0].container;
 	} else if (strCmp(mem, "B")) {
@@ -48,7 +47,7 @@ char* get(char *mem) {
 	}
 }
 
-void add(char *mem, char *val) {
+void Register::add(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
 	if (strCmp(mem, "A")) {
@@ -72,7 +71,7 @@ void add(char *mem, char *val) {
 	}
 }
 
-void sub(char *mem, char *val) {
+void Register::sub(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
 	if (strCmp(mem, "A")) {
@@ -96,7 +95,7 @@ void sub(char *mem, char *val) {
 	}
 }
 
-void mul(char *mem, char *val) {
+void Register::mul(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
 	if (strCmp(mem, "A")) {
@@ -120,7 +119,7 @@ void mul(char *mem, char *val) {
 	}
 }
 
-void division(char *mem, char *val) {
+void Register::division(char *mem, char *val) {
 	int v = atoi(val);
 	int sum = 0;
 	if (strCmp(mem, "A")) {

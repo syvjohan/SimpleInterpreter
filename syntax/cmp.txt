@@ -3,6 +3,6 @@
 :alias str : #0 = "hej"; /*important to write */
 :alias baba : #10 = "hej";
 
-:cmp(str, baba) { :alias greger : #33 = "ratt"; }
-:nequal { :alias fel : #50 = "dudu";} 
+:if(str, baba) { :alias greger : #33 = "ratt"; }
+:else { :alias fel : #50 = "dudu";} 
 :alias labban : #50 = "fel";

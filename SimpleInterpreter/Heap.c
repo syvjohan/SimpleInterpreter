@@ -1,32 +1,30 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
+#include "Heap.h"
 
-#define NAMESIZE 30
+Heap::Heap() {}
 
-typedef struct index_s {
-	char name[NAMESIZE];
-	int startPos;
-	int endPos;
-}index_t;
+Heap::~Heap() {
+	if (heapContainer) {
+		delete [] heapContainer;
+		heapContainer = NULL;
+	}
 
-char *heapContainer;
-index_t *heapIndex;
-size_t heapSize;
+	if (heapIndex) {
+		delete [] heapIndex;
+		heapIndex = NULL;
+	}
+}
 
-char *tmp;
-
-void setHeapSize(size_t size) {
-	heapIndex = (index_t *)malloc(size * sizeof(index_t));
-	heapContainer = malloc(size * sizeof(char));
+void Heap::setHeapSize(size_t size) {
+	heapIndex = DBG_NEW Index_s [size];
+	heapContainer = DBG_NEW char[size];
 	heapSize = size;
 }
 
-size_t getHeapSize(void) {
+size_t Heap::getHeapSize(void) {
 	return heapSize;
 }
 
-void insertAt(int index, char *value, char *name) {
+void Heap::insertAt(int index, char *value, char *name) {
 	if (heapIndex[index].endPos + strlen(value) > heapSize) {
 		printf("Overflowing the heap, do CRASH!!!\n");
 		printf("\n endposition: %i ", heapIndex[index].endPos);
@@ -58,11 +56,11 @@ void insertAt(int index, char *value, char *name) {
 	heapIndex[index].name[j] = '\0';
 }
 
-char* getName(int index) {
+char* Heap::getName(int index) {
 	return heapIndex[index].name;
 }
 
-char* getValueAt(int position) {
+char* Heap::getValueAt(int position) {
 	int i = 0;
 	char cStr[50];
 	while (heapContainer[position] != '\0') {
@@ -76,7 +74,7 @@ char* getValueAt(int position) {
 	return cStr;
 }
 
-void initializeHeap(size_t size) {
+void Heap::initializeHeap(size_t size) {
 	setHeapSize(size);
 
 	int i;
@@ -87,7 +85,7 @@ void initializeHeap(size_t size) {
 }
 
 //Returns name index.
-int getIndexAsInt(char *name) {
+int Heap::getIndexAsInt(char *name) {
 	int i = 0;
 	while (heapSize != i) {
 		if (strCmp(name, heapIndex[i].name)) {
@@ -99,7 +97,7 @@ int getIndexAsInt(char *name) {
 }
 
 //Returns name index.
-char* getIndexAsString(char *name) {
+char* Heap::getIndexAsString(char *name) {
 	int i = 0;
 	while (heapSize != i) {
 		if (strCmp(name, heapIndex[i].name)) {
@@ -112,7 +110,7 @@ char* getIndexAsString(char *name) {
 	return "";
 }
 
-char* getValue(int index) {
+char* Heap::getValue(int index) {
 	int len = heapIndex[index].endPos - heapIndex[index].startPos;
 	tmp = (char *)malloc(len +1 * sizeof(char));
 
@@ -121,21 +119,9 @@ char* getValue(int index) {
 	return tmp;
 }
 
-void freeTmpValue() {
+void Heap::freeTmpValue() {
 	if (tmp) {
 		free(tmp);
 		tmp = NULL;
-	}
-}
-
-void freeHeap(void) {
-	if (heapContainer) {
-		free(heapContainer);
-		heapContainer = NULL;
-	}
-
-	if (heapIndex) {
-		free(heapIndex);
-		heapIndex = NULL;
 	}
 }
