@@ -1,0 +1,4 @@
+:sysMemAllocHeap 64;
+
+:alias str : #0 = 123 + 23;
+:alias baba : #10 = "hej";

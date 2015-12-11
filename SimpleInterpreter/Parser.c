@@ -157,7 +157,8 @@ char* Parser::parseHeap(char *cStr, int isReference) {
 	if (isReference) {
 		return cStr;
 	}
-	return heap.getValue(atoi(cStr));
+	Alias_s alias = heap.getAlias(cStr);
+	return alias.value;
 }
 
 char* Parser::parseManager(char *cStr, int isReference) {
@@ -209,17 +210,18 @@ char* Parser::parseManager(char *cStr, int isReference) {
 			memcpy(lhs, bitwiseAnd + 1, len);
 			lhs[len] = '\0';
 
-			resultLhs = heap.getIndexAsString(lhs);
-			if (resultLhs == "") {
+			Alias_s aliasLhs = heap.getAlias(lhs);
+			if (aliasLhs.name == NULL) {
 				//alias name does not exist on heap, do CRASH!!!
 			}
+			resultLhs = aliasLhs.value;
 			lhsIsAddress = 1;
 		} else {
-			int res = heap.getIndexAsInt(lhs);
-			if (res == NULL) {
+			Alias_s aliasLhs = heap.getAlias(lhs);
+			if (aliasLhs.name == NULL) {
 				//alias name does not exist on heap, do CRASH!!!
 			}
-			resultLhs = heap.getValue(res);
+			resultLhs = aliasLhs.value;
 		}
 
 	} else {
@@ -295,12 +297,13 @@ char* Parser::parseManager(char *cStr, int isReference) {
 			int len = strlen(bitwiseAnd);
 			memcpy(rhs, bitwiseAnd + 1, len);
 			rhs[len] = '\0';
-
-			resultRhs = heap.getIndexAsString(rhs);
+			
+			Alias_s alias = heap.getAlias(rhs);
+			resultRhs = alias.value;
 			rhsIsAddress = 1;
 		} else {
-			int res = heap.getIndexAsInt(rhs);
-			resultRhs = heap.getValue(res);
+			Alias_s alias = heap.getAlias(rhs);
+			resultRhs = alias.value;
 		}
 	} else {
 		char keyword[5];
@@ -376,4 +379,8 @@ char* Parser::parseManager(char *cStr, int isReference) {
 		}
 	}
 	return result;
+}
+
+char* Parser::parserRegularExpression(char *val) {
+
 }

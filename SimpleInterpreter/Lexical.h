@@ -14,6 +14,7 @@
 #define NAMESIZE 30
 #define ADDRESSSIZE 20
 #define VALUESIZE 50
+#define TYPESIZE 7
 #define INSTRUCTIONSIZE 100
 
 struct subroutine_s {
@@ -37,10 +38,6 @@ class Lexical {
 	private:
 		void trimString(char *cStr);
 		void removeParanthesis(char *cStr);
-		char* getKeyword();
-		void setKeyword(char *cStr);
-		char* getExpression();
-		void setExpression(char *cStr);
 		void allocateMem();
 		void initlizeCurrentSubroutine();
 		void expandSubroutineSize(void);
@@ -65,8 +62,8 @@ class Lexical {
 
 		int ignore = 0;
 
-		char keyword[NAMESIZE];
-		char expression[VALUESIZE];
+		char *keyword;
+		char *expression;
 		int cmpResult = 0;
 
 		subroutine_s *subroutines;

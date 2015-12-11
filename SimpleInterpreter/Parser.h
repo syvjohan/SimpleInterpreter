@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "Heap.h"
+#include "Stack"
 #include "Register.h"
 #include "Global.h"
 
@@ -19,6 +20,7 @@ class Parser {
 		Parser();
 		~Parser();
 		char* parseManager(char *cStr, int isReference);
+		char* parserRegularExpression(char *val);
 		char* parseReg(char *keyword, char *expression);
 		char* parseHeap(char *cStr, int isReference);
 		int checkForAlpha(const char *cStr);

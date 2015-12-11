@@ -30,7 +30,7 @@ char* Lexical::readFile(const char *path) {
 	fseek(file, 0, SEEK_SET);
 
 	//allocate sizeof file +1.
-	code = (char *)malloc((fileSize + 1) * sizeof(char));
+	code = DBG_NEW char[fileSize + 1];
 
 	//read file into string
 	int c;
@@ -55,7 +55,7 @@ void Lexical::trimString(char *cStr) {
 	int i = 0;
 	int j = 0;
 	while (cStr[i] != '\0') {
-		if (cStr[i] != ' ' && cStr[i] != '#') {
+		if (cStr[i] != ' ') {
 			cStr[j++] = cStr[i];
 		}
 		i++;
@@ -75,26 +75,7 @@ void Lexical::removeParanthesis(char *cStr) {
 	cStr[j] = '\0';
 }
 
-char* Lexical::getKeyword() {
-	return keyword;
-}
-
-void Lexical::setKeyword(char *cStr) {
-	memset(keyword, 0, strlen(keyword));
-	memcpy(keyword, cStr, strlen(cStr));
-}
-
-char* Lexical::getExpression() {
-	return expression;
-}
-
-void Lexical::setExpression(char *cStr) {
-	memset(expression, 0, strlen(expression));
-	memcpy(expression, cStr, strlen(cStr));
-}
-
 void Lexical::allocateMem() {
-	char *expression = getExpression();
 	trimString(expression);
 	
 	//Allocate heap memory.
@@ -169,14 +150,14 @@ void Lexical::getAllSubroutines(void) {
 }
 
 void Lexical::evalAlias() {
-	char *expression = getExpression();
 	int len = strlen(expression);
 	char *sep1 = strpbrk(expression, ":");
 	char *sep2 = strpbrk(expression, "=");
-	char *sep3 = strpbrk(expression, ";");
+	char *identifyType = strpbrk(expression, "\"");
 	char name[NAMESIZE];
 	char address[ADDRESSSIZE];
 	char val[VALUESIZE];
+	char *type;
 
 	int lenName = len - strlen(sep1);
 	memcpy(name, expression, lenName);
@@ -185,50 +166,70 @@ void Lexical::evalAlias() {
 	int lenAddress;
 	if (sep2) {
 		lenAddress = strlen(sep1) - strlen(sep2) -1; //-2
-	} else if (sep3) {
-		//Something is wrong do CRASH!.
 	} else {
-		lenAddress = strlen(sep1) +1 - strlen(sep3) - 2;
+		lenAddress = len - strlen(sep1) -2;
 	}
 	
-	memcpy(address, sep1 + 1, lenAddress);
+	memcpy(address, sep1 + 2, lenAddress);
 	address[lenAddress] = '\0';
 
 	if (sep2) {
-		int lenValue = strlen(sep2) -3;
-		memcpy(val, sep2 +2, lenValue);
-		val[lenValue] = '\0';
+		//check datatype and get val.
+		if (identifyType) {
+			type = "string";
+
+			int lenValue = strlen(sep2) - 3;
+			memcpy(val, sep2 + 2, lenValue);
+			val[lenValue] = '\0';
+
+		} else {
+			type = "int";
+
+			int lenValue = strlen(sep2);
+			memcpy(val, sep2 + 1, lenValue);
+			val[lenValue] = '\0';
+
+			if (parser.checkForDigits(val) == -1) {
+				//do CRASH!!!
+			}
+		}
+	} else {
+		//if No definition
+		type = NULL;
+		*val = NULL;
 	}
-	
-	trimString(name);
-	trimString(address);
 
 	//alias name need to contain at least one letter.
 	if (strlen(name) < 1) {
-		//alias name can only contain letters.
-		if (parser.checkForAlpha(name) == -1) {
-			//do CRASH!!!
-		}
+		//do CRASH!!!
+	}
+	
+	//alias name can only contain letters.
+	if (parser.checkForAlpha(name) == -1) {
 		//do CRASH!!!
 	}
 
 	//alias name need to contain at least one letter.
 	if (strlen(address) < 1) {
-		//address can only contain digits and need to start with a #.
-		if (parser.checkForDigits(address) == -1) {
-			//do CRASH!!!
-		}
 		//do CRASH!!!
 	}
-
-	if (val) {
-		trimString(val);
-		//parse val if it is an regular expression.
-		parser.parseManager(val, 0);
+	
+	//address can only contain digits.
+	if (parser.checkForDigits(address) == -1) {
+			//do CRASH!!!
 	}
 
+	//regular expression.
+	parser.parseRegularExpression(val);
+
+	//Insert.
 	int a = atoi(address);
-	parser.heap.insertAt(a, val, name);
+	Alias_s alias;
+	alias.name = name;
+	alias.value = val;
+	alias.len = strlen(val);
+	alias.type = type;
+	parser.heap.insertAliasAt(a, alias);
 }
 
 void Lexical::evalDo(int len) {
@@ -239,7 +240,6 @@ void Lexical::evalDo(int len) {
 }
 
 void Lexical::evalName() {
-	char *expression = getExpression();
 	trimString(expression);
 
 	char *equal = strstr(expression, "=");
@@ -272,8 +272,12 @@ void Lexical::evalName() {
 		char *rhsRes = parser.parseManager(rhs, isReferenceRhs);
 
 		if (isReferenceLhs) {
-
-			parser.heap.insertAt(atoi(lhsRes), rhsRes, "");
+			Alias_s alias;
+			alias.name = rhsRes;
+			alias.value = "";
+			alias.len = 0;
+			alias.type = "string"; //TODO check datatype.
+			parser.heap.insertAliasAt(atoi(lhsRes), alias);
 			
 		} else {
 			//Lhs (left hand sign) need to be a modifiable value(&), do CRASH!!!
@@ -285,7 +289,6 @@ void Lexical::evalName() {
 }
 
 void Lexical::evalWhile() {
-	char *expression = getExpression();
 	char *bodyEnd = strpbrk(expression, ";");
 	if (scope.getCurrentScopeEnd() != index) {
 		scope.incrementScope(-1, index);
@@ -376,7 +379,6 @@ void Lexical::evalWhile() {
 
 
 void Lexical::evalCall() {
-	char *expression = getExpression();
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
@@ -406,7 +408,6 @@ void Lexical::evalPrinta(char *expression) {
 }
 
 void Lexical::evalIf() {
-	char *expression = getExpression();
 	removeParanthesis(expression);
 	char *opComma = strstr(expression, ",");
 	
@@ -422,32 +423,15 @@ void Lexical::evalIf() {
 		rhs[lenRhs] = '\0';
 
 		//check if they are alias.
-		int val1 = parser.heap.getIndexAsInt(lhs);
-		int val2 = parser.heap.getIndexAsInt(rhs);
+		Alias_s alias1 = parser.heap.getAlias(lhs);
+		Alias_s alias2 = parser.heap.getAlias(rhs);
 		
-		char *tmp;
-		int len;
-		if (val1 != -1) {
-			tmp = parser.heap.getValueAt(val1);
-			len = strlen(tmp);
-			memcpy(lhs, tmp, len);
-			lhs[len] = '\0';
-			tmp = NULL;
-		}
-		
-		if (val2 != -1) {
-			tmp = parser.heap.getValueAt(val2);
-			len = strlen(tmp);
-			memcpy(rhs, tmp, len);
-			rhs[len] = '\0';
-		}
-		
-		cmpResult = strCmp(lhs, rhs);
+		cmpResult = strCmp(alias1.name, alias2.name);
 	}
 }
 
 void Lexical::evalReg() {
-	parser.parseReg(getKeyword(), getExpression());
+	parser.parseReg(keyword, expression);
 }
 
 void Lexical::splitInstruction(char *instruction) {
@@ -458,27 +442,26 @@ void Lexical::splitInstruction(char *instruction) {
 
 	char *WHILE = strstr(instruction, ":while");
 
-	if (!WHILE) {
-		//is alias
-		char *isalias = NULL;
-		char *name;
-		int size = parser.heap.getHeapSize();
-		int i;
-		for (i = 0; i != size; ++i) {
-			name = parser.heap.getName(i);
-			isalias = strstr(instruction, name);
-			if (isalias) {
-				//if it is a text string instead of a variable name.
-				char *str = strstr(isalias, "\"");
-				if (str) {
-					return;
-				}
-				setExpression(instruction);
-				evalName();
-				break;
-			}
-		}
-	}
+	//if (!WHILE) {
+	//	//is alias
+	//	//char *isalias = NULL;
+	//	//char *name;
+	//	//int size = parser.heap.getHeapSize();
+	//	//int i;
+	//	//for (i = 0; i != size; ++i) {
+	//		Alias_s alias = parser.heap.getAlias(instruction);
+	//		if (alias.name != NULL) {
+	//			//if it is a text string instead of a variable name.
+	//			char *str = strstr(instruction, "\"");
+	//			if (str) {
+	//				return;
+	//			}
+	//			memcpy(&expression,instruction, strlen(instruction));
+	//			//evalName();
+	//			//break;
+	//		}
+	//	//}
+	//}
 
 	char *sysMemAllocHeap = strstr(instruction, "sysMemAllocHeap");
 	char *alias = strstr(instruction, ":alias");
@@ -490,20 +473,20 @@ void Lexical::splitInstruction(char *instruction) {
 	char *subroutine = strstr(instruction, ":subroutine");
 
 	if (sysMemAllocHeap) {
-		setKeyword("sysMemAllocHeap");
+		keyword = "sysMemAllocHeap";
 		len = strlen(sysMemAllocHeap) - 15;
 		memcpy(tmp, sysMemAllocHeap + 15, len);
 		tmp[len] = '\0';
-		setExpression(tmp);
+		expression = tmp;
 		allocateMem();
 	} 
 
 	if (alias) {
-		setKeyword(":alias");
+		keyword = ":alias";
 		len = strlen(alias) -6;
 		memcpy(tmp, alias +6, len);
 		tmp[len] = '\0';
-		setExpression(tmp);
+		expression = tmp;
 		evalAlias();
 	} 
 
@@ -511,7 +494,7 @@ void Lexical::splitInstruction(char *instruction) {
 		int totLen = 0;
 		char *bracket = strstr(DO, "{");
 		if (bracket) {
-			setKeyword(":do");
+			keyword = ":do";
 			totLen = strlen(bracket) -1;
 		} else {
 			// Open bracket missing do CRASH!!
@@ -532,37 +515,37 @@ void Lexical::splitInstruction(char *instruction) {
 	if (reg) {
 		memcpy(tmp2, reg +1, 4);
 		tmp2[4] = '\0';
-		setKeyword(tmp2);
+		keyword = tmp2;
 
 		len = strlen(reg) - 5;
 		memcpy(tmp, reg + 5, len);
 		tmp[len] = '\0';
-		setExpression(tmp);
+		expression = tmp;
 		evalReg();
 	}
 
 	if (WHILE) {
-		setKeyword(":while");
+		keyword = ":while";
 		len = strlen(WHILE) - 6;
 		memcpy(tmp, WHILE + 7, len);
 		tmp[len] = '\0';
-		setExpression(tmp);
+		expression = tmp;
 		evalWhile();
 		return;
 	}
 	 
 	if (IF) {
-		setKeyword(":if");
+		keyword = ":if";
 		len = strlen(IF) - 2;
 		memcpy(tmp, IF + 3, len);
 		tmp[len] = '\0';
-		setExpression(tmp);
+		expression = tmp;
 		evalIf();
 
 		if (cmpResult) {
 			ignore = 0;
 		} else {
-			//ignore :nequal.
+			//ignore :else.
 			ignore = 1;
 		}
 	}
@@ -572,11 +555,11 @@ void Lexical::splitInstruction(char *instruction) {
 	}
 
 	if (call) {
-		setKeyword(":call");
+		keyword = ":call";
 		len = strlen(call) - 5;
 		memcpy(tmp, call + 5, len);
 		tmp[len] = '\0';
-		setExpression(tmp);
+		expression = tmp;
 		evalCall();
 	}
 
