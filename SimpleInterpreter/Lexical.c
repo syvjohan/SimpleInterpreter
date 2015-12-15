@@ -83,6 +83,14 @@ void Lexical::allocateMem() {
 	parser.heap.initializeHeap(s);
 }
 
+void Lexical::createStack() {
+	trimString(expression);
+
+	//Create stack on heap
+	int s = atoi(expression);
+	parser.heap.createStack(s);
+}
+
 void Lexical::initlizeCurrentSubroutine() {
 	currentSubroutine.endPos = -1;
 	currentSubroutine.startPos = -1;
@@ -151,9 +159,9 @@ void Lexical::getAllSubroutines(void) {
 
 void Lexical::evalAlias() {
 	int len = strlen(expression);
-	char *sep1 = strpbrk(expression, ":");
-	char *sep2 = strpbrk(expression, "=");
-	char *identifyType = strpbrk(expression, "\"");
+	char *sep1 = strstr(expression, ":");
+	char *sep2 = strstr(expression, "=");
+	char *identifyType = strstr(expression, "\"");
 	char name[NAMESIZE];
 	char address[ADDRESSSIZE];
 	char val[VALUESIZE];
@@ -220,14 +228,14 @@ void Lexical::evalAlias() {
 	}
 
 	//regular expression.
-	parser.parseRegularExpression(val);
+	char *parserVal = parser.regularExpression(val);
 
 	//Insert.
 	int a = atoi(address);
 	Alias_s alias;
 	alias.name = name;
-	alias.value = val;
-	alias.len = strlen(val);
+	alias.value = parserVal;
+	alias.len = strlen(parserVal);
 	alias.type = type;
 	parser.heap.insertAliasAt(a, alias);
 }
@@ -395,15 +403,55 @@ void Lexical::evalCall() {
 	}
 }
 
+void Lexical::evalStk() {
+	parser.trimCloseParanthes(expression);
+	char *pop = strstr(expression, ".pop(");
+	char *pushAt = strstr(expression, ".pushAt(");
+	char *pushTop = strstr(expression, ".pushTop(");
+	char *getAt = strstr(expression, ".getAt(");
+	char *getTop = strstr(expression, ".getTop(");
+
+	char tmp[INSTRUCTIONSIZE];
+	int len;
+	if (pop) {
+		parser.stackPop();
+
+	} else if (pushAt) {
+		len = strlen(pushAt) - 8;
+		memcpy(tmp, pushAt + 8, len);
+		tmp[len] = '\0';
+		
+		parser.stackPushAt(tmp);
+
+	} else if (pushTop) {
+		len = strlen(pushTop) - 9;
+		memcpy(tmp, pushTop + 9, len);
+		tmp[len] = '\0';
+
+		parser.stackPushTop(tmp);
+
+	} else if (getAt) {
+		len = strlen(getAt) - 7;
+		memcpy(tmp, getAt + 7, len);
+		tmp[len] = '\0';
+
+		parser.stackGetAt(tmp);
+
+	} else if (getTop) {
+		parser.stackGetTop();
+	}
+}
+
 void Lexical::evalSubroutine(char *expression) {
 
 }
 
-void Lexical::evalPrintv(char *expression) {
-
+void Lexical::evalPrintv() {
+	expression = parser.regularExpression(expression);
+	std::cout << '\n' << expression << std::endl;
 }
 
-void Lexical::evalPrinta(char *expression) {
+void Lexical::evalPrinta() {
 
 }
 
@@ -425,7 +473,7 @@ void Lexical::evalIf() {
 		//check if they are alias.
 		Alias_s alias1 = parser.heap.getAlias(lhs);
 		Alias_s alias2 = parser.heap.getAlias(rhs);
-		
+	
 		cmpResult = strCmp(alias1.name, alias2.name);
 	}
 }
@@ -463,7 +511,8 @@ void Lexical::splitInstruction(char *instruction) {
 	//	//}
 	//}
 
-	char *sysMemAllocHeap = strstr(instruction, "sysMemAllocHeap");
+	char *sysMemAllocHeap = strstr(instruction, ":sysMemAllocHeap");
+	char *sysCreateStack = strstr(instruction, ":sysCreateStack");
 	char *alias = strstr(instruction, ":alias");
 	char *DO = strstr(instruction, ":do");
 	char *reg = strstr(instruction, ":reg");
@@ -471,15 +520,27 @@ void Lexical::splitInstruction(char *instruction) {
 	char *ELSE = strstr(instruction, ":else");
 	char *call = strstr(instruction, ":call");
 	char *subroutine = strstr(instruction, ":subroutine");
+	char *stk = strstr(instruction, ":stk.");
+	char *printv = strstr(instruction, ":printv(");
+	char *printa = strstr(instruction, ":printva(");
 
 	if (sysMemAllocHeap) {
-		keyword = "sysMemAllocHeap";
-		len = strlen(sysMemAllocHeap) - 15;
-		memcpy(tmp, sysMemAllocHeap + 15, len);
+		keyword = ":sysMemAllocHeap";
+		len = strlen(sysMemAllocHeap) - 16;
+		memcpy(tmp, sysMemAllocHeap + 16, len);
 		tmp[len] = '\0';
 		expression = tmp;
 		allocateMem();
 	} 
+
+	if (sysCreateStack) {
+		keyword = ":sysCreateStack";
+		len = strlen(sysCreateStack) - 15;
+		memcpy(tmp, sysCreateStack + 15, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		createStack();
+	}
 
 	if (alias) {
 		keyword = ":alias";
@@ -554,6 +615,15 @@ void Lexical::splitInstruction(char *instruction) {
 		ignore = 1;
 	}
 
+	if (stk) {
+		keyword = ":stk";
+		len = strlen(stk) - 3;
+		memcpy(tmp, stk +4, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		evalStk();
+	}
+
 	if (call) {
 		keyword = ":call";
 		len = strlen(call) - 5;
@@ -565,6 +635,24 @@ void Lexical::splitInstruction(char *instruction) {
 
 	if (subroutine) {
 		ignore = 1;
+	}
+
+	if (printv) {
+		keyword = ":printv";
+		len = strlen(printv) - 9;
+		memcpy(tmp, printv + 8, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		evalPrintv();
+	}
+
+	if (printa) {
+		keyword = ":printa";
+		len = strlen(printa) - 7;
+		memcpy(tmp, printa + 7, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		evalPrinta();
 	}
 }
 

@@ -1,4 +1,11 @@
 :sysMemAllocHeap 64;
+:sysCreateStack 32;
 
-:alias str : #0 = 123 + 23;
+
+:alias str : #0 = 123 + 23 + 1;
 :alias baba : #10 = "hej";
+
+:printv(&str);
+
+:stk.pushTop(10);
+:alias s : #15 = :stk.getTop() + 5;

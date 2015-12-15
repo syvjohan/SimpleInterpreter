@@ -1,9 +1,7 @@
 #ifndef LEXICAL_H
 #define LEXICAL_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
 #include <errno.h>
 
 #include "Global.h"
@@ -39,8 +37,10 @@ class Lexical {
 		void trimString(char *cStr);
 		void removeParanthesis(char *cStr);
 		void allocateMem();
+		void createStack();
 		void initlizeCurrentSubroutine();
 		void expandSubroutineSize(void);
+
 		void evalAlias();
 		void evalDo(int len);
 		void evalName();
@@ -51,7 +51,9 @@ class Lexical {
 		void evalPrinta(char *expression);
 		void evalIf();
 		void evalReg();
-
+		void evalStk();
+		void evalPrintv();
+		void evalPrinta();
 
 		char *code = NULL;
 		size_t fileSize;

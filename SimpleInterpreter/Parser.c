@@ -18,7 +18,7 @@ operator_s Parser::findOperator(const char *cStr, const int startPos) {
 	int mu = INT_MAX;
 	int eq = INT_MAX;
 
-	if (opPlus != NULL) {
+	if (opPlus) {
 		pl = len - strlen(opPlus);
 	} else if (opMinus) {
 		mi = len - strlen(opMinus);
@@ -76,6 +76,18 @@ int Parser::checkForDigits(const char *cStr) {
 	return 1;
 }
 
+void Parser::trimString(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != '\"') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}
+
 void Parser::trim(char *cStr) {
 	int i = 0;
 	int j = 0;
@@ -93,6 +105,18 @@ void Parser::trimHeap(char *cStr) {
 	int j = 0;
 	while (cStr[i] != '\0') {
 		if (cStr[i] != ' ' && cStr[i] != '&' && cStr[i] != '#' && cStr[i] != ')' && cStr[i] != '(' && cStr[i] != ';') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}
+
+void Parser::trimCloseParanthes(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != ')') {
 			cStr[j++] = cStr[i];
 		}
 		i++;
@@ -381,6 +405,237 @@ char* Parser::parseManager(char *cStr, int isReference) {
 	return result;
 }
 
-char* Parser::parserRegularExpression(char *val) {
+void Parser::stackPop() {
+	heap.pop();
+}
 
+int Parser::stackPushAt(char *cStr) {
+	char *identifyType = strstr(cStr, "\"");
+	char *comma = strstr(cStr, ",");
+
+	int success = 0;
+	if (comma) {
+		Alias_s alias;
+		char lhs[EXPRESSIONSIZE];
+		memcpy(lhs, cStr, strlen(comma) - strlen(cStr));
+		char *resLhs = regularExpression(lhs);
+		int index;
+		if (checkForDigits(resLhs) == 1 && identifyType == NULL) {
+			index = atoi(resLhs);
+		}
+
+		char rhs[EXPRESSIONSIZE];
+		memcpy(rhs, cStr, strlen(comma));
+		char *resRhs = regularExpression(rhs);
+		if (identifyType) {
+			alias.type = "string";
+			alias.len = strlen(resRhs);
+		} else if (checkForDigits(resRhs) == 1 && identifyType == NULL) {
+			alias.type = "int";
+			alias.len = NULL;
+		} else {
+			//Syntax is wrong, DO CRASH!!
+		}
+		alias.name = NULL;
+		alias.value = resRhs;
+		success = heap.pushAt(index, alias);
+
+	} else {
+		//Only one parameter, DO CRASH!!
+	}
+	return success;
+}
+
+int Parser::stackPushTop(char *cStr) {
+	char *identifyType = strstr(cStr, "\"");
+	char *res = regularExpression(cStr);
+
+	Alias_s alias;
+	if (checkForAlpha(res) == 1 && identifyType) {
+		alias.type = "string";
+		alias.len = strlen(res);
+	} else if (checkForDigits(res) == 1 && identifyType == NULL) {
+		alias.type = "int";
+		alias.len = NULL;
+	} else {
+		//Syntax is wrong, DO CRASH!!
+	}
+	alias.name = NULL;
+	alias.value = res;
+
+	return heap.pushTop(alias);
+}
+
+Alias_s Parser::stackGetAt(char *cStr) {
+	char *identifyType = strstr(cStr, "\"");
+
+	Alias_s alias;
+	if (checkForDigits(cStr) == 1 && identifyType == NULL) {
+		int val = atoi(cStr);
+		alias = heap.getAt(val);
+	} else {
+		//Syntax wrong expression need to be a valid integer, DO CRASH!!
+	}
+	return alias;
+}
+
+Alias_s Parser::stackGetTop() {
+	return heap.getTop();
+}
+
+char* Parser::regularExpression(char *expression) {
+	//If there is no operators return expression(end condition).
+	operator_s op0 = findOperator(expression, 0);
+	if (op0.pos == -1) {
+		Alias_s a;
+		//Is it a stack call?
+		a = findOutSecret(expression);
+
+		if (a.value == NULL) {
+			a.value = expression;
+		}
+		trimString(expression);
+		return expression;
+	}
+
+	//If there is a second operator set len = operator.
+	int len = strlen(expression);
+	operator_s op1 = findOperator(expression, op0.pos +1);
+	if (op1.pos != -1) {
+		len = op1.pos;
+	}
+
+	char exp[EXPRESSIONSIZE];
+	memcpy(exp, expression, len);
+	exp[len] = '\0';
+
+	char dest[EXPRESSIONSIZE];
+	int destLen = strlen(expression) - len;
+	memcpy(dest, expression + len, destLen);
+	dest[destLen] = '\0';
+	
+	char *res = recursiveParser(exp);
+	strcat(res, dest);
+
+	len = strlen(res);
+	memcpy(str, res, len);
+	str[len] = '\0';
+	//recursion.
+	regularExpression(str);
+	
+	return str;
+}
+
+char* Parser::recursiveParser(char *exp) {
+	operator_s op0 = findOperator(exp, 0);
+	char lhs[EXPRESSIONSIZE];
+	char rhs[EXPRESSIONSIZE];
+
+	memcpy(lhs, exp, op0.pos);
+	lhs[op0.pos] = '\0';
+	
+	int rhsLen = strlen(exp) - op0.pos;
+	memcpy(rhs, exp + op0.pos + 1, rhsLen);
+	rhs[rhsLen] = '\0';
+
+	Alias_s aliasLhs = findOutSecret(lhs);
+	Alias_s aliasRhs = findOutSecret(rhs);
+
+	//do calculation
+	//Both are digits
+		if (aliasLhs.type == "int" && aliasRhs.type == "int") {
+			char result[EXPRESSIONSIZE];
+			if (op0.op == '+') {
+				sprintf(result, "%d", atoi(aliasLhs.value) + atoi(aliasRhs.value));
+			} else if (op0.op == '-') {
+				sprintf(result, "%d", atoi(aliasLhs.value) - atoi(aliasRhs.value));
+			} else if (op0.op == '*') {
+				sprintf(result, "%d", atoi(aliasLhs.value) * atoi(aliasRhs.value));
+			} else if (op0.op == '/') {
+				sprintf(result, "%d", atoi(aliasLhs.value) / atoi(aliasRhs.value));
+			} else {
+				//Wrong syntax do CRASH!
+			}
+			return result;
+		}
+		//Both are text strings.
+		else if (aliasLhs.type == "string" && aliasRhs.type == "string") {
+			if (op0.op == '+') {
+				return strcat(aliasLhs.value, aliasRhs.value);
+			} else if (op0.op == '-') {
+				//Wrong syntax do CRASH!
+			} else if (op0.op == '*') {
+				//Wrong syntax do CRASH!
+			} else if (op0.op == '/') {
+				//Wrong syntax do CRASH!
+			}
+		} else {
+			//Cannot compare digits and strings.
+		}
+
+	return NULL;
+}
+
+Alias_s Parser::findOutSecret(char *exp) {
+	Alias_s alias = { NULL, NULL, NULL, 0 };
+
+	Alias_s a = heap.getAlias(exp);
+	char *stack = strstr(exp, ":stk.");
+	char *address = strstr(exp, "#");
+
+	if (a.name) {
+		alias = a;
+
+	} else if (stack) {
+		trimCloseParanthes(stack);
+		char *pop = strstr(stack, "pop(");
+		char *pushAt = strstr(stack, "pushAt(");
+		char *pushTop = strstr(stack, "pushTop(");
+		char *getAt = strstr(stack, "getAt(");
+		char *getTop = strstr(stack, "getTop(");
+
+		char *identifyType = strstr(exp, "\"");
+
+		if (pop) {
+			stackPop();
+		} 
+		else if (pushAt) {
+			stackPushAt(stack);
+		} 
+		else if (pushTop) {
+			stackPushTop(pushTop);
+		} 
+		else if (getAt) {
+			alias = stackGetAt(getAt);
+		} 
+		else if (getTop) {
+			return heap.getTop();
+		} 
+		else {
+			//unsupported stack command.
+		}
+
+	} else if (address) {
+		char a[EXPRESSIONSIZE];
+		int len = strlen(address) - 1;
+		memcpy(a, address, len);
+		a[len] = '\0';
+		alias.len = len;
+		alias.type = "address";
+		alias.value = a;
+	} else if (strstr(exp, "\"") == NULL) {
+		//Digits
+		alias.value = exp;
+		alias.type = "int";
+	} else if (strstr(exp, "\"")) {
+		//Letters
+		trimString(exp);
+		alias.value = exp;
+		alias.type = "string";
+		alias.len = strlen(exp);
+	} else {
+		//Syntax for expression is wrong DO CRASH!!
+	}
+
+	return alias;
 }
