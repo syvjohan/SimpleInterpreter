@@ -494,8 +494,8 @@ char* Parser::regularExpression(char *expression) {
 		if (a.value == NULL) {
 			a.value = expression;
 		}
-		trimString(expression);
-		return expression;
+		trimString(a.value);
+		return a.value;
 	}
 
 	//If there is a second operator set len = operator.
@@ -582,9 +582,10 @@ Alias_s Parser::findOutSecret(char *exp) {
 	Alias_s a = heap.getAlias(exp);
 	char *stack = strstr(exp, ":stk.");
 	char *address = strstr(exp, "#");
+	char *and = strstr(exp, "&");
 
 	if (a.name) {
-		alias = a;
+		memcpy(&alias, &a, sizeof(a));
 
 	} else if (stack) {
 		trimCloseParanthes(stack);
@@ -616,17 +617,33 @@ Alias_s Parser::findOutSecret(char *exp) {
 		}
 
 	} else if (address) {
-		char a[EXPRESSIONSIZE];
 		int len = strlen(address) - 1;
-		memcpy(a, address, len);
-		a[len] = '\0';
+		memcpy(str, address +1, len);
+		str[len] = '\0';
 		alias.len = len;
 		alias.type = "address";
-		alias.value = a;
+		alias.name = str;
+
+		int a = heap.getAddress(str);
+		alias.value = (char *)&a;
+
+	} else if (and) {
+		int len = strlen(and) - 1;
+		memcpy(str, and +1, len);
+		str[len] = '\0';
+		alias.len = len;
+		alias.type = "address";
+		alias.name = str; 
+
+		int digits = heap.getAddress(str);
+		sprintf(str, "%d", digits);
+		alias.value = str;
+
 	} else if (strstr(exp, "\"") == NULL) {
 		//Digits
 		alias.value = exp;
 		alias.type = "int";
+
 	} else if (strstr(exp, "\"")) {
 		//Letters
 		trimString(exp);

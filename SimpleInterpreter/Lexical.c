@@ -231,13 +231,13 @@ void Lexical::evalAlias() {
 	char *parserVal = parser.regularExpression(val);
 
 	//Insert.
-	int a = atoi(address);
+	int i = atoi(address);
 	Alias_s alias;
 	alias.name = name;
 	alias.value = parserVal;
 	alias.len = strlen(parserVal);
 	alias.type = type;
-	parser.heap.insertAliasAt(a, alias);
+	parser.heap.insertAliasAt(i, alias);
 }
 
 void Lexical::evalDo(int len) {
@@ -446,13 +446,13 @@ void Lexical::evalSubroutine(char *expression) {
 
 }
 
-void Lexical::evalPrintv() {
-	expression = parser.regularExpression(expression);
-	std::cout << '\n' << expression << std::endl;
-}
-
-void Lexical::evalPrinta() {
-
+void Lexical::evalPrint() {
+	char *out = parser.regularExpression(expression);
+	if (out == NULL) {
+		std::cout << '\n' << "NULL" << std::endl;
+	} else {
+		std::cout << '\n' << out << std::endl;
+	}
 }
 
 void Lexical::evalIf() {
@@ -521,8 +521,7 @@ void Lexical::splitInstruction(char *instruction) {
 	char *call = strstr(instruction, ":call");
 	char *subroutine = strstr(instruction, ":subroutine");
 	char *stk = strstr(instruction, ":stk.");
-	char *printv = strstr(instruction, ":printv(");
-	char *printa = strstr(instruction, ":printva(");
+	char *print = strstr(instruction, ":print(");
 
 	if (sysMemAllocHeap) {
 		keyword = ":sysMemAllocHeap";
@@ -637,22 +636,13 @@ void Lexical::splitInstruction(char *instruction) {
 		ignore = 1;
 	}
 
-	if (printv) {
-		keyword = ":printv";
-		len = strlen(printv) - 9;
-		memcpy(tmp, printv + 8, len);
+	if (print) {
+		keyword = ":print";
+		len = strlen(print) - 8;
+		memcpy(tmp, print + 7, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		evalPrintv();
-	}
-
-	if (printa) {
-		keyword = ":printa";
-		len = strlen(printa) - 7;
-		memcpy(tmp, printa + 7, len);
-		tmp[len] = '\0';
-		expression = tmp;
-		evalPrinta();
+		evalPrint();
 	}
 }
 
@@ -687,7 +677,7 @@ void Lexical::getInstructions() {
 				instruction[len] = '\0';
 				startIndex = endIndex + 1;
 				splitInstruction(instruction);
-				printf("%s", instruction);
+				//printf("%s", instruction);
 			}
 			startIndex = index;
 		}

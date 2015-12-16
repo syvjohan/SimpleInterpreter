@@ -1,0 +1,16 @@
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
+:alias baba : #10 = "hej";
+:alias str : #0 = 123 + 66;
+
+:print(str); /*skriver ut värdet*/
+:print(baba); /*skriver ut värdet*/
+
+:print( &str); /*Skriver ut addresen*/
+:print(&baba); /*Skriver ut addresen*/
+
+:stk.pushTop(10);
+:alias s : #15 = :stk.getTop() + 5;
+
+

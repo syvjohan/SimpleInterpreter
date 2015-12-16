@@ -52,8 +52,7 @@ class Lexical {
 		void evalIf();
 		void evalReg();
 		void evalStk();
-		void evalPrintv();
-		void evalPrinta();
+		void evalPrint();
 
 		char *code = NULL;
 		size_t fileSize;
@@ -78,5 +77,4 @@ class Lexical {
 		Parser parser;
 		Scope scope;
 };
-
 #endif //!LEXICAL_H

@@ -7,11 +7,11 @@
 #include <stdlib.h>
 #include <windows.h>
 
-const int nameSize = 30;
+#define EXPRESSIONSIZE 100
 
 struct Index_s {
 	char *name;
-	void *type;
+	char *type;
 	int startPos;
 	int len;
 };
@@ -37,6 +37,7 @@ class Heap : IStack {
 		int insertAliasAt(int index, Alias_s alias);
 		Alias_s getAlias(char *name);
 		Alias_s getAlias(int index);
+		int getAddress(char *name);
 
 		//Stack
 		void createStack(size_t stackSize);
@@ -54,7 +55,7 @@ class Heap : IStack {
 		size_t heapStartPos;
 		size_t heapSize;
 
-		char str[100];
+		char tmpStr[EXPRESSIONSIZE];
 };
 
 #endif //!HEAP_H
