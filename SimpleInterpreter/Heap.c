@@ -140,14 +140,6 @@ Alias_s Heap::getAlias(int index) {
 void Heap::initializeHeap(size_t size) {
 	setHeapSize(size);
 	heapStartPos = 0;
-
-	/*int i;
-	for (i = 0; i != heapSize; ++i) {
-		heapIndex[i].len = 0;
-		heapIndex[i].startPos = 0;
-		heapIndex[i].name = 0;
-		heapIndex[i].type = 0;
-	}*/
 }
 
 void Heap::createStack(size_t stackSize) {
@@ -177,5 +169,7 @@ Alias_s Heap::getAt(int index) {
 }
 
 void Heap::pop() {
-	--stackLen;
+	if (stackLen > 0) {
+		--stackLen;
+	}
 }

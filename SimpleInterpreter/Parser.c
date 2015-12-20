@@ -395,7 +395,10 @@ int Parser::stackPushAt(char *cStr) {
 	if (comma) {
 		Alias_s alias;
 		char lhs[INSTRUCTIONSIZE];
-		memcpy(lhs, cStr, strlen(comma) - strlen(cStr));
+		int len = strlen(cStr) - strlen(comma);
+		memcpy(lhs, cStr, len);
+		lhs[len] = '\0';
+
 		char *resLhs = regularExpression(lhs);
 		int index;
 		if (checkForDigits(resLhs) == 1 && identifyType == NULL) {
@@ -403,9 +406,12 @@ int Parser::stackPushAt(char *cStr) {
 		}
 
 		char rhs[INSTRUCTIONSIZE];
-		memcpy(rhs, cStr, strlen(comma));
+		len = strlen(comma) -1;
+		memcpy(rhs, cStr, len);
+		rhs[len] = '\0';
+
 		char *resRhs = regularExpression(rhs);
-		int len = strlen(resRhs);
+		len = strlen(resRhs);
 
 		if (identifyType) {
 			memcpy(alias.type, "string", 6);
@@ -414,12 +420,11 @@ int Parser::stackPushAt(char *cStr) {
 
 		} else if (checkForDigits(resRhs) == 1 && identifyType == NULL) {
 			memcpy(alias.type, "int", 3);
-			alias.type[len] = '\0';
+			alias.type[3] = '\0';
 			alias.len = len;
 		} else {
 			//Syntax is wrong, DO CRASH!!
 		}
-		memcpy(alias.name, '\0', 1);
 		memcpy(alias.value, resRhs, alias.len);
 		alias.value[alias.len] = '\0';
 
@@ -657,13 +662,14 @@ Alias_s Parser::findOutSecret(char *exp) {
 			alias = stackGetAt(getAt);
 		} 
 		else if (getTop) {
-			return heap.getTop();
+			alias = heap.getTop();
 		} 
 		else {
 			//unsupported stack command.
 		}
 
 	} else if (address) {
+		trimBothParanthesis(address);
 		int len = strlen(address) - 1;
 		memcpy(str, address +1, len);
 		str[len] = '\0';
@@ -677,6 +683,7 @@ Alias_s Parser::findOutSecret(char *exp) {
 		alias.len = strlen(alias.value);
 
 	} else if (and) {
+		trimBothParanthesis(and);
 		int len = strlen(and) - 1;
 		memcpy(str, and +1, len);
 		str[len] = '\0';
@@ -688,6 +695,7 @@ Alias_s Parser::findOutSecret(char *exp) {
 		sprintf(alias.value, "%d", digits);
 
 	} else if (strstr(exp, "\"") == NULL) {
+		trimBothParanthesis(exp);
 		//Digits
 		alias.len = strlen(exp);
 		memcpy(alias.value, exp, alias.len);
@@ -697,6 +705,7 @@ Alias_s Parser::findOutSecret(char *exp) {
 		alias.type[3] = '\0';
 
 	} else if (strstr(exp, "\"")) {
+		trimBothParanthesis(exp);
 		//Letters
 		trimText(exp);
 		alias.len = strlen(exp);

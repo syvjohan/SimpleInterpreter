@@ -226,13 +226,6 @@ void Lexical::evalAlias() {
 	parser.heap.insertAliasAt(i, alias);
 }
 
-void Lexical::evalDo(int len) {
-	//endIndex = index;
-	//index -= len;
-	//startIndex = index;
-	//scope.incrementScope(index, -1);
-}
-
 //void Lexical::evalName() {
 //	trimString(expression);
 //
@@ -282,7 +275,29 @@ void Lexical::evalDo(int len) {
 //	}
 //}
 
+void Lexical::evalDo(int len) {
+	//endIndex = index;
+	//index -= len;
+	//startIndex = index;
+	//scope.incrementScope(index, -1);
+}
+
 void Lexical::evalWhile() {
+	char *res = parser.regularExpression(expression);
+	if (strCmp(res, "true")) {
+		if (loop[loopLen -1] == startIndex - 1 && loop[loopLen] == (startIndex - instructionLen - 1)) {
+			return;
+		}
+
+		++loopLen;
+		loop[loopLen] = startIndex - 1;
+		++loopLen;
+		loop[loopLen] = startIndex - instructionLen - 1;
+	} else if (strCmp(res, "false")) {
+		loopLen -= 2;
+	}
+}
+
 //	char *bodyEnd = strpbrk(expression, ";");
 //	if (scope.getCurrentScopeEnd() != index) {
 //		scope.incrementScope(-1, index);
@@ -369,7 +384,7 @@ void Lexical::evalWhile() {
 //	} else {
 //		// Missing compare operator do CRASH.
 //	}
-}
+
 
 
 void Lexical::evalCall() {
@@ -652,6 +667,7 @@ void Lexical::getInstructions() {
 	char instruction[INSTRUCTIONSIZE];
 
 	while (code[index] != '\0') {	
+		//Comments
 		if (code[index] == '/' && code[index +1] == '*') {
 				comment = 1;
 		} else if (code[index] == '*' && code[index +1] == '/') {
@@ -659,7 +675,12 @@ void Lexical::getInstructions() {
 			startIndex = index + 1;
 		}
 
+
 		if (code[index] == '}') { 
+			if (loopLen > 0) {
+				startIndex = loop[loopLen];
+				index = loop[loopLen - 1];
+			}
 			ignore = 0; 
 		}
 
@@ -671,11 +692,11 @@ void Lexical::getInstructions() {
 
 		if (code[index] == ';' || code[index] == '{') {
 			if (comment == 0 && ignore == 0) {
-				endIndex = index;
-				int len = endIndex - startIndex;
-				len = abs(len);
-				memcpy(instruction, code + startIndex, len);
-				instruction[len] = '\0';
+				endIndex = index;//end 99.
+				instructionLen = endIndex - startIndex; //start 69
+				instructionLen = abs(instructionLen);
+				memcpy(instruction, code + startIndex, instructionLen);
+				instruction[instructionLen] = '\0';
 				startIndex = endIndex + 1;
 				splitInstruction(instruction);
 				//printf("%s", instruction);

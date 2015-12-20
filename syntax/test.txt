@@ -1,6 +1,19 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
+:stk.pop();
+:stk.pushTop(1);
+:while(:stk.getTop() != 10) {
+	:print(:stk.getTop());
+	:stk.pushTop(:stk.getTop() +1);
+
+	:stk.pushAt(1, 1);
+	:while(stk.getAt(1) != 10) {
+		:print(:stk.getAt(1));
+		:stk.pushAt(:stk.getAt(1) +1);
+	}
+}
+
 :alias str : #32 = "hej";
 :alias number : #35 = 10 + 5;
 
@@ -49,7 +62,24 @@
 	:print("true");
 }
 
+/*else if statements*/
+:if("nej" == "hej") {
+	:print("ERROR");
+} :else {
+	:if(66 == 88) {
+		:print("ERROR");
+	} :else {
+		:if("success" == "success") {
+			:print("success");
+		} :else {
+			:print("ERROR");
+		}
+	}
+}
+
+
 /*:do {
 	:stk.pushTop(1, :stk.getTop() +1);
 	(&str + :stk.getTop()) = "g";
 } :while( &str + :stk.getTop() != #64);*/
+/*1016*/

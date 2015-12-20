@@ -51,6 +51,10 @@ class Lexical {
 		int index = 0;
 		int startIndex = 0;
 		int endIndex = 0;
+		int instructionLen = 0;
+
+		int loop[200];
+		int loopLen = 0;
 
 		int ignore = 0;
 
