@@ -21,15 +21,20 @@ void Heap::setHeapSize(size_t size) {
 }
 
 int Heap::insertAliasAt(int index, Alias_s alias) {
+	int len = 0;
 	//data type
-	(heapIndex + index)->type = alias.type;
+	len = strlen(alias.type);
+	memcpy(heapIndex[index].type, alias.type, len);
+	heapIndex[index].type[len] = '\0';
+
+	len = strlen(alias.value);
+	(heapIndex + index)->len = len;
+
+	(heapIndex + index)->startPos = index;
 
 	//Insert value.
-	if (alias.value != NULL) {
+	if (len > 0) {
 		if (strCmp((char *)alias.type, "string")) {
-			int k = 0;
-			int i;
-			int len = strlen(alias.value);
 
 			if (index + stackLen + len > heapStartPos) {
 				//StackOverfloaw. DO CRASH!!
@@ -37,17 +42,9 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 				//HeapOverflow. DO CRASH!!
 			}
 
-			for (i = index; i != heapSize && k < len; ++i) {
-				*(heapContainer +i) = alias.value[k];
-				++k;
-			}
-			heapContainer[i] = '\0';
+			memcpy(heapContainer + index, alias.value, len);
 
-			(heapIndex + index)->len = len;
-			(heapIndex + index)->startPos = index;
-			(heapIndex + index)->type = "string";
-
-		} else if (strCmp((char *)alias.type, "int")) {
+		} else if (strCmp(alias.type, "int")) {
 			int digits = atoi(alias.value);
 			if (index + stackLen + sizeof(digits) > heapStartPos) {
 				//StackOverfloaw. DO CRASH!!
@@ -56,15 +53,11 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 			}
 
 			memcpy(heapContainer + index, (char *)&digits, sizeof(int));
-			(heapIndex + index)->len = sizeof(int);
-			(heapIndex + index)->startPos = index;
-			(heapIndex + index)->type = "int";
 		}
 	}
 	
-	if (alias.name != NULL) {
+	if (strlen(alias.name) > 0) {
 		int len = strlen(alias.name);
-		(heapIndex + index)->name = DBG_NEW char[len];
 		memcpy((heapIndex + index)->name, alias.name, len);
 		heapIndex[index].name[len] = '\0';
 	}
@@ -88,20 +81,26 @@ Alias_s Heap::getAlias(char *name) {
 	int i = 0;
 	while (i != heapSize) {
 		if (strCmp(heapIndex[i].name, name)) {
-			alias.name = heapIndex[i].name;
+			int len = 0;
+			len = strlen(heapIndex[i].name);
+			memcpy(alias.name, heapIndex[i].name, len);
+			alias.name[len] = '\0';
+
 			alias.len = heapIndex[i].len;
-			alias.type = heapIndex[i].type;
-			char carr[EXPRESSIONSIZE];
-			if (alias.type == "string") {
-				memcpy(carr, &heapContainer[heapIndex[i].startPos], alias.len);
-				carr[alias.len] = '\0';
-				alias.value = carr;
-			} else if (alias.type == "int") {
+
+			len = strlen(heapIndex[i].type);
+			memcpy(alias.type, heapIndex[i].type, len);
+			alias.type[len] = '\0';
+
+			if (strCmp(alias.type, "string")) {
+				memcpy(alias.value, &heapContainer[heapIndex[i].startPos], alias.len);
+				alias.value[alias.len] = '\0';
+			} else if (strCmp(alias.type, "int")) {
 				//convert char to int and int to char
 				int dest;
 				memcpy(&dest, &heapContainer[i], sizeof(int));
-				sprintf(carr, "%d", dest);
-				alias.value = carr;
+				sprintf(alias.value, "%i", dest);
+				alias.value[alias.len] = '\0';
 			}
 			break;
 		}
@@ -113,20 +112,26 @@ Alias_s Heap::getAlias(char *name) {
 Alias_s Heap::getAlias(int index) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
 	if (stackLen != -1) {
-		alias.name = heapIndex[index].name;
+		int len = 0;
+		len = strlen(heapIndex[index].name);
+		memcpy(alias.name, heapIndex[index].name, len);
+		alias.name[len] = '\0';
+
 		alias.len = heapIndex[index].len;
-		alias.type = heapIndex[index].type;
-		char carr[EXPRESSIONSIZE];
-		if (alias.type == "string") {
-			memcpy(carr, &heapContainer[heapIndex[index].startPos], alias.len);
-			carr[alias.len] = '\0';
-			alias.value = carr;
-		} else if (alias.type == "int") {
+
+		len = strlen(heapIndex[index].type);
+		memcpy(alias.type, heapIndex[index].type, len);
+		alias.type[len] = '\0';
+
+		if (strCmp(alias.type, "string")) {
+			memcpy(alias.value, &heapContainer[heapIndex[index].startPos], alias.len);
+			alias.value[alias.len] = '\0';
+		} else if (strCmp(alias.type, "int")) {
 			//convert char to int and int to char
 			int dest;
 			memcpy(&dest, &heapContainer[index], sizeof(int));
-			sprintf(carr, "%d", dest);
-			alias.value = carr;
+			sprintf(alias.value, "%i", dest);
+			alias.value[alias.len] = '\0';
 		}
 	}
 	return alias;
@@ -136,13 +141,13 @@ void Heap::initializeHeap(size_t size) {
 	setHeapSize(size);
 	heapStartPos = 0;
 
-	int i;
+	/*int i;
 	for (i = 0; i != heapSize; ++i) {
 		heapIndex[i].len = 0;
 		heapIndex[i].startPos = 0;
 		heapIndex[i].name = 0;
 		heapIndex[i].type = 0;
-	}
+	}*/
 }
 
 void Heap::createStack(size_t stackSize) {

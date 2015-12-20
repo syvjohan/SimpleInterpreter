@@ -1,16 +1,55 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
-:alias baba : #10 = "hej";
-:alias str : #0 = 123 + 66;
+:alias str : #32 = "hej";
+:alias number : #35 = 10 + 5;
 
+:print(number); /*skriver ut värdet*/
 :print(str); /*skriver ut värdet*/
-:print(baba); /*skriver ut värdet*/
 
-:print( &str); /*Skriver ut addresen*/
-:print(&baba); /*Skriver ut addresen*/
+:print(&str); /*Skriver ut addresen*/
+:print( &number ); /*Skriver ut addresen*/
 
 :stk.pushTop(10);
-:alias s : #15 = :stk.getTop() + 5;
+:alias s : #39 = :stk.getTop() + 5;
+:print(s);
 
+/* < > Jämför längderna på textsträngarna eller storleken på heltal*/
+:if("s" < "number") {
+	:print("true");
+}
 
+:if("100" > "s") {
+	:print("true");
+}
+
+:if(s < number) {
+	:print("true");
+}
+
+:if(100 > s) {
+	:print("true");
+}
+
+:if(s == number) {
+	:print("true");
+} 
+
+:if(s != number) {
+	:print("true");
+} :else {
+	:print("false");
+}
+
+:if("number" == "number") {
+	:print("true");
+}
+
+:if("s" != "number") {
+	:print("true");
+}
+
+/*:do {
+	:stk.pushTop(1, :stk.getTop() +1);
+	(&str + :stk.getTop()) = "g";
+} :while( &str + :stk.getTop() != #64);*/

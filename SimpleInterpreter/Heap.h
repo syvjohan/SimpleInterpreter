@@ -1,17 +1,15 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-#include "Defs.h"
+#include "memoryLeak.h"
 #include "Global.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
 
-#define EXPRESSIONSIZE 100
-
 struct Index_s {
-	char *name;
-	char *type;
+	char name[NAMESIZE];
+	char type[TYPESIZE];
 	int startPos;
 	int len;
 };
@@ -55,7 +53,7 @@ class Heap : IStack {
 		size_t heapStartPos;
 		size_t heapSize;
 
-		char tmpStr[EXPRESSIONSIZE];
+		char tmpStr[INSTRUCTIONSIZE];
 };
 
 #endif //!HEAP_H

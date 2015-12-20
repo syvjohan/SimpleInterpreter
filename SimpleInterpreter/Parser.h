@@ -10,27 +10,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define EXPRESSIONSIZE 100
-
 struct operator_s {
 	int pos;
-	char op;
+	char op[2];
+	int len;
 };
 
 class Parser {
 	public:
 		Parser();
 		~Parser();
-		char* parseManager(char *cStr, int isReference);
+		//char* parseManager(char *cStr, int isReference);
 		
 		char* regularExpression(char *expression);
 		char* recursiveParser(char *expression);
 		Alias_s findOutSecret(char *expression);
 
-		char* parseReg(char *keyword, char *expression);
-		char* parseHeap(char *cStr, int isReference);
-		int checkForAlpha(const char *cStr);
-		int checkForDigits(const char *cStr);
+		//char* parseReg(char *keyword, char *expression);
+		//char* parseHeap(char *cStr, int isReference);
 		void allocateMem();
 
 		Heap heap;
@@ -43,17 +40,13 @@ class Parser {
 		Alias_s stackGetTop();
 
 		operator_s findOperator(const char *cStr, const int startPos);
-		void trimString(char *cStr);
-		void trim(char *cStr);
-		void trimCloseParanthes(char *cStr);
-		void trimHeap(char *cStr);
 
 	private:
-		char* parseRegArg(char *keyword, char *arg);
+		//char* parseRegArg(char *keyword, char *arg);
 
-		char str[EXPRESSIONSIZE];
+		char str[INSTRUCTIONSIZE];
 
-		Register reg;
+		//Register reg;
 };
 
 #endif //!PARSER_H

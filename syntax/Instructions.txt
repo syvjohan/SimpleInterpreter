@@ -42,6 +42,8 @@ struct myStruct_s {
 //Supported operators.
 +
 -
+*
+/
 <
 >
 =

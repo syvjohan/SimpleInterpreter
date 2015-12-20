@@ -73,13 +73,14 @@
     <ClCompile Include="Register.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Defs.h" />
+    <ClInclude Include="memoryLeak.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Lexical.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Register.h" />
     <ClInclude Include="Scope.h" />
+    <ClInclude Include="Trim.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -50,33 +50,8 @@ void Lexical::setCode(char *cStr) {
 	code = cStr;
 }
 
-//Call by reference changes the passed argument no need for returning a value.
-void Lexical::trimString(char *cStr) {
-	int i = 0;
-	int j = 0;
-	while (cStr[i] != '\0') {
-		if (cStr[i] != ' ') {
-			cStr[j++] = cStr[i];
-		}
-		i++;
-	}
-	cStr[j] = '\0';
-}
-
-void Lexical::removeParanthesis(char *cStr) {
-	int i = 0;
-	int j = 0;
-	while (cStr[i] != '\0') {
-		if (cStr[i] != ')' && cStr[i] != '(') {
-			cStr[j++] = cStr[i];
-		}
-		i++;
-	}
-	cStr[j] = '\0';
-}
-
 void Lexical::allocateMem() {
-	trimString(expression);
+	trimText(expression);
 	
 	//Allocate heap memory.
 	int s = atoi(expression);
@@ -84,7 +59,7 @@ void Lexical::allocateMem() {
 }
 
 void Lexical::createStack() {
-	trimString(expression);
+	trimText(expression);
 
 	//Create stack on heap
 	int s = atoi(expression);
@@ -126,7 +101,7 @@ void Lexical::getAllSubroutines(void) {
 				char name[NAMESIZE];
 				memcpy(name, findSub + 11, len);
 				name[len] = '\0';
-				trimString(name);
+				trimText(name);
 
 				char *ret = strstr(findSub, "};");
 				if (ret) {
@@ -162,18 +137,18 @@ void Lexical::evalAlias() {
 	char *sep1 = strstr(expression, ":");
 	char *sep2 = strstr(expression, "=");
 	char *identifyType = strstr(expression, "\"");
-	char name[NAMESIZE];
+	
 	char address[ADDRESSSIZE];
 	char val[VALUESIZE];
-	char *type;
+	Alias_s alias;
 
 	int lenName = len - strlen(sep1);
-	memcpy(name, expression, lenName);
-	name[lenName] = '\0';
+	memcpy(alias.name, expression, lenName);
+	alias.name[lenName] = '\0';
 
 	int lenAddress;
 	if (sep2) {
-		lenAddress = strlen(sep1) - strlen(sep2) -1; //-2
+		lenAddress = strlen(sep1) - strlen(sep2) - 2;
 	} else {
 		lenAddress = len - strlen(sep1) -2;
 	}
@@ -184,36 +159,41 @@ void Lexical::evalAlias() {
 	if (sep2) {
 		//check datatype and get val.
 		if (identifyType) {
-			type = "string";
+			memcpy(alias.type, "string", 6);
+			alias.type[6] = '\0';
 
-			int lenValue = strlen(sep2) - 3;
-			memcpy(val, sep2 + 2, lenValue);
-			val[lenValue] = '\0';
+			alias.len = strlen(sep2) - 3;
+			memcpy(val, sep2 + 2, alias.len);
+			val[alias.len] = '\0';
 
 		} else {
-			type = "int";
+			memcpy(alias.type, "int", 3);
+			alias.type[3] = '\0';
 
-			int lenValue = strlen(sep2);
-			memcpy(val, sep2 + 1, lenValue);
-			val[lenValue] = '\0';
+			len = strlen(sep2);
+			alias.len = len;
 
-			if (parser.checkForDigits(val) == -1) {
+			memcpy(val, sep2 + 1, len);
+			val[len] = '\0';
+	
+			if (checkForDigits(alias.value) == -1) {
 				//do CRASH!!!
 			}
 		}
 	} else {
 		//if No definition
-		type = NULL;
-		*val = NULL;
+		memcpy(alias.type, "", 1);
+		memcpy(val, "", 1);
+		alias.len = 0;
 	}
 
 	//alias name need to contain at least one letter.
-	if (strlen(name) < 1) {
+	if (alias.len < 1) {
 		//do CRASH!!!
 	}
 	
 	//alias name can only contain letters.
-	if (parser.checkForAlpha(name) == -1) {
+	if (checkForAlpha(alias.name) == -1) {
 		//do CRASH!!!
 	}
 
@@ -223,166 +203,172 @@ void Lexical::evalAlias() {
 	}
 	
 	//address can only contain digits.
-	if (parser.checkForDigits(address) == -1) {
+	if (checkForDigits(address) == -1) {
 			//do CRASH!!!
 	}
 
-	//regular expression.
-	char *parserVal = parser.regularExpression(val);
+	char *parserVal = val;
+	if (!identifyType) {
+		//regular expression.
+		parserVal = parser.regularExpression(val);
+		len = strlen(parserVal);
+		memcpy(alias.value, parserVal, len);
+		alias.value[len] = '\0';
+		alias.len = len;
+	} else {
+		alias.len = strlen(parserVal);
+		memcpy(alias.value, parserVal, alias.len);
+		alias.value[alias.len] = '\0';
+	}
 
 	//Insert.
 	int i = atoi(address);
-	Alias_s alias;
-	alias.name = name;
-	alias.value = parserVal;
-	alias.len = strlen(parserVal);
-	alias.type = type;
 	parser.heap.insertAliasAt(i, alias);
 }
 
 void Lexical::evalDo(int len) {
-	endIndex = index;
-	index -= len;
-	startIndex = index;
-	scope.incrementScope(index, -1);
+	//endIndex = index;
+	//index -= len;
+	//startIndex = index;
+	//scope.incrementScope(index, -1);
 }
 
-void Lexical::evalName() {
-	trimString(expression);
-
-	char *equal = strstr(expression, "=");
-	if (equal) {
-		int lenRhs = strlen(equal) -3;
-		int lenLhs = strlen(expression) - lenRhs;
-
-		char lhs[VALUESIZE];
-		char rhs[VALUESIZE];
-
-		memcpy(lhs, expression, lenLhs);
-		lhs[lenLhs] = '\0';
-
-		memcpy(rhs, equal +2, lenRhs);
-		rhs[lenRhs] = '\0';
-
-		int isReferenceRhs = 0;
-		int isReferenceLhs = 0;
-		char *findReferenceRhs = strstr(rhs, "&");
-		char *findReferenceLhs = strstr(lhs, "&");
-		if (findReferenceRhs) {
-			isReferenceRhs = 1;
-		}
-
-		if (findReferenceLhs) {
-			isReferenceLhs = 1;
-		}
-
-		char *lhsRes = parser.parseManager(lhs, isReferenceLhs);
-		char *rhsRes = parser.parseManager(rhs, isReferenceRhs);
-
-		if (isReferenceLhs) {
-			Alias_s alias;
-			alias.name = rhsRes;
-			alias.value = "";
-			alias.len = 0;
-			alias.type = "string"; //TODO check datatype.
-			parser.heap.insertAliasAt(atoi(lhsRes), alias);
-			
-		} else {
-			//Lhs (left hand sign) need to be a modifiable value(&), do CRASH!!!
-		}
-
-	} else {
-		//Equal operator missing, do CRASH!!!
-	}
-}
+//void Lexical::evalName() {
+//	trimString(expression);
+//
+//	char *equal = strstr(expression, "=");
+//	if (equal) {
+//		int lenRhs = strlen(equal) -3;
+//		int lenLhs = strlen(expression) - lenRhs;
+//
+//		char lhs[VALUESIZE];
+//		char rhs[VALUESIZE];
+//
+//		memcpy(lhs, expression, lenLhs);
+//		lhs[lenLhs] = '\0';
+//
+//		memcpy(rhs, equal +2, lenRhs);
+//		rhs[lenRhs] = '\0';
+//
+//		int isReferenceRhs = 0;
+//		int isReferenceLhs = 0;
+//		char *findReferenceRhs = strstr(rhs, "&");
+//		char *findReferenceLhs = strstr(lhs, "&");
+//		if (findReferenceRhs) {
+//			isReferenceRhs = 1;
+//		}
+//
+//		if (findReferenceLhs) {
+//			isReferenceLhs = 1;
+//		}
+//
+//		char *lhsRes = parser.parseManager(lhs, isReferenceLhs);
+//		char *rhsRes = parser.parseManager(rhs, isReferenceRhs);
+//
+//		if (isReferenceLhs) {
+//			Alias_s alias;
+//			memcpy(alias.name, rhsRes, strlen(alias.name));
+//			memcpy(alias.value, "", 1);
+//			alias.len = 0;
+//			memcpy(alias.type, "string", 6); //TODO check datatype.
+//			parser.heap.insertAliasAt(atoi(lhsRes), alias);
+//			
+//		} else {
+//			//Lhs (left hand sign) need to be a modifiable value(&), do CRASH!!!
+//		}
+//
+//	} else {
+//		//Equal operator missing, do CRASH!!!
+//	}
+//}
 
 void Lexical::evalWhile() {
-	char *bodyEnd = strpbrk(expression, ";");
-	if (scope.getCurrentScopeEnd() != index) {
-		scope.incrementScope(-1, index);
-	}
-
-	//eval if end or goto start.
-	char *sepEqual = strstr(expression, "==");
-	char *sepNotEqual = strstr(expression, "!=");
-	int lenEx = strlen(expression);
-
-	char lhs[VALUESIZE];
-	char rhs[VALUESIZE];
-	if (sepNotEqual) {
-		int len = lenEx - strlen(sepNotEqual);
-		memcpy(lhs, expression, len);
-		lhs[len] = '\0';
-
-		memcpy(rhs, expression + len +2, strlen(sepNotEqual));
-		rhs[len] = '\0';
-
-		//reference = 1, value = 0.
-		int isReference = 0;
-		char *bitwiseAnd = strstr(lhs, "&");
-		char *hashtag = strstr(rhs, "#");
-
-		if (bitwiseAnd && hashtag) {
-			isReference = 1;
-		} else if (bitwiseAnd) {
-			//Wrong syntax cannot compare address with value, do CRASH!
-		}
-
-		//parse strings.
-		char *tmpL = parser.parseManager(lhs, isReference);
-		memset(&lhs, 0, VALUESIZE);
-		memcpy(lhs, tmpL, strlen(tmpL));
-
-		char *tmpR = parser.parseManager(rhs, isReference);
-		//memset(&rhs, 0, 50);
-		memcpy(rhs, tmpR, strlen(tmpR));
-
-		printf("i = %s\n", lhs);
-		//Values are always *char.
-		if (strCmp(lhs, rhs) == 0) {
-			startIndex = scope.getCurrentScopeStart();
-			index = startIndex;
-			printf("Values are not equal\n");
-			return;
-		} else {
-			scope.decrementScope();
-			printf("Values are equal\n");
-		}
-
-	} else if (sepEqual) {
-		int len = lenEx - strlen(sepEqual);
-		memcpy(lhs, expression, len);
-		lhs[len] = '\0';
-
-		memcpy(rhs, expression + len +2, strlen(sepEqual));
-		rhs[len] = '\0';
-
-		//reference = 1, value = 0.
-		int isReference = 0;
-		char *bitwiseAnd = strstr(lhs, "&");
-		char *hashtag = strstr(lhs, "#");
-		if (bitwiseAnd && hashtag) {
-			isReference = 1;
-		} else if (bitwiseAnd) {
-			//Wrong syntax cannot compare address with value, do CRASH!
-		}
-
-		//parse strings.
-		parser.parseManager(lhs, isReference);
-		parser.parseManager(rhs, isReference);
-
-		//Values are always *char.
-		if (strCmp(lhs, rhs) == 1) {
-			startIndex = scope.getCurrentScopeStart();
-			index = startIndex;
-			return;
-		} else {
-			scope.decrementScope();
-		}
-
-	} else {
-		// Missing compare operator do CRASH.
-	}
+//	char *bodyEnd = strpbrk(expression, ";");
+//	if (scope.getCurrentScopeEnd() != index) {
+//		scope.incrementScope(-1, index);
+//	}
+//
+//	//eval if end or goto start.
+//	char *sepEqual = strstr(expression, "==");
+//	char *sepNotEqual = strstr(expression, "!=");
+//	int lenEx = strlen(expression);
+//
+//	char lhs[VALUESIZE];
+//	char rhs[VALUESIZE];
+//	if (sepNotEqual) {
+//		int len = lenEx - strlen(sepNotEqual);
+//		memcpy(lhs, expression, len);
+//		lhs[len] = '\0';
+//
+//		memcpy(rhs, expression + len +2, strlen(sepNotEqual));
+//		rhs[len] = '\0';
+//
+//		//reference = 1, value = 0.
+//		int isReference = 0;
+//		char *bitwiseAnd = strstr(lhs, "&");
+//		char *hashtag = strstr(rhs, "#");
+//
+//		if (bitwiseAnd && hashtag) {
+//			isReference = 1;
+//		} else if (bitwiseAnd) {
+//			//Wrong syntax cannot compare address with value, do CRASH!
+//		}
+//
+//		//parse strings.
+//		char *tmpL = parser.parseManager(lhs, isReference);
+//		memset(&lhs, 0, VALUESIZE);
+//		memcpy(lhs, tmpL, strlen(tmpL));
+//
+//		char *tmpR = parser.parseManager(rhs, isReference);
+//		//memset(&rhs, 0, 50);
+//		memcpy(rhs, tmpR, strlen(tmpR));
+//
+//		printf("i = %s\n", lhs);
+//		//Values are always *char.
+//		if (strCmp(lhs, rhs) == 0) {
+//			startIndex = scope.getCurrentScopeStart();
+//			index = startIndex;
+//			printf("Values are not equal\n");
+//			return;
+//		} else {
+//			scope.decrementScope();
+//			printf("Values are equal\n");
+//		}
+//
+//	} else if (sepEqual) {
+//		int len = lenEx - strlen(sepEqual);
+//		memcpy(lhs, expression, len);
+//		lhs[len] = '\0';
+//
+//		memcpy(rhs, expression + len +2, strlen(sepEqual));
+//		rhs[len] = '\0';
+//
+//		//reference = 1, value = 0.
+//		int isReference = 0;
+//		char *bitwiseAnd = strstr(lhs, "&");
+//		char *hashtag = strstr(lhs, "#");
+//		if (bitwiseAnd && hashtag) {
+//			isReference = 1;
+//		} else if (bitwiseAnd) {
+//			//Wrong syntax cannot compare address with value, do CRASH!
+//		}
+//
+//		//parse strings.
+//		parser.parseManager(lhs, isReference);
+//		parser.parseManager(rhs, isReference);
+//
+//		//Values are always *char.
+//		if (strCmp(lhs, rhs) == 1) {
+//			startIndex = scope.getCurrentScopeStart();
+//			index = startIndex;
+//			return;
+//		} else {
+//			scope.decrementScope();
+//		}
+//
+//	} else {
+//		// Missing compare operator do CRASH.
+//	}
 }
 
 
@@ -404,7 +390,7 @@ void Lexical::evalCall() {
 }
 
 void Lexical::evalStk() {
-	parser.trimCloseParanthes(expression);
+	trimCloseParanthes(expression);
 	char *pop = strstr(expression, ".pop(");
 	char *pushAt = strstr(expression, ".pushAt(");
 	char *pushTop = strstr(expression, ".pushTop(");
@@ -446,44 +432,59 @@ void Lexical::evalSubroutine(char *expression) {
 
 }
 
-void Lexical::evalPrint() {
+void Lexical::evalAssert() {
 	char *out = parser.regularExpression(expression);
-	if (out == NULL) {
-		std::cout << '\n' << "NULL" << std::endl;
+}
+
+void Lexical::evalPrint() {
+	//char *newLine = strstr(expression, "\"/n\"");
+	//if (newLine) {
+	//	int len;
+
+	//	char rhs[INSTRUCTIONSIZE];
+	//	len = strlen(newLine) -4;
+	//	memcpy(rhs, newLine +4, len);
+	//	rhs[len] = '\0';
+
+	//	char lhs[INSTRUCTIONSIZE];
+	//	len = strlen(expression) - 4 - strlen(rhs);
+	//	memcpy(lhs, expression, len);
+	//	lhs[len] = '\0';
+	//}
+
+	char *out = parser.regularExpression(expression);
+	char s[VALUESIZE];
+	int len = strlen(out);
+	memcpy(s, out, len);
+	s[len] = '\0';
+
+	if (len == 0) {
+		printf("\nNULL");
 	} else {
-		std::cout << '\n' << out << std::endl;
+		printf("\n%s", s);
 	}
 }
 
 void Lexical::evalIf() {
-	removeParanthesis(expression);
-	char *opComma = strstr(expression, ",");
-	
+	trimBothParanthesis(expression);
 
-	int lenRhs = strlen(opComma);
-	int lenLhs = strlen(expression) - lenRhs;
-	char lhs[VALUESIZE];
-	char rhs[VALUESIZE];
-	if (opComma) {
-		memcpy(lhs, expression, lenLhs);
-		lhs[lenLhs] = '\0';
-		memcpy(rhs, opComma + 1, lenRhs);
-		rhs[lenRhs] = '\0';
+	char *res = parser.regularExpression(expression);
 
-		//check if they are alias.
-		Alias_s alias1 = parser.heap.getAlias(lhs);
-		Alias_s alias2 = parser.heap.getAlias(rhs);
-	
-		cmpResult = strCmp(alias1.name, alias2.name);
+	if (strCmp(res, "true")) {
+		cmpResult = 1;
+	} else if (strCmp(res, "false")) {
+		cmpResult = 0;
+	} else {
+		//Something went completly wrong, DO CRASH!!!
 	}
 }
 
 void Lexical::evalReg() {
-	parser.parseReg(keyword, expression);
+//	parser.parseReg(keyword, expression);
 }
 
 void Lexical::splitInstruction(char *instruction) {
-	trimString(instruction);
+	trimWhitespaces(instruction);
 	char tmp[INSTRUCTIONSIZE];
 	char tmp2[INSTRUCTIONSIZE];
 	int len = 0;
