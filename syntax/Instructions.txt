@@ -32,7 +32,7 @@
 struct myStruct_s {
 	....
 	....
-	....
+	....    
 } myStruct_t;
 :alias p : #44 = myStruct_t; //size is 4 bytes.
 
@@ -54,7 +54,3 @@ struct myStruct_s {
 //Rules
 
 Variable name cant contain numbers.
-
-
-:printv(:regA.get()); //print number 5.
-:printa(:regA()); /*Will return NULL since you cannot get address of a register since they dont exist in memory, instead they exist in the cpu's internal memory.*/

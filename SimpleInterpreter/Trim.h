@@ -73,3 +73,39 @@ static void trimText(char *cStr) {
 	}
 	cStr[j] = '\0';
 }
+
+static void trimNewline(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != '\n') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}
+
+static void trimTabb(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != '\t') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}
+
+static void trimBracket(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != '{' && cStr[i] != '}') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}

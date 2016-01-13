@@ -9,10 +9,10 @@ int main(void) {
 	
 	Lexical lexical;
 
-	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.txt";
+	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\subroutine.txt";
 	char *cStr = lexical.readFile(path);
 	lexical.setCode(cStr);
-	lexical.getAllSubroutines();
+	lexical.registerAllSubroutines();
 	lexical.getInstructions();
 
 	//freeMem();

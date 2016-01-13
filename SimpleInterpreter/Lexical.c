@@ -30,7 +30,7 @@ char* Lexical::readFile(const char *path) {
 	fseek(file, 0, SEEK_SET);
 
 	//allocate sizeof file +1.
-	code = DBG_NEW char[fileSize + 1];
+	char *code = DBG_NEW char[fileSize + 1];
 
 	//read file into string
 	int c;
@@ -89,7 +89,7 @@ void Lexical::expandSubroutineSize(void) {
 }
 
 //Makes it possible to call a subroutine that has been declared after it is called.
-void Lexical::getAllSubroutines(void) {
+void Lexical::registerAllSubroutines(void) {
 	initlizeCurrentSubroutine();
 	int i = 0;
 	do {
@@ -102,6 +102,7 @@ void Lexical::getAllSubroutines(void) {
 				memcpy(name, findSub + 11, len);
 				name[len] = '\0';
 				trimText(name);
+				trimWhitespaces(name);
 
 				char *ret = strstr(findSub, "};");
 				if (ret) {
@@ -285,16 +286,17 @@ void Lexical::evalDo(int len) {
 void Lexical::evalWhile() {
 	char *res = parser.regularExpression(expression);
 	if (strCmp(res, "true")) {
-		if (loop[loopLen -1] == startIndex - 1 && loop[loopLen] == (startIndex - instructionLen - 1)) {
+		if (loop[loopLen].start == startIndex - 1 && loop[loopLen].end == (startIndex - instructionLen - 1)) {
 			return;
 		}
 
 		++loopLen;
-		loop[loopLen] = startIndex - 1;
-		++loopLen;
-		loop[loopLen] = startIndex - instructionLen - 1;
+		loop[loopLen].start = startIndex - 1;
+		loop[loopLen].end = startIndex - instructionLen - 1;
+		loop[loopLen].stop = 0;
 	} else if (strCmp(res, "false")) {
-		loopLen -= 2;
+		--loopLen;
+		loop[loopLen].stop = 1;
 	}
 }
 
@@ -385,8 +387,6 @@ void Lexical::evalWhile() {
 //		// Missing compare operator do CRASH.
 //	}
 
-
-
 void Lexical::evalCall() {
 	int found = 0;
 	int i;
@@ -405,46 +405,28 @@ void Lexical::evalCall() {
 }
 
 void Lexical::evalStk() {
-	trimCloseParanthes(expression);
-	char *pop = strstr(expression, ".pop(");
-	char *pushAt = strstr(expression, ".pushAt(");
-	char *pushTop = strstr(expression, ".pushTop(");
-	char *getAt = strstr(expression, ".getAt(");
-	char *getTop = strstr(expression, ".getTop(");
+	trimBothParanthesis(expression);
+	char *pop = strstr(expression, "pop");
+	char *pushAt = strstr(expression, "pushAt");
+	char *pushTop = strstr(expression, "pushTop");
+	char *getAt = strstr(expression, "getAt");
+	char *getTop = strstr(expression, "getTop");
 
-	char tmp[INSTRUCTIONSIZE];
-	int len;
 	if (pop) {
 		parser.stackPop();
 
 	} else if (pushAt) {
-		len = strlen(pushAt) - 8;
-		memcpy(tmp, pushAt + 8, len);
-		tmp[len] = '\0';
-		
-		parser.stackPushAt(tmp);
+		parser.stackPushAt(pushAt);
 
 	} else if (pushTop) {
-		len = strlen(pushTop) - 9;
-		memcpy(tmp, pushTop + 9, len);
-		tmp[len] = '\0';
-
-		parser.stackPushTop(tmp);
+		parser.stackPushTop(pushTop);
 
 	} else if (getAt) {
-		len = strlen(getAt) - 7;
-		memcpy(tmp, getAt + 7, len);
-		tmp[len] = '\0';
-
-		parser.stackGetAt(tmp);
+		parser.stackGetAt(getAt);
 
 	} else if (getTop) {
 		parser.stackGetTop();
 	}
-}
-
-void Lexical::evalSubroutine(char *expression) {
-
 }
 
 void Lexical::evalAssert() {
@@ -452,21 +434,6 @@ void Lexical::evalAssert() {
 }
 
 void Lexical::evalPrint() {
-	//char *newLine = strstr(expression, "\"/n\"");
-	//if (newLine) {
-	//	int len;
-
-	//	char rhs[INSTRUCTIONSIZE];
-	//	len = strlen(newLine) -4;
-	//	memcpy(rhs, newLine +4, len);
-	//	rhs[len] = '\0';
-
-	//	char lhs[INSTRUCTIONSIZE];
-	//	len = strlen(expression) - 4 - strlen(rhs);
-	//	memcpy(lhs, expression, len);
-	//	lhs[len] = '\0';
-	//}
-
 	char *out = parser.regularExpression(expression);
 	char s[VALUESIZE];
 	int len = strlen(out);
@@ -498,35 +465,83 @@ void Lexical::evalReg() {
 //	parser.parseReg(keyword, expression);
 }
 
+void Lexical::evalInclude() {
+	trimBothParanthesis(expression);
+	trimText(expression);
+
+	int lenCode = fileSize;
+
+	char *extendedCode = readFile(expression);
+	int lenExtended = strlen(extendedCode);
+
+	char *codeBefore = DBG_NEW char[lenCode];
+	int lenCodeBefore = startIndex - instructionLen;
+	memcpy(codeBefore, code, lenCodeBefore );
+	codeBefore[lenCodeBefore] = '\0';
+
+	char *codeAfter = DBG_NEW char[lenCode];
+	int lenCodeAfter = lenCode - startIndex;
+	memcpy(codeAfter, code + startIndex, lenCodeAfter);
+	codeAfter[lenCodeAfter] = '\0';
+
+	code = NULL;
+	code = DBG_NEW char[lenCode + lenExtended];
+
+	memcpy(code, codeBefore, lenCodeBefore);
+	memcpy(code + strlen(codeBefore), extendedCode, lenExtended);
+	memcpy(code + strlen(codeBefore) + lenExtended, codeAfter, lenCodeAfter);
+	lenCode = lenCodeBefore + lenExtended + lenCodeAfter;
+	code[lenCode] = '\0';
+
+	fileSize = (size_t)lenCode; //Setting the size of the new code base.
+
+	//Reseting index
+	index -= instructionLen;
+	startIndex -= instructionLen;
+	endIndex = index;
+	instructionLen = 0;
+}
+
+void Lexical::evalExpressionWithoutKeyword() {
+	char tmpLhs[INSTRUCTIONSIZE];
+	char tmpRhs[INSTRUCTIONSIZE];
+	char tmpStr[INSTRUCTIONSIZE];
+	int len = strlen(expression);
+	
+	char *eq = strstr(expression, "=");
+	if (eq) {
+		int lenEq = strlen(eq);
+		int lenLhs = len - lenEq;
+		memcpy(tmpLhs, expression, lenLhs);
+		tmpLhs[len - lenEq] = '\0';
+
+		int rhsLen = len - lenLhs -1;
+		memcpy(tmpRhs, eq +1, rhsLen);
+		tmpRhs[rhsLen] = '\0';
+
+		char *rhs = parser.regularExpression(tmpRhs);
+
+		lenLhs = strlen(tmpLhs);
+		memcpy(tmpStr, tmpLhs, lenLhs);
+
+		memcpy(tmpStr + lenLhs, "=", 1);
+
+		rhsLen = strlen(rhs);
+		memcpy(tmpStr + lenLhs +1, rhs, rhsLen);
+		tmpStr[lenLhs + 1 + rhsLen] = '\0';
+
+		parser.regularExpression(tmpStr);
+	}
+}
+
 void Lexical::splitInstruction(char *instruction) {
 	trimWhitespaces(instruction);
 	char tmp[INSTRUCTIONSIZE];
 	char tmp2[INSTRUCTIONSIZE];
 	int len = 0;
+	int isKeywordMissing = 1;
 
 	char *WHILE = strstr(instruction, ":while");
-
-	//if (!WHILE) {
-	//	//is alias
-	//	//char *isalias = NULL;
-	//	//char *name;
-	//	//int size = parser.heap.getHeapSize();
-	//	//int i;
-	//	//for (i = 0; i != size; ++i) {
-	//		Alias_s alias = parser.heap.getAlias(instruction);
-	//		if (alias.name != NULL) {
-	//			//if it is a text string instead of a variable name.
-	//			char *str = strstr(instruction, "\"");
-	//			if (str) {
-	//				return;
-	//			}
-	//			memcpy(&expression,instruction, strlen(instruction));
-	//			//evalName();
-	//			//break;
-	//		}
-	//	//}
-	//}
-
 	char *sysMemAllocHeap = strstr(instruction, ":sysMemAllocHeap");
 	char *sysCreateStack = strstr(instruction, ":sysCreateStack");
 	char *alias = strstr(instruction, ":alias");
@@ -538,6 +553,7 @@ void Lexical::splitInstruction(char *instruction) {
 	char *subroutine = strstr(instruction, ":subroutine");
 	char *stk = strstr(instruction, ":stk.");
 	char *print = strstr(instruction, ":print(");
+	char *include = strstr(instruction, ":include(");
 
 	if (sysMemAllocHeap) {
 		keyword = ":sysMemAllocHeap";
@@ -546,6 +562,7 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 		allocateMem();
+		isKeywordMissing = 0;
 	} 
 
 	if (sysCreateStack) {
@@ -555,6 +572,17 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 		createStack();
+		isKeywordMissing = 0;
+	}
+
+	if (include) {
+		keyword = ":include";
+		len = strlen(include) - 8;
+		memcpy(tmp, include + 8, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		evalInclude();
+		isKeywordMissing = 0;
 	}
 
 	if (alias) {
@@ -564,6 +592,7 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 		evalAlias();
+		isKeywordMissing = 0;
 	} 
 
 	if (DO) {
@@ -586,6 +615,7 @@ void Lexical::splitInstruction(char *instruction) {
 		}
 
 		evalDo(totLen);
+		isKeywordMissing = 0;
 	}
 
 	if (reg) {
@@ -598,6 +628,7 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 		evalReg();
+		isKeywordMissing = 0;
 	}
 
 	if (WHILE) {
@@ -607,6 +638,7 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 		evalWhile();
+		isKeywordMissing = 0;
 		return;
 	}
 	 
@@ -624,19 +656,22 @@ void Lexical::splitInstruction(char *instruction) {
 			//ignore :else.
 			ignore = 1;
 		}
+		isKeywordMissing = 0;
 	}
 
 	if (ELSE && cmpResult) {
 		ignore = 1;
+		isKeywordMissing = 0;
 	}
 
 	if (stk) {
-		keyword = ":stk";
-		len = strlen(stk) - 3;
-		memcpy(tmp, stk +4, len);
+		keyword = ":stk.";
+		len = strlen(stk) - 4;
+		memcpy(tmp, stk +5, len);
 		tmp[len] = '\0';
 		expression = tmp;
 		evalStk();
+		isKeywordMissing = 0;
 	}
 
 	if (call) {
@@ -645,11 +680,19 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, call + 5, len);
 		tmp[len] = '\0';
 		expression = tmp;
+
+		//Move index forward to ignore call again.
+		index += len + 5;
+		startIndex = index + 1;
+		endIndex = index;
+
 		evalCall();
+		isKeywordMissing = 0;
 	}
 
 	if (subroutine) {
 		ignore = 1;
+		isKeywordMissing = 0;
 	}
 
 	if (print) {
@@ -659,6 +702,21 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 		evalPrint();
+		isKeywordMissing = 0;
+	}
+
+	if (isKeywordMissing == 1) {
+		keyword = "regularExpression";
+		trimWhitespaces(instruction);
+		trimNewline(instruction);
+		trimTabb(instruction);
+		trimBracket(instruction);
+		len = strlen(instruction);
+		memcpy(tmp, instruction, len);
+		tmp[len] = '\0';
+		expression = instruction;
+
+		evalExpressionWithoutKeyword();
 	}
 }
 
@@ -675,13 +733,13 @@ void Lexical::getInstructions() {
 			startIndex = index + 1;
 		}
 
-
-		if (code[index] == '}') { 
-			if (loopLen > 0) {
-				startIndex = loop[loopLen];
-				index = loop[loopLen - 1];
+		if (code[index] == '}' && code[index + 1] == ';') { 
+			if (loop[loopLen].stop == 0) {
+				startIndex = loop[loopLen].end;
+				index = loop[loopLen].start;
 			}
-			ignore = 0; 
+
+			ignore = 0;
 		}
 
 		if (index == currentSubroutine.endPos) {
@@ -692,14 +750,14 @@ void Lexical::getInstructions() {
 
 		if (code[index] == ';' || code[index] == '{') {
 			if (comment == 0 && ignore == 0) {
-				endIndex = index;//end 99.
-				instructionLen = endIndex - startIndex; //start 69
+				endIndex = index;
+				instructionLen = endIndex - startIndex;
 				instructionLen = abs(instructionLen);
 				memcpy(instruction, code + startIndex, instructionLen);
 				instruction[instructionLen] = '\0';
 				startIndex = endIndex + 1;
 				splitInstruction(instruction);
-				//printf("%s", instruction);
+				printf("%s", instruction);
 			}
 			startIndex = index;
 		}

@@ -15,6 +15,12 @@ struct subroutine_s {
 	int endPos;
 };
 
+struct Pair {
+	int start = -1;
+	int end = -1;
+	int stop = -1;
+};
+
 class Lexical {
 	public:
 		Lexical();
@@ -25,7 +31,7 @@ class Lexical {
 		void getInstructions(void);
 		void splitInstruction(char *instruction);
 
-		void getAllSubroutines(void);
+		void registerAllSubroutines(void);
 
 	private:
 		void allocateMem();
@@ -38,12 +44,13 @@ class Lexical {
 		void evalName();
 		void evalWhile();
 		void evalCall();
-		void evalSubroutine(char *expression);
 		void evalIf();
 		void evalReg();
 		void evalStk();
 		void evalPrint();
 		void evalAssert();
+		void evalInclude();
+		void evalExpressionWithoutKeyword();
 
 		char *code;
 		size_t fileSize;
@@ -53,7 +60,7 @@ class Lexical {
 		int endIndex = 0;
 		int instructionLen = 0;
 
-		int loop[200];
+		Pair loop[200];
 		int loopLen = 0;
 
 		int ignore = 0;

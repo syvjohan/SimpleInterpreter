@@ -44,7 +44,9 @@ class Parser {
 	private:
 		//char* parseRegArg(char *keyword, char *arg);
 
-		char str[INSTRUCTIONSIZE];
+		char tmpStr[INSTRUCTIONSIZE];
+		char tmpLhs[INSTRUCTIONSIZE];
+		char tmpRhs[INSTRUCTIONSIZE];
 
 		//Register reg;
 };

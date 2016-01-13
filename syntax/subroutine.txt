@@ -1,11 +1,33 @@
-:SysMemAllocHeap 64;
-
-:regA.set(2);
-:regB.set(3);
+:sysMemAllocHeap 64;
 
 :subroutine add {
-	:regA.add(:regB.get());
-
+	&sum = val1 + val2;
 };
 
+:subroutine mul {
+	&sum = val1 * val2;
+};
+
+:subroutine div {
+	&sum = val1 / val2;
+};
+
+:subroutine sub {
+	&sum = val1 - val2;
+};
+
+:alias val1 : #0 = 3;
+:alias val2 : #4 = 8; 
+:alias sum : #9 = 0;
+
 :call add;
+:print(sum);
+
+:call mul;
+:print(sum);
+
+:call mul;
+:print(#9);
+
+:call div;
+:print(#9);

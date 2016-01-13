@@ -1,18 +1,7 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
-:stk.pop();
-:stk.pushTop(1);
-:while(:stk.getTop() != 10) {
-	:print(:stk.getTop());
-	:stk.pushTop(:stk.getTop() +1);
-
-	:stk.pushAt(1, 1);
-	:while(stk.getAt(1) != 10) {
-		:print(:stk.getAt(1));
-		:stk.pushAt(:stk.getAt(1) +1);
-	}
-}
+:include("C:\\Programmering\\SimpleInterpreter\\syntax\\anotherfile.q");
 
 :alias str : #32 = "hej";
 :alias number : #35 = 10 + 5;
@@ -27,39 +16,61 @@
 :alias s : #39 = :stk.getTop() + 5;
 :print(s);
 
+:stk.pushAt(4, 0); /*Pushes 0 to memory address 4*/
+:while(:stk.getAt(4) != 10) {
+	:print(:stk.getAt(4));
+	:stk.pushAt(4, :stk.getAt(4) +1);
+
+	:if("s" < "number") {
+		:print("Success");
+	}
+}
+
 /* < > Jämför längderna på textsträngarna eller storleken på heltal*/
 :if("s" < "number") {
-	:print("true");
+	:print("success");
 }
 
 :if("100" > "s") {
-	:print("true");
+	:print("success");
+} :else {
+	:print("ERRROR");
 }
 
 :if(s < number) {
 	:print("true");
+} :else {
+	:print("Sucess");
 }
 
 :if(100 > s) {
 	:print("true");
+} :else {
+	:print("Success");
 }
 
 :if(s == number) {
-	:print("true");
+	:print("Sucess");
+} :else {
+	:print("ERRROR");
 } 
 
 :if(s != number) {
 	:print("true");
 } :else {
-	:print("false");
+	:print("Sucess");
 }
 
 :if("number" == "number") {
-	:print("true");
+	:print("success");
+} :else {
+	:print("ERRROR");
 }
 
 :if("s" != "number") {
-	:print("true");
+	:print("success");
+} :else {
+	:print("ERRROR");
 }
 
 /*else if statements*/
@@ -77,9 +88,28 @@
 	}
 }
 
+:subroutine add {
+	&sum = val1 + val2;
+};
 
-/*:do {
-	:stk.pushTop(1, :stk.getTop() +1);
-	(&str + :stk.getTop()) = "g";
-} :while( &str + :stk.getTop() != #64);*/
-/*1016*/
+:subroutine mul {
+	&sum = val1 * val2;
+};
+
+:alias val1 : #43 = 3;
+:alias val2 : #47 = 8; 
+:alias sum : #51;
+
+:call add;
+:if(#51 == 11) {
+	:print("Success");
+} :else {
+	:print("ERROR");
+}
+
+:call mul;
+:if(#51 == 24) {
+	:print("Success");
+} :else {
+	:print("ERROR");
+}
