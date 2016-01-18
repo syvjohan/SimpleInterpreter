@@ -1,8 +1,0 @@
-:sysMemAllocHeap 64;
-:sysCreateStack 32;
-
-:alias baba : #10 = "hej";
-:alias str : #0 = "nanana";
-
-
-

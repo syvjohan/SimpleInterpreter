@@ -37,20 +37,20 @@ char* Lexical::readFile(const char *path) {
 	fseek(file, 0, SEEK_SET);
 
 	//allocate sizeof file +1.
-	char *code = DBG_NEW char[fileSize + 1];
+	char *readCode = DBG_NEW char[fileSize + 1];
 
 	//read file into string
 	int c;
 	int i = 0;
 	while ((c = fgetc(file)) != EOF) {
-		code[i] = (char)c;
+		readCode[i] = (char)c;
 		++i;
 	}
-	code[i] = '\0';
+	readCode[i] = '\0';
 
 	fclose(file);
 
-	return code;
+	return readCode;
 }
 
 void Lexical::setCode(char *cStr) {
@@ -323,10 +323,6 @@ void Lexical::evalStk() {
 	}
 }
 
-void Lexical::evalAssert() {
-	char *out = parser.regularExpression(expression);
-}
-
 void Lexical::evalPrint() {
 	char *and = strstr(expression, "&");
 	char *adress = strstr(expression, "#");
@@ -382,6 +378,7 @@ void Lexical::evalInclude() {
 	memcpy(codeAfter, code + startIndex, lenCodeAfter);
 	codeAfter[lenCodeAfter] = '\0';
 
+	delete[] code;
 	code = NULL;
 	code = DBG_NEW char[lenCode + lenExtended];
 

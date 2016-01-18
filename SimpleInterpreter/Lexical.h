@@ -54,7 +54,6 @@ class Lexical {
 		void evalIf();
 		void evalStk();
 		void evalPrint();
-		void evalAssert();
 		void evalInclude();
 		void evalExpressionWithoutKeyword();
 
