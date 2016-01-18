@@ -1,16 +1,23 @@
 #include "Lexical.h"
 
-Lexical::Lexical() {}
+Lexical::Lexical() {
+	expandCallsSize();
+}
 
 Lexical::~Lexical() {
 	if (code) {
-		delete [] code;
+		delete[] code;
 		code = NULL;
 	}
 
 	if (subroutines) {
-		delete [] subroutines;
+		delete[] subroutines;
 		subroutines = NULL;
+	}
+
+	if (calls) {
+		delete[] calls;
+		calls = NULL;
 	}
 }
 
@@ -66,9 +73,21 @@ void Lexical::createStack() {
 	parser.heap.createStack(s);
 }
 
-void Lexical::initlizeCurrentSubroutine() {
-	currentSubroutine.endPos = -1;
-	currentSubroutine.startPos = -1;
+void Lexical::expandCallsSize(void) {
+	int multiplier = 2;
+	callsMax *= multiplier;
+
+	if (calls == NULL) {
+		callsMax = 100;
+		calls = DBG_NEW Call_s[callsMax * sizeof(Call_s)];
+	} else {
+		Call_s *tmpArr = calls;
+
+		calls = DBG_NEW Call_s[multiplier * sizeof(Call_s)];
+		memcpy(calls, tmpArr, callsLen * sizeof(Call_s));
+
+		delete[] tmpArr;
+	}
 }
 
 void Lexical::expandSubroutineSize(void) {
@@ -77,20 +96,19 @@ void Lexical::expandSubroutineSize(void) {
 
 	if (subroutines == NULL) {
 		subroutinesMax = 100;
-		subroutines = DBG_NEW subroutine_s[subroutinesMax];
+		subroutines = DBG_NEW Subroutine_s[subroutinesMax * sizeof(Subroutine_s)];
 	} else {
-		subroutine_s *tmpArr = subroutines;
+		Subroutine_s *tmpArr = subroutines;
 
-		subroutines = DBG_NEW subroutine_s[multiplier * sizeof(subroutine_s)];
-		memcpy(subroutines, tmpArr, subroutinesLen * sizeof(subroutine_s));
+		subroutines = DBG_NEW Subroutine_s[multiplier * sizeof(Subroutine_s)];
+		memcpy(subroutines, tmpArr, subroutinesLen * sizeof(Subroutine_s));
 
-		free(tmpArr);
+		delete[] tmpArr;
 	}
 }
 
 //Makes it possible to call a subroutine that has been declared after it is called.
 void Lexical::registerAllSubroutines(void) {
-	initlizeCurrentSubroutine();
 	int i = 0;
 	do {
 		char *findSub = strstr(code + i, ":subroutine");
@@ -106,7 +124,7 @@ void Lexical::registerAllSubroutines(void) {
 
 				char *ret = strstr(findSub, "};");
 				if (ret) {
-					subroutine_s subroutine;
+					Subroutine_s subroutine;
 					subroutine.endPos = ret - code;
 					subroutine.startPos = findOpenBracket - code;
 					memcpy(subroutine.name, name, len);
@@ -232,55 +250,7 @@ void Lexical::evalAlias() {
 	parser.heap.insertAliasAt(i, alias);
 }
 
-//void Lexical::evalName() {
-//	trimString(expression);
-//
-//	char *equal = strstr(expression, "=");
-//	if (equal) {
-//		int lenRhs = strlen(equal) -3;
-//		int lenLhs = strlen(expression) - lenRhs;
-//
-//		char lhs[VALUESIZE];
-//		char rhs[VALUESIZE];
-//
-//		memcpy(lhs, expression, lenLhs);
-//		lhs[lenLhs] = '\0';
-//
-//		memcpy(rhs, equal +2, lenRhs);
-//		rhs[lenRhs] = '\0';
-//
-//		int isReferenceRhs = 0;
-//		int isReferenceLhs = 0;
-//		char *findReferenceRhs = strstr(rhs, "&");
-//		char *findReferenceLhs = strstr(lhs, "&");
-//		if (findReferenceRhs) {
-//			isReferenceRhs = 1;
-//		}
-//
-//		if (findReferenceLhs) {
-//			isReferenceLhs = 1;
-//		}
-//
-//		char *lhsRes = parser.parseManager(lhs, isReferenceLhs);
-//		char *rhsRes = parser.parseManager(rhs, isReferenceRhs);
-//
-//		if (isReferenceLhs) {
-//			Alias_s alias;
-//			memcpy(alias.name, rhsRes, strlen(alias.name));
-//			memcpy(alias.value, "", 1);
-//			alias.len = 0;
-//			memcpy(alias.type, "string", 6); //TODO check datatype.
-//			parser.heap.insertAliasAt(atoi(lhsRes), alias);
-//			
-//		} else {
-//			//Lhs (left hand sign) need to be a modifiable value(&), do CRASH!!!
-//		}
-//
-//	} else {
-//		//Equal operator missing, do CRASH!!!
-//	}
-//}
-
+//TODO Update code!!
 void Lexical::evalDo(int len) {
 	//endIndex = index;
 	//index -= len;
@@ -305,101 +275,20 @@ void Lexical::evalWhile() {
 	}
 }
 
-//	char *bodyEnd = strpbrk(expression, ";");
-//	if (scope.getCurrentScopeEnd() != index) {
-//		scope.incrementScope(-1, index);
-//	}
-//
-//	//eval if end or goto start.
-//	char *sepEqual = strstr(expression, "==");
-//	char *sepNotEqual = strstr(expression, "!=");
-//	int lenEx = strlen(expression);
-//
-//	char lhs[VALUESIZE];
-//	char rhs[VALUESIZE];
-//	if (sepNotEqual) {
-//		int len = lenEx - strlen(sepNotEqual);
-//		memcpy(lhs, expression, len);
-//		lhs[len] = '\0';
-//
-//		memcpy(rhs, expression + len +2, strlen(sepNotEqual));
-//		rhs[len] = '\0';
-//
-//		//reference = 1, value = 0.
-//		int isReference = 0;
-//		char *bitwiseAnd = strstr(lhs, "&");
-//		char *hashtag = strstr(rhs, "#");
-//
-//		if (bitwiseAnd && hashtag) {
-//			isReference = 1;
-//		} else if (bitwiseAnd) {
-//			//Wrong syntax cannot compare address with value, do CRASH!
-//		}
-//
-//		//parse strings.
-//		char *tmpL = parser.parseManager(lhs, isReference);
-//		memset(&lhs, 0, VALUESIZE);
-//		memcpy(lhs, tmpL, strlen(tmpL));
-//
-//		char *tmpR = parser.parseManager(rhs, isReference);
-//		//memset(&rhs, 0, 50);
-//		memcpy(rhs, tmpR, strlen(tmpR));
-//
-//		printf("i = %s\n", lhs);
-//		//Values are always *char.
-//		if (strCmp(lhs, rhs) == 0) {
-//			startIndex = scope.getCurrentScopeStart();
-//			index = startIndex;
-//			printf("Values are not equal\n");
-//			return;
-//		} else {
-//			scope.decrementScope();
-//			printf("Values are equal\n");
-//		}
-//
-//	} else if (sepEqual) {
-//		int len = lenEx - strlen(sepEqual);
-//		memcpy(lhs, expression, len);
-//		lhs[len] = '\0';
-//
-//		memcpy(rhs, expression + len +2, strlen(sepEqual));
-//		rhs[len] = '\0';
-//
-//		//reference = 1, value = 0.
-//		int isReference = 0;
-//		char *bitwiseAnd = strstr(lhs, "&");
-//		char *hashtag = strstr(lhs, "#");
-//		if (bitwiseAnd && hashtag) {
-//			isReference = 1;
-//		} else if (bitwiseAnd) {
-//			//Wrong syntax cannot compare address with value, do CRASH!
-//		}
-//
-//		//parse strings.
-//		parser.parseManager(lhs, isReference);
-//		parser.parseManager(rhs, isReference);
-//
-//		//Values are always *char.
-//		if (strCmp(lhs, rhs) == 1) {
-//			startIndex = scope.getCurrentScopeStart();
-//			index = startIndex;
-//			return;
-//		} else {
-//			scope.decrementScope();
-//		}
-//
-//	} else {
-//		// Missing compare operator do CRASH.
-//	}
-
 void Lexical::evalCall(int len) {
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
-		if (strCmp(subroutines[i].name, expression)) {
-			oldIndex = index - len;
+		if (strCmp(subroutines[i].name, expression)) {		
+			++callsLen;
+			calls[callsLen].pos = index - len;
+			int len = strlen(subroutines[i].name);
+			memcpy(calls[callsLen].name, &subroutines[i].name, len);
+			calls[callsLen].name[len] = '\0';
+
 			index = subroutines[i].startPos;
 			currentSubroutine = subroutines[i];
+			found = 1;
 			break;
 		}
 	}
@@ -472,10 +361,6 @@ void Lexical::evalIf() {
 	} else {
 		//Something went completly wrong, DO CRASH!!!
 	}
-}
-
-void Lexical::evalReg() {
-//	parser.parseReg(keyword, expression);
 }
 
 void Lexical::evalInclude() {
@@ -561,15 +446,14 @@ void Lexical::splitInstruction(char *instruction) {
 	trimWhitespaces(instruction);
 	char tmp[INSTRUCTIONSIZE];
 	char tmp2[INSTRUCTIONSIZE];
-	int len = 0;
 	int isKeywordMissing = 1;
+	int len = 0;
 
 	char *WHILE = strstr(instruction, ":while");
 	char *sysMemAllocHeap = strstr(instruction, ":sysMemAllocHeap");
 	char *sysCreateStack = strstr(instruction, ":sysCreateStack");
 	char *alias = strstr(instruction, ":alias");
 	char *DO = strstr(instruction, ":do");
-	char *reg = strstr(instruction, ":reg");
 	char *IF = strstr(instruction, ":if");
 	char *ELSE = strstr(instruction, ":else");
 	char *call = strstr(instruction, ":call");
@@ -641,19 +525,6 @@ void Lexical::splitInstruction(char *instruction) {
 		isKeywordMissing = 0;
 	}
 
-	if (reg) {
-		memcpy(tmp2, reg +1, 4);
-		tmp2[4] = '\0';
-		keyword = tmp2;
-
-		len = strlen(reg) - 5;
-		memcpy(tmp, reg + 5, len);
-		tmp[len] = '\0';
-		expression = tmp;
-		evalReg();
-		isKeywordMissing = 0;
-	}
-
 	if (WHILE) {
 		keyword = ":while";
 		len = strlen(WHILE) - 6;
@@ -688,13 +559,18 @@ void Lexical::splitInstruction(char *instruction) {
 	}
 
 	if (stk) {
-		keyword = ":stk.";
-		len = strlen(stk) - 4;
-		memcpy(tmp, stk +5, len);
-		tmp[len] = '\0';
-		expression = tmp;
-		evalStk();
-		isKeywordMissing = 0;
+		char *opEq = strstr(instruction, "=");
+		if (opEq) {
+			isKeywordMissing = 1;
+		} else {
+			keyword = ":stk.";
+			len = strlen(stk) - 4;
+			memcpy(tmp, stk + 5, len);
+			tmp[len] = '\0';
+			expression = tmp;
+			evalStk();
+			isKeywordMissing = 0;
+		}
 	}
 
 	if (call) {
@@ -705,10 +581,10 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 
 		//Move index forward to ignore call again.
-		len += 5;
-		index += len;
-		startIndex = index + 1;
-		endIndex = index;
+		//len += 5;
+		//index += len;
+		//startIndex = index + 1;
+		//endIndex = index;
 
 		evalCall(len);
 		isKeywordMissing = 0;
@@ -765,28 +641,29 @@ void Lexical::getInstructions() {
 			}
 		}
 
-		/*
-		if (code[index] == '}' && code[index + 1] == ';') {
-			ignore = 0;
-
-		} else if (code[index] == '}') { 
-			if (loop[loopLen].stop == 0) {
-				startIndex = loop[loopLen].end;
-				index = loop[loopLen].start;
-			}
-		}*/
-
 		if (index == currentSubroutine.endPos) {
-			currentSubroutine.endPos = -1;
-			currentSubroutine.startPos = -1;
-			index = oldIndex;
+			for (int i = 0; i != subroutinesLen; ++i) { 
+				currentSubroutine = subroutines[i];
+				if (strCmp(currentSubroutine.name, calls[callsLen].name)) {
+					index = calls[callsLen].pos;
+					--callsLen;
+
+					startIndex += index + 1;
+					break;
+				}
+
+			}
+		}
+
+		if (code[index] == '}' && code[index + 1] == ';' && callsLen == 0) {
+			index = calls[callsLen].pos;
 			startIndex += index + 1;
 		}
 
 		if (code[index] == ';' || code[index] == '{') {
 			if (comment == 0 && ignore == 0) {
 				endIndex = index;
-				//TODO Rewrite and Remove this hax (if (endIndex > startIndex) )!!!
+				//TODO Rewrite and Remove this hax (if (endIndex +1 > startIndex) )!!!
 				if (endIndex +1 >= startIndex) {
 					instructionLen = endIndex - startIndex;
 					instructionLen = abs(instructionLen);

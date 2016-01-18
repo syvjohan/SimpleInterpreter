@@ -1,5 +1,5 @@
-#ifndef DEFS_H
-#define DEFS_H
+#ifndef MEMORYLEAK_H
+#define MEMORYLEAK_H
 
 #include <crtdbg.h>
 
@@ -10,4 +10,4 @@
 #endif
 
 
-#endif //!DEFS_H
+#endif //!MEMORYLEAK_H

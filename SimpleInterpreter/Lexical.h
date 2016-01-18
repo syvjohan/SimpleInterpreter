@@ -6,16 +6,20 @@
 
 #include "Global.h"
 #include "memoryLeak.h"
-#include "Scope.h"
 #include "Parser.h"
 
-struct subroutine_s {
+struct Subroutine_s {
 	char name[NAMESIZE];
-	int startPos;
-	int endPos;
+	int startPos = -1;
+	int endPos = -1;
 };
 
-struct Pair {
+struct Call_s {
+	int pos;
+	char name[NAMESIZE];
+};
+
+struct Loop_s {
 	int start = -1;
 	int end = -1;
 	int stop = -1;
@@ -37,9 +41,10 @@ class Lexical {
 		void allocateMem();
 		void createStack();
 
-		void initlizeCurrentSubroutine();
 		void expandSubroutineSize(void);
 		void updateSubroutinesIndexes();
+
+		void expandCallsSize(void);
 
 		void evalAlias();
 		void evalDo(int len);
@@ -47,7 +52,6 @@ class Lexical {
 		void evalWhile();
 		void evalCall(int len);
 		void evalIf();
-		void evalReg();
 		void evalStk();
 		void evalPrint();
 		void evalAssert();
@@ -62,7 +66,7 @@ class Lexical {
 		int endIndex = 0;
 		int instructionLen = 0;
 
-		Pair loop[200];
+		Loop_s loop[200];
 		int loopLen = 0;
 
 		int ignore = 0;
@@ -71,14 +75,17 @@ class Lexical {
 		char *expression;
 		int cmpResult = 0;
 
-		subroutine_s *subroutines;
+		//Before parsing: store subroutines indexes.
+		Subroutine_s *subroutines;
 		int subroutinesLen = 0;
 		int subroutinesMax = 0;
 
-		subroutine_s currentSubroutine;
-		int oldIndex = -1;
+		//while parsing: calling subroutines.
+		Subroutine_s currentSubroutine;
+		Call_s *calls;
+		int callsMax = 0;
+		int callsLen = -1;
 
 		Parser parser;
-		Scope scope;
 };
 #endif //!LEXICAL_H

@@ -195,18 +195,32 @@
 	&sum = val1 / val2Negative;
 };
 
+/*Jämförelsen fungerar men av någon anledning skapas en oändlig loop
+när dessa används tillsammans med de andra testfallen dock är inte detta fallet om de testas enskilt*/
 :call subNegative;
 :print("subNegative");
 :if(#55 == 11) { :print("Success"); } :else { :prin("ERROR"); }
 
 :call addNegative;
 :print("addNegative");
-:if(#55 == -5) { :print("Success"); } :else { :prin("ERROR"); } 
+:if(#55 == -5) { :print("Success"); } :else { :prin("ERROR"); }
 
 :call mulNegative;
 :print("mulNegative");
-:if(#55 == -24) { :print("Success"); } :else { :prin("ERROR"); } 
+:if(#55 == -24) { :print("Success"); } :else { :prin("ERROR"); }
 
 :call divNegative;
 :print("divNegative");
 :if(#55 == 0) { :print("Success"); } :else { :print("ERROR"); }
+
+:subroutine nestedSubroutineCall {
+		:call sub;
+		:stk.pushAt(4, sum);
+		:call add;
+		&sum = sum + :stk.getAt(4); /*5 + 11 = 16*/
+};
+
+:print("nestedSubroutineCall: ");
+:call nestedSubroutineCall;
+
+:if(sum == 16) { :print("Success"); } :else { :print("ERROR"); }

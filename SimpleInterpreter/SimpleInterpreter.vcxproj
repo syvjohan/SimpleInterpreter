@@ -66,11 +66,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Heap.c" />
-    <ClCompile Include="Lexical.c" />
-    <ClCompile Include="main.c" />
-    <ClCompile Include="Parser.c" />
-    <ClCompile Include="Register.c" />
+    <ClCompile Include="Heap.cpp" />
+    <ClCompile Include="Lexical.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memoryLeak.h" />
@@ -78,8 +77,6 @@
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Lexical.h" />
     <ClInclude Include="Parser.h" />
-    <ClInclude Include="Register.h" />
-    <ClInclude Include="Scope.h" />
     <ClInclude Include="Trim.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
