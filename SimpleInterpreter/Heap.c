@@ -3,14 +3,14 @@
 Heap::Heap() {}
 
 Heap::~Heap() {
+	if (heapIndex) {
+		delete[] heapIndex;
+		heapIndex = NULL;
+	}
+
 	if (heapContainer) {
 		delete [] heapContainer;
 		heapContainer = NULL;
-	}
-
-	if (heapIndex) {
-		delete [] heapIndex;
-		heapIndex = NULL;
 	}
 }
 
@@ -21,49 +21,53 @@ void Heap::setHeapSize(size_t size) {
 }
 
 int Heap::insertAliasAt(int index, Alias_s alias) {
-	int len = 0;
-	//data type
-	len = strlen(alias.type);
-	memcpy(heapIndex[index].type, alias.type, len);
-	heapIndex[index].type[len] = '\0';
+	// Heap overflow
+	if ((alias.len + index) <= heapSize) {
+		int len = 0;
+		//data type
+		len = strlen(alias.type);
+		memcpy(heapIndex[index].type, alias.type, len);
+		heapIndex[index].type[len] = '\0';
 
-	len = strlen(alias.value);
-	(heapIndex + index)->len = len;
+		len = strlen(alias.value);
+		(heapIndex + index)->len = len;
 
-	(heapIndex + index)->startPos = index;
+		(heapIndex + index)->startPos = index;
 
-	//Insert value.
-	if (len > 0) {
-		if (strCmp((char *)alias.type, "string")) {
+		//Insert value.
+		if (len > 0) {
+			if (strCmp((char *)alias.type, "string")) {
 
-			if (index + stackLen + len > heapStartPos) {
-				//StackOverfloaw. DO CRASH!!
-			} else if (index + len > heapSize) {
-				//HeapOverflow. DO CRASH!!
-			}
-
-			memcpy(heapContainer + index, alias.value, len);
-
-		} else if (strCmp(alias.type, "int")) {
-			int digits = atoi(alias.value);
-			if (stackLen > -1) {
-				if (index + stackLen + sizeof(digits) > heapStartPos) {
+				if (index + stackLen + len > heapStartPos) {
 					//StackOverfloaw. DO CRASH!!
-				} else if (index + sizeof(digits) > heapSize) {
+				} else if (index + len > heapSize) {
 					//HeapOverflow. DO CRASH!!
 				}
-			}
-			memcpy(heapContainer + index, (char *)&digits, sizeof(int));
-		}
-	}
-	
-	if (strlen(alias.name) > 0) {
-		int len = strlen(alias.name);
-		memcpy((heapIndex + index)->name, alias.name, len);
-		heapIndex[index].name[len] = '\0';
-	}
 
-	return 1;
+				memcpy(heapContainer + index, alias.value, len);
+
+			} else if (strCmp(alias.type, "int")) {
+				int digits = atoi(alias.value);
+				if (stackLen > -1) {
+					if (index + stackLen + sizeof(digits) > heapStartPos) {
+						//StackOverfloaw. DO CRASH!!
+					} else if (index + sizeof(digits) > heapSize) {
+						//HeapOverflow. DO CRASH!!
+					}
+				}
+				memcpy(heapContainer + index, (char *)&digits, sizeof(int));
+			}
+		}
+
+		if (strlen(alias.name) > 0) {
+			int len = strlen(alias.name);
+			memcpy((heapIndex + index)->name, alias.name, len);
+			heapIndex[index].name[len] = '\0';
+		}
+
+		return 1;
+	}
+	return -1;
 }
 
 int Heap::getAddress(char *name) {

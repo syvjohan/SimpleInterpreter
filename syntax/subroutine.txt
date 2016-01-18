@@ -1,33 +1,116 @@
 :sysMemAllocHeap 64;
 
+
+:subroutine sub {
+	&sum = val2 - val1;
+};
+
 :subroutine add {
 	&sum = val1 + val2;
 };
 
 :subroutine mul {
-	&sum = val1 * val2;
+	&sum = val2 * val1;
 };
 
 :subroutine div {
-	&sum = val1 / val2;
-};
-
-:subroutine sub {
-	&sum = val1 - val2;
+	&sum = val2 / val1;
 };
 
 :alias val1 : #0 = 3;
 :alias val2 : #4 = 8; 
-:alias sum : #9 = 0;
+:alias val2Negative : #9 = -8;
+:alias sum : #14 = 0;
+
+:call sub;
+:print("sub: ");
+:if(sum == 5) { :print("Success"); } :else { :prin("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); }
+:if(val1 == 3) { :print("Success"); } :else { :prin("ERROR"); }
 
 :call add;
-:print(sum);
+:print("add: ");
+:if(sum == 11) { :print("Success"); } :else { :prin("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); }
+:if(val1 == 3) { :print("Success"); }  :else { :prin("ERROR"); }
 
 :call mul;
-:print(sum);
-
-:call mul;
-:print(#9);
+:print("mul: ");
+:if(sum == 24) { :print("Success"); }  :else { :prin("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); } 
+:if(val1 == 3) { :print("Success"); }  :else { :prin("ERROR"); }
 
 :call div;
-:print(#9);
+:print("div: ");
+:if(sum == 2) { :print("Success"); } :else { :prin("ERROR"); } 
+:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); }
+:if(val1 == 3) { :print("Success"); } :else { :prin("ERROR"); }
+
+
+:subroutine subReverseOrder {
+	&sum = val1 - val2;
+};
+
+:subroutine addReverseOrder {
+	&sum = val1 + val2;
+};
+
+:subroutine mulReverseOrder {
+	&sum = val1 * val2;
+};
+
+:subroutine divReverseOrder {
+	&sum = val1 / val2;
+};
+
+:call subReverseOrder;
+:print("subReverseOrder");
+:if(sum == -5) { :print("Success"); } :else { :prin("ERROR"); }
+
+
+:call addReverseOrder;
+:print("addReverseOrder");
+:if(sum == 11) { :print("Success"); } :else { :prin("ERROR"); }
+
+
+:call mulReverseOrder;
+:print("mulReverseOrder");
+:if(sum == 24) { :print("Success"); } :else { :prin("ERROR"); }
+
+
+:call divReverseOrder;
+:print("divReverseOrder");
+:if(sum == 0) { :print("Success"); } :else { :prin("ERROR"); }
+
+
+:subroutine subNegative {
+	&sum = val1 - val2Negative;
+};
+
+:subroutine addNegative {
+	&sum = val1 + val2Negative;
+};
+
+:subroutine mulNegative {
+	&sum = val1 * val2Negative;
+};
+
+:subroutine divNegative {
+	&sum = val1 / val2Negative;
+};
+
+:call subNegative;
+:print("subNegative");
+:if(#14 == 11) { :print("Success"); } :else { :prin("ERROR"); }
+
+:call addNegative;
+:print("addNegative");
+:if(#14 == -5) { :print("Success"); } :else { :prin("ERROR"); } 
+
+:call mulNegative;
+:print("mulNegative");
+:if(#14 == -24) { :print("Success"); } :else { :prin("ERROR"); } 
+
+:call divNegative;
+:print("divNegative");
+:if(#14 == 0) { :print("Success"); } :else { :print("ERROR"); }

@@ -101,6 +101,16 @@ operator_s Parser::findOperator(const char *cStr, const int startPos) {
 	}
 	return newOp;
 }
+bool Parser::isNegativeNumber(const char *cStr) {
+	operator_s op0 = findOperator(cStr, 0);
+	if (op0.op[0] == '-' && op0.pos == 0) {
+		operator_s op1 = findOperator(cStr, op0.len);
+		if (op1.len == 0) {
+			return true;
+		}
+	} 
+	return false;
+}
 
 //char* Parser::parseRegArg(char *keyword, char *arg) {
 //	operator_s op = findOperator(arg, 0);
@@ -508,8 +518,14 @@ char* Parser::regularExpression(char *expression) {
 	int len = strlen(expression);
 	operator_s op1 = findOperator(expression, op0.pos + op0.len);
 	if (op1.pos != -1) {
-		//If there is a second operator set len = operator.
-		len = op1.pos;
+
+		//Negative number.
+		if (op0.pos != -1 && op1.op[0] == '-' && op1.pos == op0.pos +1) {
+			int len = strlen(expression);
+		} else {
+			//If there is a second operator set len = operator.
+			len = op1.pos;
+		}
 	}
 
 	memcpy(tmpLhs, expression, len);
@@ -527,6 +543,11 @@ char* Parser::regularExpression(char *expression) {
 
 	strcat(tmpStr, tmpRhs);
 	tmpStr[len + strlen(tmpRhs)] = '\0';
+
+	//Negative number.
+	if (isNegativeNumber(tmpStr)) {
+		return tmpStr;
+	}
 
 	//recursion.
 	regularExpression(tmpStr);
@@ -569,6 +590,11 @@ char* Parser::recursiveParser(char *exp) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) * atoi(aliasRhs.value));
 			} else if (strCmp(op0.op, "/")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) / atoi(aliasRhs.value));
+				int v = atoi(tmpStr);
+				if (v < 0) {
+					tmpStr[0] = '0';
+					tmpStr[1] = '\0';
+				}
 			} else if (strCmp(op0.op, "==")) {
 				if (strCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "true", 4);
@@ -606,7 +632,8 @@ char* Parser::recursiveParser(char *exp) {
 					tmpStr[5] = '\0';
 				}
 			} else if (strCmp(op0.op, "=")) {
-				memcpy(aliasLhs.value, aliasRhs.value, aliasRhs.len);
+				memcpy(&aliasLhs.value, &aliasRhs.value, aliasRhs.len);
+				aliasLhs.value[aliasRhs.len] = '\0';
 				aliasLhs.len = aliasRhs.len;
 				int a = heap.getAddress(aliasLhs.name);
 				heap.insertAliasAt(a, aliasLhs);
@@ -710,7 +737,7 @@ Alias_s Parser::findOutSecret(char *exp) {
 			//unsupported stack command.
 		}
 
-	} else if (address) {
+	} else if (address && !isAdress) {
 		trimBothParanthesis(address);
 		int len = strlen(address) - 1;
 		memcpy(tmpStr, address +1, len);
@@ -718,22 +745,26 @@ Alias_s Parser::findOutSecret(char *exp) {
 		int a = atoi(tmpStr);
 		alias = heap.getAlias(a);
 
-		/*memcpy(alias.type, "address", 7);
+	} else if (address && isAdress) {
+		trimBothParanthesis(address);
+		int len = strlen(address) - 1;
+		memcpy(alias.type, "address", 7);
 		memcpy(alias.name, tmpStr, len);
 
 		int digits = heap.getAddress(tmpStr);
 		sprintf(alias.value, "%d", digits);
 
-		alias.len = strlen(alias.value);*/
+		alias.len = strlen(alias.value);
 
-	} else if (and) {
+	} else if (and && !isAdress) {
 		trimBothParanthesis(and);
 		int len = strlen(and) - 1;
 		memcpy(tmpStr, and + 1, len);
 		tmpStr[len] = '\0';
 		alias = heap.getAlias(tmpStr);
 
-		/*trimBothParanthesis(and);
+	} else if (and && isAdress) {
+		trimBothParanthesis(and);
 		int len = strlen(and) - 1;
 		memcpy(tmpStr, and + 1, len);
 		tmpStr[len] = '\0';
@@ -742,8 +773,8 @@ Alias_s Parser::findOutSecret(char *exp) {
 		memcpy(alias.name, tmpStr, alias.len);
 
 		int digits = heap.getAddress(tmpStr);
-		sprintf(alias.value, "%d", digits);*/
-
+		sprintf(alias.value, "%d", digits);
+	
 	} else if (strstr(exp, "\"") == NULL) {
 		trimBothParanthesis(exp);
 		//Digits

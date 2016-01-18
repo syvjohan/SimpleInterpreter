@@ -40,6 +40,9 @@ class Parser {
 		Alias_s stackGetTop();
 
 		operator_s findOperator(const char *cStr, const int startPos);
+		bool isNegativeNumber(const char *cStr);
+
+		bool isAdress = false;
 
 	private:
 		//char* parseRegArg(char *keyword, char *arg);
@@ -47,8 +50,6 @@ class Parser {
 		char tmpStr[INSTRUCTIONSIZE];
 		char tmpLhs[INSTRUCTIONSIZE];
 		char tmpRhs[INSTRUCTIONSIZE];
-
-		//Register reg;
 };
 
 #endif //!PARSER_H

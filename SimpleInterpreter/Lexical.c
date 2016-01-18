@@ -76,7 +76,7 @@ void Lexical::expandSubroutineSize(void) {
 	subroutinesMax *= multiplier;
 
 	if (subroutines == NULL) {
-		subroutinesMax = 1;
+		subroutinesMax = 100;
 		subroutines = DBG_NEW subroutine_s[subroutinesMax];
 	} else {
 		subroutine_s *tmpArr = subroutines;
@@ -117,7 +117,7 @@ void Lexical::registerAllSubroutines(void) {
 					}
 
 					subroutines[subroutinesLen] = subroutine;
-                                     					++subroutinesLen;
+                    ++subroutinesLen;
 
 					i = subroutine.endPos; //sets the program counter to a new value.
 				} else {
@@ -131,6 +131,11 @@ void Lexical::registerAllSubroutines(void) {
 			return;
 		}
 	} while (i < fileSize);
+}
+
+void Lexical::updateSubroutinesIndexes() {
+	subroutinesLen = 0;
+	registerAllSubroutines();
 }
 
 void Lexical::evalAlias() {
@@ -387,12 +392,12 @@ void Lexical::evalWhile() {
 //		// Missing compare operator do CRASH.
 //	}
 
-void Lexical::evalCall() {
+void Lexical::evalCall(int len) {
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
 		if (strCmp(subroutines[i].name, expression)) {
-			oldIndex = index;
+			oldIndex = index - len;
 			index = subroutines[i].startPos;
 			currentSubroutine = subroutines[i];
 			break;
@@ -434,6 +439,12 @@ void Lexical::evalAssert() {
 }
 
 void Lexical::evalPrint() {
+	char *and = strstr(expression, "&");
+	char *adress = strstr(expression, "#");
+	if (and || adress) {
+		parser.isAdress = true;
+	}
+
 	char *out = parser.regularExpression(expression);
 	char s[VALUESIZE];
 	int len = strlen(out);
@@ -445,6 +456,8 @@ void Lexical::evalPrint() {
 	} else {
 		printf("\n%s", s);
 	}
+
+	parser.isAdress = false;
 }
 
 void Lexical::evalIf() {
@@ -495,11 +508,21 @@ void Lexical::evalInclude() {
 
 	fileSize = (size_t)lenCode; //Setting the size of the new code base.
 
+	//Free memory
+	delete[] codeAfter;
+	codeAfter = NULL;
+
+	delete[] codeBefore;
+	codeBefore = NULL;
+
 	//Reseting index
 	index -= instructionLen;
 	startIndex -= instructionLen;
 	endIndex = index;
 	instructionLen = 0;
+
+	//Update indexes for subroutines since index is changed in document.
+	updateSubroutinesIndexes();
 }
 
 void Lexical::evalExpressionWithoutKeyword() {
@@ -682,11 +705,12 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 
 		//Move index forward to ignore call again.
-		index += len + 5;
+		len += 5;
+		index += len;
 		startIndex = index + 1;
 		endIndex = index;
 
-		evalCall();
+		evalCall(len);
 		isKeywordMissing = 0;
 	}
 
@@ -733,31 +757,45 @@ void Lexical::getInstructions() {
 			startIndex = index + 1;
 		}
 
-		if (code[index] == '}' && code[index + 1] == ';') { 
+		if (code[index] == '}') {
+			ignore = 0;
 			if (loop[loopLen].stop == 0) {
 				startIndex = loop[loopLen].end;
 				index = loop[loopLen].start;
 			}
-
-			ignore = 0;
 		}
+
+		/*
+		if (code[index] == '}' && code[index + 1] == ';') {
+			ignore = 0;
+
+		} else if (code[index] == '}') { 
+			if (loop[loopLen].stop == 0) {
+				startIndex = loop[loopLen].end;
+				index = loop[loopLen].start;
+			}
+		}*/
 
 		if (index == currentSubroutine.endPos) {
 			currentSubroutine.endPos = -1;
 			currentSubroutine.startPos = -1;
 			index = oldIndex;
+			startIndex += index + 1;
 		}
 
 		if (code[index] == ';' || code[index] == '{') {
 			if (comment == 0 && ignore == 0) {
 				endIndex = index;
-				instructionLen = endIndex - startIndex;
-				instructionLen = abs(instructionLen);
-				memcpy(instruction, code + startIndex, instructionLen);
-				instruction[instructionLen] = '\0';
-				startIndex = endIndex + 1;
-				splitInstruction(instruction);
-				printf("%s", instruction);
+				//TODO Rewrite and Remove this hax (if (endIndex > startIndex) )!!!
+				if (endIndex +1 >= startIndex) {
+					instructionLen = endIndex - startIndex;
+					instructionLen = abs(instructionLen);
+					memcpy(instruction, code + startIndex, instructionLen);
+					instruction[instructionLen] = '\0';
+					startIndex = endIndex + 1;
+					splitInstruction(instruction);
+					//printf("%s", instruction);
+				}
 			}
 			startIndex = index;
 		}

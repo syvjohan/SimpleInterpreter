@@ -36,14 +36,16 @@ class Lexical {
 	private:
 		void allocateMem();
 		void createStack();
+
 		void initlizeCurrentSubroutine();
 		void expandSubroutineSize(void);
+		void updateSubroutinesIndexes();
 
 		void evalAlias();
 		void evalDo(int len);
 		void evalName();
 		void evalWhile();
-		void evalCall();
+		void evalCall(int len);
 		void evalIf();
 		void evalReg();
 		void evalStk();
