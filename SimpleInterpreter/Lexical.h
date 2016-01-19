@@ -36,6 +36,7 @@ class Lexical {
 		void splitInstruction(char *instruction);
 
 		void registerAllSubroutines(void);
+		void registerAllStructs(void);
 
 	private:
 		void allocateMem();
@@ -43,6 +44,8 @@ class Lexical {
 
 		void expandSubroutineSize(void);
 		void updateSubroutinesIndexes();
+
+		void expandStructsSize();
 
 		void expandCallsSize(void);
 
@@ -84,6 +87,8 @@ class Lexical {
 		Call_s *calls;
 		int callsMax = 0;
 		int callsLen = -1;
+
+		//Before parsing: store structs indexes.
 
 		Parser parser;
 };

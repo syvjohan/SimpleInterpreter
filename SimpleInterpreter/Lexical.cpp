@@ -458,6 +458,7 @@ void Lexical::splitInstruction(char *instruction) {
 	char *stk = strstr(instruction, ":stk.");
 	char *print = strstr(instruction, ":print(");
 	char *include = strstr(instruction, ":include(");
+	char *STRUCT = strstr(instruction, ":struct");
 
 	if (sysMemAllocHeap) {
 		keyword = ":sysMemAllocHeap";

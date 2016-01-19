@@ -9,7 +9,7 @@ int main(void) {
 	
 	Lexical lexical;
 
-	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.txt";
+	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\tmp.txt";
 	char *cStr = lexical.readFile(path);
 	lexical.setCode(cStr);
 	lexical.registerAllSubroutines();
