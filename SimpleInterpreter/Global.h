@@ -58,3 +58,10 @@ struct Alias_s {
 	char value[VALUESIZE];
 	int len;
 };
+
+struct Index_s {
+	char name[NAMESIZE];
+	char type[TYPESIZE];
+	int startPos;
+	int len;
+};

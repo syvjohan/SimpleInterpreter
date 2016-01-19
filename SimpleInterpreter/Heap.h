@@ -7,13 +7,6 @@
 #include <stdlib.h>
 #include <windows.h>
 
-struct Index_s {
-	char name[NAMESIZE];
-	char type[TYPESIZE];
-	int startPos;
-	int len;
-};
-
 struct IStack {
 		virtual void createStack(size_t stackSize) = 0;
 		virtual int pushTop(Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
@@ -31,6 +24,7 @@ class Heap : IStack {
 		Heap();
 		~Heap();
 
+		//Heap
 		void initializeHeap(size_t heapSize);
 		int insertAliasAt(int index, Alias_s alias);
 		Alias_s getAlias(char *name);
@@ -45,6 +39,10 @@ class Heap : IStack {
 		Alias_s getAt(int index);
 		void pop();
 
+		//Index
+		//Below functions is specialcases for content inside struct
+		void insertIndex(Index_s index);
+
 	private:
 		void setHeapSize(size_t size);
 
@@ -52,8 +50,15 @@ class Heap : IStack {
 		Index_s *heapIndex;
 		size_t heapStartPos;
 		size_t heapSize;
-
+		
 		char tmpStr[INSTRUCTIONSIZE];
+
+		//Index
+		//Specialcases for content inside struct
+		void expandHeapIndexStruct();
+		Index_s *heapIndexStruct;
+		size_t indexStructLen = 0;
+		size_t indexStructMax = 0;
 };
 
 #endif //!HEAP_H

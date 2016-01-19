@@ -74,34 +74,45 @@ void Lexical::createStack() {
 }
 
 void Lexical::expandCallsSize(void) {
-	int multiplier = 2;
-	callsMax *= multiplier;
-
 	if (calls == NULL) {
 		callsMax = 100;
 		calls = DBG_NEW Call_s[callsMax * sizeof(Call_s)];
 	} else {
 		Call_s *tmpArr = calls;
 
-		calls = DBG_NEW Call_s[multiplier * sizeof(Call_s)];
+		callsMax *= 2;
+		calls = DBG_NEW Call_s[callsMax * sizeof(Call_s)];
 		memcpy(calls, tmpArr, callsLen * sizeof(Call_s));
 
 		delete[] tmpArr;
 	}
 }
 
-void Lexical::expandSubroutineSize(void) {
-	int multiplier = 2;
-	subroutinesMax *= multiplier;
+void Lexical::expandStructsSize() {
+	if (structs == NULL) {
+		structsMax = 100;
+		structs = DBG_NEW CallableUnit_s[structsMax * sizeof(CallableUnit_s)];
+	} else {
+		CallableUnit_s *tmpArr = subroutines;
 
+		structsMax *= 2;
+		structs = DBG_NEW CallableUnit_s[structsMax * sizeof(CallableUnit_s)];
+		memcpy(structs, tmpArr, structsLen * sizeof(CallableUnit_s));
+
+		delete[] tmpArr;
+	}
+}
+
+void Lexical::expandSubroutineSize(void) {
 	if (subroutines == NULL) {
 		subroutinesMax = 100;
-		subroutines = DBG_NEW Subroutine_s[subroutinesMax * sizeof(Subroutine_s)];
+		subroutines = DBG_NEW CallableUnit_s[subroutinesMax * sizeof(CallableUnit_s)];
 	} else {
-		Subroutine_s *tmpArr = subroutines;
+		CallableUnit_s *tmpArr = subroutines;
 
-		subroutines = DBG_NEW Subroutine_s[multiplier * sizeof(Subroutine_s)];
-		memcpy(subroutines, tmpArr, subroutinesLen * sizeof(Subroutine_s));
+		subroutinesMax *= 2;
+		subroutines = DBG_NEW CallableUnit_s[subroutinesMax * sizeof(CallableUnit_s)];
+		memcpy(subroutines, tmpArr, subroutinesLen * sizeof(CallableUnit_s));
 
 		delete[] tmpArr;
 	}
@@ -114,8 +125,8 @@ void Lexical::registerAllSubroutines(void) {
 		char *findSub = strstr(code + i, ":subroutine");
 		if (findSub) {
 			char *findOpenBracket = strstr(findSub, "{");
-			int len = strlen(findSub) - strlen(findOpenBracket) - 11;
 			if (findOpenBracket) {
+				int len = strlen(findSub) - strlen(findOpenBracket) - 11;
 				char name[NAMESIZE];
 				memcpy(name, findSub + 11, len);
 				name[len] = '\0';
@@ -124,7 +135,7 @@ void Lexical::registerAllSubroutines(void) {
 
 				char *ret = strstr(findSub, "};");
 				if (ret) {
-					Subroutine_s subroutine;
+					CallableUnit_s subroutine;
 					subroutine.endPos = ret - code;
 					subroutine.startPos = findOpenBracket - code;
 					memcpy(subroutine.name, name, len);
@@ -151,6 +162,69 @@ void Lexical::registerAllSubroutines(void) {
 	} while (i < fileSize);
 }
 
+void Lexical::registerAllStructs() {
+	int i = 0;
+	do {
+		char *findStruct = strstr(code + i, ":struct");
+		if (findStruct) {
+			char *findOpenBracket = strstr(findStruct, "{");
+			if (findOpenBracket) {
+				int lenOpenBracket = strlen(findOpenBracket);
+				int lenName = strlen(findStruct) - lenOpenBracket - 7;
+				char name[NAMESIZE];
+				memcpy(name, findStruct + 7, lenName);
+				name[lenName] = '\0';
+				trimText(name);
+				trimWhitespaces(name);
+
+				char *ret = strstr(findStruct, "};");
+				if (ret) {
+					CallableUnit_s newStruct;
+					newStruct.endPos = ret - code;
+					newStruct.startPos = findOpenBracket - code;
+					memcpy(newStruct.name, name, lenName);
+					newStruct.name[lenName] = '\0';
+
+					if (structsLen == structsMax) {
+						expandStructsSize();
+					}
+
+					structs[structsLen] = newStruct;
+					++structsLen;
+
+					i = newStruct.endPos; //sets the program counter to a new value.
+
+					//Get code inside struct.
+					int lenInsideStruct = lenOpenBracket - strlen(ret);
+					char *codeInsideStruct = DBG_NEW char[lenInsideStruct];
+					memcpy(codeInsideStruct, findOpenBracket, lenInsideStruct);
+					codeInsideStruct[lenInsideStruct] = '\0';
+
+					currentStructName = name;
+					evalCodeInsideStruct(codeInsideStruct);
+
+					//Free memory
+					delete[] codeInsideStruct;
+					codeInsideStruct = NULL;
+
+				} else {
+					//Missing end of struct }; do CRASH!!
+				}
+			} else {
+				//Missing struct open bracket, do CRASH!!!
+			}
+		} else {
+			//No more struct to find end.
+			return;
+		}
+	} while (i < fileSize);
+}
+
+void Lexical::updateStructsIndexes() {
+	structsLen = 0;
+	registerAllStructs();
+}
+
 void Lexical::updateSubroutinesIndexes() {
 	subroutinesLen = 0;
 	registerAllSubroutines();
@@ -160,9 +234,12 @@ void Lexical::evalAlias() {
 	int len = strlen(expression);
 	char *sep1 = strstr(expression, ":");
 	char *sep2 = strstr(expression, "=");
+	char *offset = strstr(expression, "offset(");
 	char *identifyType = strstr(expression, "\"");
 	
 	char address[ADDRESSSIZE];
+	int lenAddress;
+
 	char val[VALUESIZE];
 	Alias_s alias;
 
@@ -170,7 +247,10 @@ void Lexical::evalAlias() {
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
 
-	int lenAddress;
+	if (!sep1) {
+		//Syntax error DO CRASH!!!
+	}
+
 	if (sep2) {
 		lenAddress = strlen(sep1) - strlen(sep2) - 2;
 	} else {
@@ -180,7 +260,29 @@ void Lexical::evalAlias() {
 	memcpy(address, sep1 + 2, lenAddress);
 	address[lenAddress] = '\0';
 
-	if (sep2) {
+	if (offset) {
+		//special case, alias with offset in struct.
+		lenAddress = strlen(offset) - 8;
+		memcpy(address, offset + 7, lenAddress);
+		address[lenAddress] = '\0';
+
+		Index_s index;
+		index.startPos = atoi(address);
+		index.len = 4;
+		memcpy(index.type, "offset", 6);
+		index.type[6] = '\0';
+
+		int lenStructName = strlen(currentStructName);
+		memcpy(index.name, currentStructName, lenStructName);
+		memcpy(index.name + lenStructName, "/", 1);
+		memcpy(index.name + lenStructName +1, alias.name, lenName);
+		index.name[lenStructName + 1 + lenName] = '\0';
+
+		parser.heap.insertIndex(index);
+		return;
+
+	} else if (sep2) {
+		//With definition.
 		//check datatype and get val.
 		if (identifyType) {
 			memcpy(alias.type, "string", 6);
@@ -216,11 +318,6 @@ void Lexical::evalAlias() {
 		//do CRASH!!!
 	}
 	
-	//alias name can only contain letters.
-	if (checkForAlpha(alias.name) == -1) {
-		//do CRASH!!!
-	}
-
 	//alias name need to contain at least one letter.
 	if (strlen(address) < 1) {
 		//do CRASH!!!
@@ -403,8 +500,16 @@ void Lexical::evalInclude() {
 	endIndex = index;
 	instructionLen = 0;
 
-	//Update indexes for subroutines since index is changed in document.
+	//Update indexes for subroutines and structs since index is changed in document.
 	updateSubroutinesIndexes();
+	updateStructsIndexes();
+}
+
+void Lexical::evalCodeInsideStruct(char *structCode) {
+	char *oldCode = code;
+	setCode(structCode);
+	getInstructions();
+	setCode(oldCode);
 }
 
 void Lexical::evalExpressionWithoutKeyword() {
@@ -601,6 +706,10 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 		evalPrint();
 		isKeywordMissing = 0;
+	}
+
+	if (STRUCT) {
+		printf("ds");
 	}
 
 	if (isKeywordMissing == 1) {

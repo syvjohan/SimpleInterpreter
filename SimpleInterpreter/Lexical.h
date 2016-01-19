@@ -8,7 +8,7 @@
 #include "memoryLeak.h"
 #include "Parser.h"
 
-struct Subroutine_s {
+struct CallableUnit_s {
 	char name[NAMESIZE];
 	int startPos = -1;
 	int endPos = -1;
@@ -32,7 +32,7 @@ class Lexical {
 
 		char* readFile(const char *path);
 		void setCode(char *cStr);
-		void getInstructions(void);
+		void getInstructions();
 		void splitInstruction(char *instruction);
 
 		void registerAllSubroutines(void);
@@ -42,11 +42,11 @@ class Lexical {
 		void allocateMem();
 		void createStack();
 
-		void expandSubroutineSize(void);
 		void updateSubroutinesIndexes();
+		void updateStructsIndexes();
 
+		void expandSubroutineSize(void);
 		void expandStructsSize();
-
 		void expandCallsSize(void);
 
 		void evalAlias();
@@ -58,6 +58,7 @@ class Lexical {
 		void evalStk();
 		void evalPrint();
 		void evalInclude();
+		void evalCodeInsideStruct(char *code);
 		void evalExpressionWithoutKeyword();
 
 		char *code;
@@ -78,17 +79,21 @@ class Lexical {
 		int cmpResult = 0;
 
 		//Before parsing: store subroutines indexes.
-		Subroutine_s *subroutines;
+		CallableUnit_s *subroutines;
 		int subroutinesLen = 0;
 		int subroutinesMax = 0;
 
 		//while parsing: calling subroutines.
-		Subroutine_s currentSubroutine;
+		CallableUnit_s currentSubroutine;
 		Call_s *calls;
 		int callsMax = 0;
 		int callsLen = -1;
 
 		//Before parsing: store structs indexes.
+		CallableUnit_s *structs;
+		int structsLen = 0;
+		int structsMax = 0;
+		const char *currentStructName;
 
 		Parser parser;
 };

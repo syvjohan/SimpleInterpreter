@@ -10,12 +10,16 @@ int main(void) {
 	Lexical lexical;
 
 	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\tmp.txt";
-	char *cStr = lexical.readFile(path);
-	lexical.setCode(cStr);
+	char *code = lexical.readFile(path);
+
+	lexical.setCode(code);
 	lexical.registerAllSubroutines();
+	lexical.registerAllStructs();
+
+	//Need to be set again because of struct registration.
+	lexical.setCode(code);
 	lexical.getInstructions();
 
-	//freeMem();
 	system("pause");
 	return 0;
 }

@@ -4,12 +4,12 @@
 :struct Pair_s {
 	:alias first : offset(0);
 	:alias second : offset(4);
-}
+};
 
 :struct String_s {
 	:alias len : offset(0); /*offset 0*/
 	:alias cStr : offset(4); /*offset 4*/
-	Pair_s :alias pPair : offset(8); /*offset 8*/
+	/*Pair_s :alias pPair : offset(8);*/ /*offset 8*/
 
 }; /*No typedef needed underlying layer will automaticle create a typedef String_s*/
 

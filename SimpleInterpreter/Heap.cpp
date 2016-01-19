@@ -70,6 +70,31 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 	return -1;
 }
 
+//Specialcases for content inside struct.
+void Heap::insertIndex(Index_s index) {
+	if (indexStructLen >= indexStructMax) {
+		expandHeapIndexStruct();
+	}
+
+	heapIndexStruct[indexStructLen] = index;
+	++indexStructLen;
+}
+
+void Heap::expandHeapIndexStruct() {
+	if (heapIndexStruct == NULL) {
+		indexStructMax = 100;
+		heapIndexStruct = DBG_NEW Index_s[indexStructMax * sizeof(Index_s)];
+	} else {
+		Index_s *tmpArr = heapIndexStruct;
+
+		indexStructMax *= 2;
+		heapIndexStruct = DBG_NEW Index_s[indexStructMax * sizeof(Index_s)];
+		memcpy(heapIndexStruct, tmpArr, indexStructLen * sizeof(Index_s));
+
+		delete[] tmpArr;
+	}
+}
+
 int Heap::getAddress(char *name) {
 	int i = 0;
 	while (i != heapSize) {
