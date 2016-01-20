@@ -196,11 +196,11 @@ void Lexical::registerAllStructs() {
 
 					//Get code inside struct.
 					int lenInsideStruct = lenOpenBracket - strlen(ret);
-					char *codeInsideStruct = DBG_NEW char[lenInsideStruct];
+					char *codeInsideStruct = DBG_NEW char[lenInsideStruct +1];
 					memcpy(codeInsideStruct, findOpenBracket, lenInsideStruct);
 					codeInsideStruct[lenInsideStruct] = '\0';
 
-					currentStructName = name;
+					memcpy(currentStructName, name, lenName);
 					evalCodeInsideStruct(codeInsideStruct);
 
 					//Free memory

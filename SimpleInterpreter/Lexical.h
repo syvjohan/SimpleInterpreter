@@ -93,7 +93,7 @@ class Lexical {
 		CallableUnit_s *structs;
 		int structsLen = 0;
 		int structsMax = 0;
-		const char *currentStructName;
+		char currentStructName[NAMESIZE];
 
 		Parser parser;
 };
