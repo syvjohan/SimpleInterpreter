@@ -42,6 +42,8 @@ class Lexical {
 		void allocateMem();
 		void createStack();
 
+		void resetIndex();
+
 		void updateSubroutinesIndexes();
 		void updateStructsIndexes();
 

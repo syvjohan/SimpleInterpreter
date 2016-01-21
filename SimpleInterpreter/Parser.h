@@ -23,6 +23,7 @@ class Parser {
 		char* regularExpression(char *expression);
 		char* calculateResult(char *expression);
 		Alias_s parseKeywords(char *expression);
+		void setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs);
 
 		void allocateMem();
 

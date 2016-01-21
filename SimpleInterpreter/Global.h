@@ -29,6 +29,42 @@ static int strCmp(const char *cStr1, const char *cStr2) {
 	return 1;
 }
 
+static char* strstrReverse(char *cStr, const char *searchedStr) {
+	int lenCstr = strlen(cStr);
+	int lenSearchedStr = strlen(searchedStr);
+	int i, j = 0;
+	int firstHit = -1;
+	int flag = 0;
+
+	if ((cStr == NULL || searchedStr == NULL)) return NULL;
+
+	j = lenSearchedStr -1;
+	for (i = lenCstr -1; i != 0; --i) {
+		if (cStr[i] == searchedStr[j]) {
+			if (j == 0) {
+				flag = 1;
+				break;
+			}
+			if (firstHit == -1) {
+				firstHit = i +1;
+			}
+			--j;
+		} else {
+			j = lenSearchedStr - 1; //Cant identify the hole searchedStr without interuption, resetting counter.
+			firstHit = -1;
+		}
+	}
+
+	if (flag == 1) {
+		char dest[INSTRUCTIONSIZE];
+		memcpy(dest, cStr, firstHit);
+		dest[firstHit] = '\0';
+		return dest;
+	}
+
+	return NULL;
+}
+
 static int checkForAlpha(const char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {

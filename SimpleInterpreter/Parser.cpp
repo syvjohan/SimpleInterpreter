@@ -221,6 +221,13 @@ Alias_s Parser::stackGetTop() {
 char* Parser::regularExpression(char *expression) {
 	trimBothParanthesis(expression);
 
+	expression = "this is a string without meaning";
+	char *sdaefrgjm = strstrReverse(expression, "string");
+
+	
+
+
+
 	//If there is no operators return expression(end condition).
 	Operator_s op0 = findOperator(expression, 0);
 	if (op0.pos == -1) {
@@ -291,6 +298,8 @@ char* Parser::calculateResult(char *exp) {
 
 	Alias_s aliasLhs = parseKeywords(lhs);
 	Alias_s aliasRhs = parseKeywords(rhs);
+	
+	setDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
 
 	if (strCmp(aliasLhs.value, "")) {
 		//alias need to be set to an default value, DO CRASH!!!
@@ -356,6 +365,11 @@ char* Parser::calculateResult(char *exp) {
 				aliasLhs.len = aliasRhs.len;
 				int a = heap.getAddress(aliasLhs.name);
 				heap.insertAliasAt(a, aliasLhs);
+
+				int len = strlen(aliasLhs.value);
+				memcpy(tmpStr, aliasLhs.value, len);
+				tmpStr[len] = '\0';
+
 			} else {
 				//Wrong syntax do CRASH!!!
 			}
@@ -403,10 +417,14 @@ char* Parser::calculateResult(char *exp) {
 					tmpStr[5] = '\0';
 				}
 			} else if (strCmp(op0.op, "=")) {
-				memcpy(aliasLhs.value, aliasRhs.value, strlen(aliasLhs.value));
+				memcpy(&aliasLhs.value, &aliasRhs.value, strlen(aliasRhs.value));
 				aliasLhs.len == aliasRhs.len;
 				int a = heap.getAddress(aliasLhs.name);
 				heap.insertAliasAt(a, aliasLhs);
+
+				int len = strlen(aliasLhs.value);
+				memcpy(tmpStr, aliasLhs.value, len);
+				tmpStr[len] = '\0';
 			} else {
 				//Wrong syntax do CRASH!
 			}
@@ -424,6 +442,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 	char *stack = strstr(exp, ":stk");
 	char *address = strstr(exp, "#");
 	char *and = strstr(exp, "&");
+	char *dot = strstr(exp, ".");
 
 	if (a.len > 0) {
 		memcpy(&alias, &a, sizeof(a));
@@ -475,14 +494,14 @@ Alias_s Parser::parseKeywords(char *exp) {
 
 		alias.len = strlen(alias.value);
 
-	} else if (and && !isAdress) {
+	} else if (and && !dot && !isAdress) {
 		trimBothParanthesis(and);
 		int len = strlen(and) - 1;
 		memcpy(tmpStr, and + 1, len);
 		tmpStr[len] = '\0';
 		alias = heap.getAlias(tmpStr);
 
-	} else if (and && isAdress) {
+	} else if (and && !dot && isAdress) {
 		trimBothParanthesis(and);
 		int len = strlen(and) - 1;
 		memcpy(tmpStr, and + 1, len);
@@ -494,6 +513,40 @@ Alias_s Parser::parseKeywords(char *exp) {
 		int digits = heap.getAddress(tmpStr);
 		sprintf(alias.value, "%d", digits);
 	
+	} else if (and && dot && !isAdress) {
+		trimBothParanthesis(and);
+		//struct
+		int lenDot = strlen(dot) -1;
+		int lenStruct = strlen(and) - 2 - lenDot;
+		memcpy(tmpStr, and +1, lenStruct);
+		tmpStr[lenStruct] = '\0';
+		Index_s indexStruct = heap.getStructIndex(tmpStr);
+
+		//alias
+		int lenStructType = strlen(indexStruct.type);
+		memcpy(tmpStr, indexStruct.type, lenStructType);
+		memcpy(tmpStr + lenStructType, "/", 1);
+		memcpy(tmpStr + lenStructType +1, dot + 1, lenDot);
+		int lenType = lenDot + lenStructType + 1;
+		tmpStr[lenType] = '\0';
+		Index_s indexAlias = heap.getStructIndex(tmpStr);
+
+		int a = indexStruct.startPos + indexAlias.startPos;
+		Index_s newIndex;
+		newIndex.len = indexAlias.len;
+		newIndex.startPos = a;
+		int lenAliasName = strlen(indexAlias.name);
+		memcpy(newIndex.name, indexAlias.name, lenAliasName);
+		newIndex.name[lenAliasName] = '\0';
+
+		lenType = strlen(indexAlias.type);
+		memcpy(newIndex.type, indexAlias.type, lenType);
+		newIndex.type[lenType] = '\0';
+
+		heap.updateStructIndex(newIndex); //Update startposition.
+
+		alias = heap.getAlias(tmpStr);
+
 	} else if (strstr(exp, "\"") == NULL) {
 		trimBothParanthesis(exp);
 		//Digits
@@ -520,4 +573,17 @@ Alias_s Parser::parseKeywords(char *exp) {
 	}
 
 	return alias;
+}
+
+void Parser::setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs) {
+	if (!strCmp(aliasRhs.type, "")) {
+		if (strCmp(aliasRhs.type, "int")) {
+			memcpy(aliasLhs->type, "int", 3);
+			aliasLhs->type[3] = '\0';
+
+		} else if (strCmp(aliasRhs.type, "string")) {
+			memcpy(aliasLhs->type, "string", 6);
+			aliasLhs->type[6] = '\0';
+		}
+	}
 }

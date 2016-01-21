@@ -109,3 +109,15 @@ static void trimBracket(char *cStr) {
 	}
 	cStr[j] = '\0';
 }
+
+static void trimSemicolon(char *cStr) {
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] != ';') {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}

@@ -18,6 +18,8 @@ void Heap::setHeapSize(size_t size) {
 	heapIndex = DBG_NEW Index_s [size];
 	heapContainer = DBG_NEW char[size];
 	heapSize = size;
+
+	expandHeapIndexStruct();
 }
 
 int Heap::insertAliasAt(int index, Alias_s alias) {
@@ -71,47 +73,52 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 }
 
 //Specialcases for content inside struct.
-void Heap::insertIndex(Index_s index) {
+void Heap::insertStructIndex(Index_s index) {
 	if (indexStructLen >= indexStructMax) {
 		expandHeapIndexStruct();
 	}
 
-	heapIndexStruct[indexStructLen] = index;
+	heapIndexStructs[indexStructLen] = index;
 	++indexStructLen;
 }
 
 void Heap::expandHeapIndexStruct() {
-	if (heapIndexStruct == NULL) {
+	if (heapIndexStructs == NULL) {
 		indexStructMax = 100;
-		heapIndexStruct = DBG_NEW Index_s[indexStructMax * sizeof(Index_s)];
+		heapIndexStructs = DBG_NEW Index_s[indexStructMax * sizeof(Index_s)];
 	} else {
-		Index_s *tmpArr = heapIndexStruct;
+		Index_s *tmpArr = heapIndexStructs;
 
 		indexStructMax *= 2;
-		heapIndexStruct = DBG_NEW Index_s[indexStructMax * sizeof(Index_s)];
-		memcpy(heapIndexStruct, tmpArr, indexStructLen * sizeof(Index_s));
+		heapIndexStructs = DBG_NEW Index_s[indexStructMax * sizeof(Index_s)];
+		memcpy(heapIndexStructs, tmpArr, indexStructLen * sizeof(Index_s));
 
 		delete[] tmpArr;
 	}
 }
 
 int Heap::getAddress(char *name) {
+	int ret = -1;
 	int i = 0;
 	while (i != heapSize) {
 		if (strCmp(heapIndex[i].name, name)) {
-			return heapIndex[i].startPos;
+			ret = heapIndex[i].startPos;
+			break;
+		} else if (strCmp(heapIndexStructs[i].name, name)) {
+			ret = heapIndexStructs[i].startPos;
+			break;
 		}
 		++i;
 	}
-	return -1;
+	return ret;
 }
 
 Alias_s Heap::getAlias(char *name) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
 	int i = 0;
+	int len = 0;
 	while (i != heapSize) {
 		if (strCmp(heapIndex[i].name, name)) {
-			int len = 0;
 			len = strlen(heapIndex[i].name);
 			memcpy(alias.name, heapIndex[i].name, len);
 			alias.name[len] = '\0';
@@ -124,6 +131,29 @@ Alias_s Heap::getAlias(char *name) {
 
 			if (strCmp(alias.type, "string")) {
 				memcpy(alias.value, &heapContainer[heapIndex[i].startPos], alias.len);
+				alias.value[alias.len] = '\0';
+			} else if (strCmp(alias.type, "int")) {
+				//convert char to int and int to char
+				int dest;
+				memcpy(&dest, &heapContainer[i], sizeof(int));
+				sprintf(alias.value, "%i", dest);
+				alias.value[alias.len] = '\0';
+			}
+			break;
+		} else if (strCmp(heapIndexStructs[i].name, name)) {
+			//structs
+			len = strlen(heapIndexStructs[i].name);
+			memcpy(alias.name, heapIndexStructs[i].name, len);
+			alias.name[len] = '\0';
+
+			alias.len = heapIndexStructs[i].len;
+
+			len = strlen(heapIndexStructs[i].type);
+			memcpy(alias.type, heapIndexStructs[i].type, len);
+			alias.type[len] = '\0';
+
+			if (strCmp(alias.type, "string")) {
+				memcpy(alias.value, &heapContainer[heapIndexStructs[i].startPos], alias.len);
 				alias.value[alias.len] = '\0';
 			} else if (strCmp(alias.type, "int")) {
 				//convert char to int and int to char
@@ -163,6 +193,28 @@ Alias_s Heap::getAlias(int index) {
 		alias.value[alias.len] = '\0';
 	}
 	return alias;
+}
+
+Index_s Heap::getStructIndex(char *name) {
+	Index_s index = { NULL, NULL, 0, 0 };
+	for (int i = 0; i != indexStructLen; ++i) {
+		if (strCmp(heapIndexStructs[i].name, name)) {
+			index = heapIndexStructs[i];
+			break;
+		}
+	}
+	return index;
+}
+
+void Heap::updateStructIndex(Index_s index) {
+	for (int i = 0; i != indexStructLen; ++i) {
+		if (strCmp(heapIndexStructs[i].name, index.name)) {
+			heapIndexStructs[i].len = index.len;
+			heapIndexStructs[i].startPos = index.startPos;
+			memcpy(heapIndexStructs[i].type, index.type, strlen(index.type));
+			break;
+		}
+	}
 }
 
 void Heap::initializeHeap(size_t size) {

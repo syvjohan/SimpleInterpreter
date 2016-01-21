@@ -246,6 +246,10 @@ void Lexical::evalAlias() {
 	int lenName = len - strlen(sep1);
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
+	if (checkForAlpha(alias.name) == -1) {
+		//Wrong name conversion, DO CRASH!!!
+	}
+
 
 	if (!sep1) {
 		//Syntax error DO CRASH!!!
@@ -266,7 +270,7 @@ void Lexical::evalAlias() {
 		memcpy(address, offset + 7, lenAddress);
 		address[lenAddress] = '\0';
 
-		Index_s index;
+		Index_s index = { NULL, NULL, 0, 0 };
 		index.startPos = atoi(address);
 		index.len = 4;
 		memcpy(index.type, "offset", 6);
@@ -278,7 +282,7 @@ void Lexical::evalAlias() {
 		memcpy(index.name + lenStructName +1, alias.name, lenName);
 		index.name[lenStructName + 1 + lenName] = '\0';
 
-		parser.heap.insertIndex(index);
+		parser.heap.insertStructIndex(index);
 		return;
 
 	} else if (sep2) {
@@ -293,18 +297,31 @@ void Lexical::evalAlias() {
 			val[alias.len] = '\0';
 
 		} else {
-			memcpy(alias.type, "int", 3);
-			alias.type[3] = '\0';
 
-			len = strlen(sep2);
+			len = strlen(sep2 +1);
 			alias.len = len;
 
 			memcpy(val, sep2 + 1, len);
 			val[len] = '\0';
 	
-			if (checkForDigits(alias.value) == -1) {
-				//do CRASH!!!
+			if (checkForDigits(val) == -1) {
+				if (checkForAlpha(val) == 1) {
+					Index_s index = { NULL, NULL, 0, 0 };
+					//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
+					index.len = 0;
+					index.startPos = atoi(address);
+					memcpy(index.type, val, len);
+					memcpy(index.name, alias.name, lenName);
+
+					parser.heap.insertStructIndex(index);
+				} else {
+					//Wrong format DO CRASH!!!
+				}
+			} else {
+				memcpy(alias.type, "int", 3);
+				alias.type[3] = '\0';
 			}
+
 		}
 	} else {
 		//if No definition
@@ -520,7 +537,10 @@ void Lexical::evalExpressionWithoutKeyword() {
 	
 	char *eq = strstr(expression, "=");
 	if (eq) {
-		int lenEq = strlen(eq);
+
+		//Todo fix so it reads from right to left.
+		char *res = parser.regularExpression(expression);
+		/*int lenEq = strlen(eq);
 		int lenLhs = len - lenEq;
 		memcpy(tmpLhs, expression, lenLhs);
 		tmpLhs[len - lenEq] = '\0';
@@ -540,7 +560,7 @@ void Lexical::evalExpressionWithoutKeyword() {
 		memcpy(tmpStr + lenLhs +1, rhs, rhsLen);
 		tmpStr[lenLhs + 1 + rhsLen] = '\0';
 
-		parser.regularExpression(tmpStr);
+		parser.regularExpression(tmpStr);*/
 	}
 }
 
@@ -718,6 +738,7 @@ void Lexical::splitInstruction(char *instruction) {
 		trimNewline(instruction);
 		trimTabb(instruction);
 		trimBracket(instruction);
+		trimSemicolon(instruction);
 		len = strlen(instruction);
 		memcpy(tmp, instruction, len);
 		tmp[len] = '\0';
@@ -727,9 +748,17 @@ void Lexical::splitInstruction(char *instruction) {
 	}
 }
 
+void Lexical::resetIndex() {
+	index = 0;
+	startIndex = 0;
+	endIndex = 0;
+	instructionLen = 0;
+}
+
 void Lexical::getInstructions() {
 	int comment = 0;
 	char instruction[INSTRUCTIONSIZE];
+	resetIndex();
 
 	while (code[index] != '\0') {	
 		//Comments

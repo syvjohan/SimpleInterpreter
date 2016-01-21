@@ -41,7 +41,9 @@ class Heap : IStack {
 
 		//Index
 		//Below functions is specialcases for content inside struct
-		void insertIndex(Index_s index);
+		void insertStructIndex(Index_s index);
+		void updateStructIndex(Index_s index);
+		Index_s getStructIndex(char *name);
 
 	private:
 		void setHeapSize(size_t size);
@@ -56,7 +58,7 @@ class Heap : IStack {
 		//Index
 		//Specialcases for content inside struct
 		void expandHeapIndexStruct();
-		Index_s *heapIndexStruct;
+		Index_s *heapIndexStructs;
 		size_t indexStructLen = 0;
 		size_t indexStructMax = 0;
 };

@@ -1,22 +1,22 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
-:struct Pair_s {
+:struct Pair {
 	:alias first : offset(0);
 	:alias second : offset(4);
 };
 
-:struct String_s {
+:struct String {
 	:alias len : offset(0); /*offset 0*/
 	:alias cStr : offset(4); /*offset 4*/
 	/*Pair_s :alias pPair : offset(8);*/ /*offset 8*/
 
 }; /*No typedef needed underlying layer will automaticle create a typedef String_s*/
 
-:alias p : #33 = String_s; /*size is 4 bytes. p contains the start 
+:alias p : #33 = String; /*size is 4 bytes. p contains the start 
 position to the first member alias. A struct need to contains >= 1 alias*/
 
-:alias p2 : #45 = String_s;
+:alias pa : #45 = String;
 
 &p.len = 10;
 &p.cStr = "hejhej";
@@ -28,7 +28,7 @@ position to the first member alias. A struct need to contains >= 1 alias*/
 /* Program store struct String_s, Pair_s start and end position. 
 
 struct Index_s {
-	char name[NAMESIZE]; // String_s/len
+	char name[NAMESIZE]; // String/len
 	char type[TYPESIZE]; //offset
 	int startPos; //0
 	int len; //4
@@ -42,7 +42,7 @@ struct Index_s {
 };
 
 struct Index_s {
-	char name[NAMESIZE]; // String_s/pPair
+	char name[NAMESIZE]; // String/pPair
 	char type[TYPESIZE]; // offset
 	int startPos; // 8
 	int len; // 4
@@ -50,7 +50,7 @@ struct Index_s {
 
 struct Index_s {
 	char name[NAMESIZE]; // p
-	char type[TYPESIZE]; // String_s
+	char type[TYPESIZE]; // String
 	int startPos; // 33
-	int len; // 4
+	int len; // 8
 }; */
