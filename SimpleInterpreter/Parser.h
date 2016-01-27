@@ -1,17 +1,16 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "Defines.h"
 #include "Heap.h"
-#include "Stack"
 #include "Global.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+struct Alias_s;
+struct Index_s;
 
 struct Operator_s {
 	int pos;
-	char op[2];
+	char op[3];
 	int len;
 };
 
@@ -24,6 +23,7 @@ class Parser {
 		char* calculateResult(char *expression);
 		Alias_s parseKeywords(char *expression);
 		void setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs);
+		void setLength(Alias_s *aliasLhs, Alias_s aliasRhs);
 
 		void allocateMem();
 
@@ -45,6 +45,10 @@ class Parser {
 		char tmpStr[INSTRUCTIONSIZE];
 		char tmpLhs[INSTRUCTIONSIZE];
 		char tmpRhs[INSTRUCTIONSIZE];
+
+		Global global;
+
+		void updateAlias(Alias_s *alias);
 };
 
 #endif //!PARSER_H

@@ -1,56 +1,44 @@
 :sysMemAllocHeap 64;
-:sysCreateStack 32;
 
 :struct Pair {
 	:alias first : offset(0);
-	:alias second : offset(4);
+	:alias second : offset(9);
 };
 
 :struct String {
 	:alias len : offset(0); /*offset 0*/
 	:alias cStr : offset(4); /*offset 4*/
-	/*Pair_s :alias pPair : offset(8);*/ /*offset 8*/
+	//:alias pPair : Pair : offset(8); /*offset 8*/ /*Transforms to aliasName/String/Pair/first*/
 
-}; /*No typedef needed underlying layer will automaticle create a typedef String_s*/
+}; /*No typedef needed underlying layer will automaticle create a typedef String*/
 
-:alias p : #33 = String; /*size is 4 bytes. p contains the start 
-position to the first member alias. A struct need to contains >= 1 alias*/
+:alias pairNext : #20 = Pair; /* path: pairNext/Pair/pairNext later transforms to
+path: pairNext/first.*/
+&pairNext.second = 12345;
+&pairNext.first = "testAgain";
+:print(pairNext.first);
+:print(pairNext.second);
+:print(pairNext);
 
-:alias pa : #45 = String;
+:alias pair : #4 = Pair;
+&pair.second = "test";
+&pair.first = 67890;
+:print(pair.first);
+:print(pair.second);
+:print(pair);
 
-&p.len = 10;
-&p.cStr = "hejhej";
-:print(p.cStr);
-:prin(p.len);
-:print(p); /*skriver ut len*/
+:alias string : #53 = String; /*size is 4 bytes. string contains the start 
+position to the first member alias. path: p/String/len.
+ A struct need to contains >= 1 alias*/
+&string.cStr = "hej";
+&string.len = 10;
+/*&string.pPair.first = "firstPair";
+&string.pPair.second = "secondPair";
+:print(string.pPair.second);
+:print(string.pPair.first);
+:print(string.pPair);*/
+:print(string.cStr);
+:print(string.len);
+:print(string); /*skriver ut len*/
 
-
-/* Program store struct String_s, Pair_s start and end position. 
-
-struct Index_s {
-	char name[NAMESIZE]; // String/len
-	char type[TYPESIZE]; //offset
-	int startPos; //0
-	int len; //4
-};
-
-struct Index_s {
-	char name[NAMESIZE]; // String_s/cStr
-	char type[TYPESIZE]; //offset
-	int startPos; //4
-	int len; // 4
-};
-
-struct Index_s {
-	char name[NAMESIZE]; // String/pPair
-	char type[TYPESIZE]; // offset
-	int startPos; // 8
-	int len; // 4
-};
-
-struct Index_s {
-	char name[NAMESIZE]; // p
-	char type[TYPESIZE]; // String
-	int startPos; // 33
-	int len; // 8
-}; */
+/* Program store struct String, Pair start and end position. 

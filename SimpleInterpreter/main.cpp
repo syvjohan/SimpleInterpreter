@@ -6,10 +6,10 @@
 
 int main(void) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	
+
 	Lexical lexical;
 
-	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.txt";
+	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\tmp.txt";
 	char *code = lexical.readFile(path);
 
 	lexical.setCode(code);

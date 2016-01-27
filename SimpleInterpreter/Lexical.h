@@ -1,12 +1,11 @@
 #ifndef LEXICAL_H
 #define LEXICAL_H
 
-#include <iostream>
-#include <errno.h>
-
+#include "Defines.h"
 #include "Global.h"
-#include "memoryLeak.h"
 #include "Parser.h"
+
+class Global;
 
 struct CallableUnit_s {
 	char name[NAMESIZE];
@@ -96,7 +95,9 @@ class Lexical {
 		int structsLen = 0;
 		int structsMax = 0;
 		char currentStructName[NAMESIZE];
+		bool isInitializingStructs = false;
 
 		Parser parser;
+		Global global;
 };
 #endif //!LEXICAL_H

@@ -66,12 +66,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Global.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="Lexical.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Defines.h" />
+    <ClInclude Include="IStack.h" />
     <ClInclude Include="memoryLeak.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="Heap.h" />

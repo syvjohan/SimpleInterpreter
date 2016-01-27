@@ -1,4 +1,9 @@
 #include "Lexical.h"
+#include "Trim.h"
+#include "memoryLeak.h"
+
+#include <iostream>
+#include <errno.h>
 
 Lexical::Lexical() {
 	expandCallsSize();
@@ -201,12 +206,14 @@ void Lexical::registerAllStructs() {
 					codeInsideStruct[lenInsideStruct] = '\0';
 
 					memcpy(currentStructName, name, lenName);
+					isInitializingStructs = true;
 					evalCodeInsideStruct(codeInsideStruct);
 
 					//Free memory
 					delete[] codeInsideStruct;
 					codeInsideStruct = NULL;
 
+					isInitializingStructs = false;
 				} else {
 					//Missing end of struct }; do CRASH!!
 				}
@@ -246,7 +253,7 @@ void Lexical::evalAlias() {
 	int lenName = len - strlen(sep1);
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
-	if (checkForAlpha(alias.name) == -1) {
+	if (global.checkForAlpha(alias.name) == -1) {
 		//Wrong name conversion, DO CRASH!!!
 	}
 
@@ -264,7 +271,7 @@ void Lexical::evalAlias() {
 	memcpy(address, sep1 + 2, lenAddress);
 	address[lenAddress] = '\0';
 
-	if (offset) {
+	if (offset && isInitializingStructs) {
 		//special case, alias with offset in struct.
 		lenAddress = strlen(offset) - 8;
 		memcpy(address, offset + 7, lenAddress);
@@ -279,9 +286,20 @@ void Lexical::evalAlias() {
 		int lenStructName = strlen(currentStructName);
 		memcpy(index.name, currentStructName, lenStructName);
 		memcpy(index.name + lenStructName, "/", 1);
-		memcpy(index.name + lenStructName +1, alias.name, lenName);
+		memcpy(index.name + lenStructName + 1, alias.name, lenName);
 		index.name[lenStructName + 1 + lenName] = '\0';
 
+		//check if it shall point to struct.
+		/*char *nestedStruct = strstr(sep1 +1, ":");
+		if (nestedStruct) {
+			len = strlen(sep1) - strlen(nestedStruct) - 1;
+			memcpy(index.name + lenStructName, "/", 1);
+			memcpy(index.name + lenStructName +1, sep1 +1, len);
+			memcpy(index.name + lenStructName + len + 1, "/", 1);
+			memcpy(index.name + lenStructName + len + 2, alias.name, lenName);
+			index.name[lenStructName + len + 2 + lenName] = '\0';
+		}
+*/
 		parser.heap.insertStructIndex(index);
 		return;
 
@@ -304,8 +322,8 @@ void Lexical::evalAlias() {
 			memcpy(val, sep2 + 1, len);
 			val[len] = '\0';
 	
-			if (checkForDigits(val) == -1) {
-				if (checkForAlpha(val) == 1) {
+			if (global.checkForDigits(val) == -1) {
+				if (global.checkForAlpha(val) == 1) {
 					Index_s index = { NULL, NULL, 0, 0 };
 					//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
 					index.len = 0;
@@ -341,7 +359,7 @@ void Lexical::evalAlias() {
 	}
 	
 	//address can only contain digits.
-	if (checkForDigits(address) == -1) {
+	if (global.checkForDigits(address) == -1) {
 			//do CRASH!!!
 	}
 
@@ -374,7 +392,7 @@ void Lexical::evalDo(int len) {
 
 void Lexical::evalWhile() {
 	char *res = parser.regularExpression(expression);
-	if (strCmp(res, "true")) {
+	if (global.strCmp(res, "true")) {
 		if (loop[loopLen].start == startIndex - 1 && loop[loopLen].end == (startIndex - instructionLen - 1)) {
 			return;
 		}
@@ -383,7 +401,7 @@ void Lexical::evalWhile() {
 		loop[loopLen].start = startIndex - 1;
 		loop[loopLen].end = startIndex - instructionLen - 1;
 		loop[loopLen].stop = 0;
-	} else if (strCmp(res, "false")) {
+	} else if (global.strCmp(res, "false")) {
 		--loopLen;
 		loop[loopLen].stop = 1;
 	}
@@ -393,7 +411,7 @@ void Lexical::evalCall(int len) {
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
-		if (strCmp(subroutines[i].name, expression)) {		
+		if (global.strCmp(subroutines[i].name, expression)) {
 			++callsLen;
 			calls[callsLen].pos = index - len;
 			int len = strlen(subroutines[i].name);
@@ -464,9 +482,9 @@ void Lexical::evalIf() {
 
 	char *res = parser.regularExpression(expression);
 
-	if (strCmp(res, "true")) {
+	if (global.strCmp(res, "true")) {
 		cmpResult = 1;
-	} else if (strCmp(res, "false")) {
+	} else if (global.strCmp(res, "false")) {
 		cmpResult = 0;
 	} else {
 		//Something went completly wrong, DO CRASH!!!
@@ -540,6 +558,7 @@ void Lexical::evalExpressionWithoutKeyword() {
 
 		//Todo fix so it reads from right to left.
 		char *res = parser.regularExpression(expression);
+
 		/*int lenEq = strlen(eq);
 		int lenLhs = len - lenEq;
 		memcpy(tmpLhs, expression, lenLhs);
@@ -623,6 +642,7 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 		evalAlias();
 		isKeywordMissing = 0;
+		return;
 	} 
 
 	if (DO) {
@@ -729,7 +749,6 @@ void Lexical::splitInstruction(char *instruction) {
 	}
 
 	if (STRUCT) {
-		printf("ds");
 	}
 
 	if (isKeywordMissing == 1) {
@@ -766,7 +785,7 @@ void Lexical::getInstructions() {
 				comment = 1;
 		} else if (code[index] == '*' && code[index +1] == '/') {
 			comment = 0;
-			startIndex = index + 1;
+			startIndex = index + 2;
 		}
 
 		if (code[index] == '}') {
@@ -780,7 +799,7 @@ void Lexical::getInstructions() {
 		if (index == currentSubroutine.endPos) {
 			for (int i = 0; i != subroutinesLen; ++i) { 
 				currentSubroutine = subroutines[i];
-				if (strCmp(currentSubroutine.name, calls[callsLen].name)) {
+				if (global.strCmp(currentSubroutine.name, calls[callsLen].name)) {
 					index = calls[callsLen].pos;
 					--callsLen;
 
@@ -807,7 +826,6 @@ void Lexical::getInstructions() {
 					instruction[instructionLen] = '\0';
 					startIndex = endIndex + 1;
 					splitInstruction(instruction);
-					//printf("%s", instruction);
 				}
 			}
 			startIndex = index;

@@ -1,25 +1,14 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-#include "memoryLeak.h"
+#include "IStack.h"
+#include "Defines.h"
 #include "Global.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
 
-struct IStack {
-		virtual void createStack(size_t stackSize) = 0;
-		virtual int pushTop(Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
-		virtual int pushAt(int index, Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
-		virtual Alias_s getTop() = 0;
-		virtual Alias_s getAt(int index) = 0;
-		virtual void pop() = 0;
+struct Alias_s;
+struct Index_s;
 
-		int stackSize = -1;
-		int stackLen = -1;
-};
-
-class Heap : IStack {
+class Heap : public IStack {
 	public:
 		Heap();
 		~Heap();
@@ -30,19 +19,20 @@ class Heap : IStack {
 		Alias_s getAlias(char *name);
 		Alias_s getAlias(int index);
 		int getAddress(char *name);
+		void updateHeapIndex(Index_s index);
 
 		//Stack
-		void createStack(size_t stackSize);
+		void createStack(size_t stackSize); 
 		int pushTop(Alias_s alias);
 		int pushAt(int index, Alias_s alias);
 		Alias_s getTop();
-		Alias_s getAt(int index);
+		Alias_s getAt(const int index);
 		void pop();
 
 		//Index
 		//Below functions is specialcases for content inside struct
 		void insertStructIndex(Index_s index);
-		void updateStructIndex(Index_s index);
+		bool updateStructIndex(Index_s index);
 		Index_s getStructIndex(char *name);
 
 	private:
@@ -61,6 +51,8 @@ class Heap : IStack {
 		Index_s *heapIndexStructs;
 		size_t indexStructLen = 0;
 		size_t indexStructMax = 0;
+
+		Global global;
 };
 
 #endif //!HEAP_H
