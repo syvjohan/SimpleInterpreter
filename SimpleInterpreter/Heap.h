@@ -33,7 +33,9 @@ class Heap : public IStack {
 		//Below functions is specialcases for content inside struct
 		void insertStructIndex(Index_s index);
 		bool updateStructIndex(Index_s index);
-		Index_s getStructIndex(char *name);
+		bool findStructIndex(Index_s index);
+		Index_s getStructIndex(const char *name);
+		void getStructIndex(const char *type, Index_s *index, int &len);
 
 	private:
 		void setHeapSize(size_t size);

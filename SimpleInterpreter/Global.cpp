@@ -97,3 +97,13 @@ int Global::intLength(int x) {
 	}
 	return floor(log10(abs(abs(x)))) + 1;
 }
+
+void Global::replaceDotsWithSlashes(char *cStr) {
+	int i = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] == '.') {
+			cStr[i] = '/';
+		}
+		++i;
+	}
+}

@@ -73,6 +73,8 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 		}
 
 		return 1;
+	} else {
+		//Trying to write outside allocated memory DO CRASH!!!
 	}
 	return -1;
 }
@@ -147,7 +149,7 @@ Alias_s Heap::getAlias(char *name) {
 				alias.len = sizeof(int);
 			}
 			break;
-		} else if (global.strCmp(heapIndexStructs[i].name, name)) {
+		} else if (global.strCmp(heapIndexStructs[i].name, name)) { //lhs = String/pPair, rhs = string/String/pPair  
 			//structs
 			len = strlen(heapIndexStructs[i].name);
 			memcpy(alias.name, heapIndexStructs[i].name, len);
@@ -229,7 +231,7 @@ Alias_s Heap::getAlias(int index) {
 	return alias;
 }
 
-Index_s Heap::getStructIndex(char *name) {
+Index_s Heap::getStructIndex(const char *name) {
 	Index_s index = { NULL, NULL, 0, 0 };
 	for (int i = 0; i != indexStructLen; ++i) {
 		if (global.strCmp(heapIndexStructs[i].name, name)) {
@@ -238,6 +240,24 @@ Index_s Heap::getStructIndex(char *name) {
 		}
 	}
 	return index;
+}
+
+void Heap::getStructIndex(const char *type, Index_s *indexes, int &len) {
+	int lenRetIndexes = 0;
+	for (int i = 0; i != indexStructLen; ++i) {
+		const char *name = heapIndexStructs[i].name;
+		const char *slash = strstr(name, ".");
+		if (slash) {
+			int len = strlen(name) - strlen(slash);
+			memcpy(tmpStr, name, len);
+			tmpStr[len] = '\0';
+			if (global.strCmp(tmpStr, type)) {
+				indexes[lenRetIndexes] = heapIndexStructs[i];
+				++lenRetIndexes;
+			}
+		}
+	}
+	len = lenRetIndexes;
 }
 
 void Heap::updateHeapIndex(Index_s index) {
@@ -269,14 +289,23 @@ bool Heap::updateStructIndex(Index_s index) {
 			//Change the len attribut for typedef type of struct.
 			/*for (int k = 0; k != indexStructLen; ++k) {
 				if (heapIndexStructs[k].startPos == index.startPos) {
-						heapIndexStructs[k].len = index.len;
-						
-						lenType = strlen(index.type);
-						memcpy(heapIndexStructs[k].type, index.type, lenType);
-						heapIndexStructs[k].type[lenType] = '\0';
-						break;
+				heapIndexStructs[k].len = index.len;
+
+				lenType = strlen(index.type);
+				memcpy(heapIndexStructs[k].type, index.type, lenType);
+				heapIndexStructs[k].type[lenType] = '\0';
+				break;
 				}
 			}*/
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Heap::findStructIndex(Index_s index) {
+	for (int i = 0; i != indexStructLen; ++i) {
+		if (global.strCmp(heapIndexStructs[i].name, index.name)) {
 			return true;
 		}
 	}

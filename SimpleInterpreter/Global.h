@@ -29,5 +29,6 @@ class Global {
 		int checkForAlpha(const char *cStr);
 		int checkForDigits(const char *cStr);
 		int intLength(int x);
+		void replaceDotsWithSlashes(char *cStr);
 };
 

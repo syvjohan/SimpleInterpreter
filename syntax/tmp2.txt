@@ -1,0 +1,39 @@
+&string.pPair.first = "firstPair";
+&string.pPair.second = "secondPair";
+&string.cStr = "hej";
+&string.len = 3;
+
+:if(string.pPair == "firstPair") { :print("Success"); } :else { :prin("ERROR"); }
+:if(string.pPair.second == "secondPair") { :print("Success"); } :else { :prin("ERROR"); }
+:if(string.pPair.first == "firstPair") { :print("Success"); } :else { :prin("ERROR"); }
+:if(string.cStr == "hej") { :print("Success"); } :else { :prin("ERROR"); }
+:if(string.len == "3") { :print("Success"); } :else { :prin("ERROR"); }
+:if(string == "3") { :print("Success"); } :else { :prin("ERROR"); }
+
+:print(string.pPair);
+:print(string.pPair.second);
+:print(string.pPair.first);
+:print(string.cStr);
+:print(string.len);
+:print(string); /*skriver ut len*/
+
+:alias pairNext : #20 = Pair; /* path: pairNext/Pair/pairNext later transforms to
+path: pairNext/first.*/
+&pairNext.second = 12345;
+&pairNext.first = "testAgain";
+
+:if(pairNext.first == "testAgain") { :print("Success"); } :else { :prin("ERROR"); }
+:if(pairNext.seond == 12345) { :print("Success"); } :else { :prin("ERROR"); }
+:if(pairNext == "testAgain") { :print("Success"); } :else { :prin("ERROR"); }
+
+:print(pairNext.first);
+:print(pairNext.second);
+:print(pairNext);
+
+:alias pair : #4 = Pair;
+&pair.second = "test";
+&pair.first = 67890;
+
+:if(pair.seond == "test") { :print("Success"); } :else { :prin("ERROR"); }
+:if(pair.first == 67890) { :print("Success"); } :else { :prin("ERROR"); }
+:if(pair == 67890) { :print("Success"); } :else { :prin("ERROR"); }

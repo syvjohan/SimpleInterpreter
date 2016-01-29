@@ -45,37 +45,37 @@ Operator_s Parser::findOperator(const char *cStr, const int startPos) {
 
 	if (global.findSubStrRev(buffer, cStr + startPos, "*")) {
 		if (buffer) {
-			mi = strlen(buffer) - 1;
+			mu = strlen(buffer) - 1;
 		}
 	}
 
 	if (global.findSubStrRev(buffer, cStr + startPos, "/")) {
 		if (buffer) {
-			mi = strlen(buffer) - 1;
+			di = strlen(buffer) - 1;
 		}
 	}
 
 	if (global.findSubStrRev(buffer, cStr + startPos, ">")) {
 		if (buffer) {
-			mi = strlen(buffer) - 1;
+			cmpBi = strlen(buffer) - 1;
 		}
 	}
 
 	if (global.findSubStrRev(buffer, cStr + startPos, "<")) {
 		if (buffer) {
-			mi = strlen(buffer) - 1;
+			cmpSm = strlen(buffer) - 1;
 		}
 	}
 
 	if (global.findSubStrRev(buffer, cStr + startPos, "==")) {
 		if (buffer) {
-			mi = strlen(buffer) - 1;
+			cmpEq = strlen(buffer) - 1;
 		}
 	}
 
 	if (global.findSubStrRev(buffer, cStr + startPos, "!=")) {
 		if (buffer) {
-			mi = strlen(buffer) - 1;
+			cmpNEq = strlen(buffer) - 1;
 		}
 	}
 
@@ -111,22 +111,22 @@ Operator_s Parser::findOperator(const char *cStr, const int startPos) {
 		newOp.len = 1;
 	} else if (cmpEq < pl && cmpEq < mu && cmpEq < di && cmpEq < mi && cmpEq < cmpNEq && cmpEq < cmpBi && cmpEq < cmpSm) {
 		newOp.pos = cmpEq;
-		memcpy(newOp.op, buffer + cmpEq, 2);
+		memcpy(newOp.op, buffer + cmpEq -1, 2);
 		newOp.op[2] = '\0';
 		newOp.len = 2;
 	} else if (cmpNEq < pl && cmpNEq < mu && cmpNEq < di && cmpNEq < mi && cmpNEq < cmpEq && cmpNEq < cmpBi && cmpNEq < cmpSm) {
 		newOp.pos = cmpNEq;
-		memcpy(newOp.op, buffer + cmpNEq, 2);
+		memcpy(newOp.op, buffer + cmpNEq - 1, 2);
 		newOp.op[2] = '\0';
 		newOp.len = 2;
 	} else if (cmpBi < pl && cmpBi < mu && cmpBi < di && cmpBi < mi && cmpBi < cmpEq && cmpBi < cmpNEq && cmpBi < cmpSm) {
 		newOp.pos = cmpBi;
-		memcpy(newOp.op, buffer + cmpBi, 2);
+		memcpy(newOp.op, buffer + cmpBi, 1);
 		newOp.op[1] = '\0';
 		newOp.len = 1;
 	} else if (cmpSm < pl && cmpSm < mu && cmpSm < di && cmpSm < mi && cmpSm < cmpEq && cmpSm < cmpNEq && cmpSm < cmpBi) {
 		newOp.pos = cmpSm;
-		memcpy(newOp.op, buffer + cmpSm, 2);
+		memcpy(newOp.op, buffer + cmpSm, 1);
 		newOp.op[1] = '\0';
 		newOp.len = 1;
 	}
@@ -252,6 +252,9 @@ Alias_s Parser::stackGetTop() {
 char* Parser::regularExpression(char *expression) {
 	trimBothParanthesis(expression);
 	int len = strlen(expression);
+	char str[INSTRUCTIONSIZE];
+	char lhs[INSTRUCTIONSIZE];
+	char rhs[INSTRUCTIONSIZE];
 
 	//If there is no operators return expression(end condition).
 	Operator_s op0 = findOperator(expression, 0);
@@ -278,29 +281,33 @@ char* Parser::regularExpression(char *expression) {
 		}
 	}
 
-	memcpy(tmpLhs, expression, len);
-	tmpLhs[len] = '\0';
+	memcpy(lhs, expression, len);
+	lhs[len] = '\0';
 
 	int rhsLen = strlen(expression) - len;
-	memcpy(tmpRhs, expression + len, rhsLen);
-	tmpRhs[rhsLen] = '\0';
+	memcpy(rhs, expression + len, rhsLen);
+	rhs[rhsLen] = '\0';
 	
 	if (len > 0) {
-		char *res = calculateResult(tmpLhs);
+		char *res = calculateResult(lhs);
 
 		len = strlen(res);
-		memcpy(tmpStr, res, len);
-		tmpStr[len] = '\0';
+		memcpy(str, res, len);
+		str[len] = '\0';
 
-		strcat(tmpStr, tmpRhs);
-		tmpStr[len + strlen(tmpRhs)] = '\0';
+		strcat(str, rhs);
+		str[len + strlen(rhs)] = '\0';
 
 		//Negative number.
-		if (isNegativeNumber(tmpStr)) {
-			return tmpStr;
+		if (isNegativeNumber(str)) {
+			return str;
 		}
 
 		//recursion.
+		len = strlen(str);
+		memcpy(tmpStr, str, len);
+		tmpStr[len] = '\0';
+
 		regularExpression(tmpStr);
 
 		return tmpStr;
@@ -318,9 +325,14 @@ char* Parser::calculateResult(char *exp) {
 
 	assert(op0.pos > -1, "RegularExpression has failed with the parsing!");
 
-	memcpy(lhs, exp, op0.pos);
-	lhs[op0.pos] = '\0';
-	
+	if (op0.len == 1) {
+		memcpy(lhs, exp, op0.pos);
+		lhs[op0.pos] = '\0';
+	} else if (op0.len == 2) {
+		memcpy(lhs, exp, op0.pos -1);
+		lhs[op0.pos -1] = '\0';
+	}
+
 	int rhsLen = strlen(exp) - op0.pos;
 	memcpy(rhs, exp + op0.pos + op0.len, rhsLen);
 	rhs[rhsLen] = '\0';
@@ -413,7 +425,7 @@ char* Parser::calculateResult(char *exp) {
 			index.len = aliasLhs.len;
 
 			//Is it heapIndex or structIndex.
-			char *type = strstr(aliasLhs.name, "/");
+			char *type = strstr(aliasLhs.name, ".");
 			if (type) {
 				heap.updateStructIndex(index);
 			} else {
@@ -494,7 +506,7 @@ char* Parser::calculateResult(char *exp) {
 				index.len = aliasLhs.len;
 
 				//Is it heapIndex or structIndex.
-				char *type = strstr(aliasLhs.name, "/");
+				char *type = strstr(aliasLhs.name, ".");
 				if (type) {
 					heap.updateStructIndex(index);
 				} else {
@@ -516,7 +528,7 @@ char* Parser::calculateResult(char *exp) {
 
 Alias_s Parser::parseKeywords(char *exp) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
-
+	
 	Alias_s a = heap.getAlias(exp);
 	char *stack = strstr(exp, ":stk");
 	char *address = strstr(exp, "#");
@@ -590,9 +602,9 @@ Alias_s Parser::parseKeywords(char *exp) {
 
 		int lenType = strlen(indexType.type);
 		memcpy(tmpStr, tmpLhs, lenLhs);
-		memcpy(tmpStr + lenLhs, "/", 1);
+		memcpy(tmpStr + lenLhs, ".", 1);
 		memcpy(tmpStr + 1 + lenLhs, indexType.type, lenType);
-		memcpy(tmpStr + 1 + lenLhs + lenType, "/", 1);
+		memcpy(tmpStr + 1 + lenLhs + lenType, ".", 1);
 		memcpy(tmpStr + lenLhs + lenType + 2, tmpRhs, lenRhs);
 		tmpStr[lenLhs + lenType + lenRhs + 2] = '\0';
 
@@ -623,15 +635,33 @@ Alias_s Parser::parseKeywords(char *exp) {
 		int lenStruct = strlen(and) - 2 - lenDot;
 		memcpy(tmpLhs, and +1, lenStruct);
 		tmpLhs[lenStruct] = '\0';
-		Index_s indexStruct = heap.getStructIndex(tmpLhs);
+		Index_s indexStruct = heap.getStructIndex(tmpLhs); //string
 
 		//alias
+		int oldLen = 0;
+		int newLen = 0;
 		int lenStructType = strlen(indexStruct.type);
 		memcpy(tmpStr, indexStruct.type, lenStructType);
-		memcpy(tmpStr + lenStructType, "/", 1);
-		memcpy(tmpStr + lenStructType +1, dot + 1, lenDot);
-		int lenType = lenDot + lenStructType + 1;
-		tmpStr[lenType] = '\0';
+		tmpStr[lenStructType] = '\0';
+		for (int i = 0; dot[i] != '\0'; ++i) {
+			if (dot[i] == '.') {
+				int k = i +1;
+				int it = 0;
+				while (dot[k] != '.' && dot[k] != '\0') {
+					tmpLhs[it] = dot[k];
+					++it;
+					++k;
+				}
+				tmpLhs[it] = '\0';
+				newLen = strlen(tmpLhs) +1;
+				memcpy(tmpStr + lenStructType + oldLen +1, tmpLhs, newLen);
+				memcpy(tmpStr + lenStructType + oldLen, ".", 1);
+				oldLen += newLen;
+				tmpStr[oldLen + lenStructType] = '\0';
+				i = k -1;
+			}
+		}
+
 		Index_s indexAlias = heap.getStructIndex(tmpStr);
 
 		int a = indexStruct.startPos + indexAlias.startPos;
@@ -639,12 +669,14 @@ Alias_s Parser::parseKeywords(char *exp) {
 		newIndex.len = indexAlias.len;
 		newIndex.startPos = a;
 
-		memcpy(newIndex.name, tmpLhs, lenStruct);
-		memcpy(newIndex.name + lenStruct, "/", 1);
-		memcpy(newIndex.name + lenStruct +1, tmpStr, lenType);
-		newIndex.name[lenStruct +1 + lenType] = '\0';
+		int lenStructName = strlen(indexStruct.name);
+		memcpy(newIndex.name, indexStruct.name, lenStructName);
+		memcpy(newIndex.name + lenStructName, ".", 1);
+		int lenAliasName = strlen(indexAlias.name);
+		memcpy(newIndex.name + lenStructName +1, indexAlias.name, lenAliasName);
+		newIndex.name[lenStructName + lenAliasName +1] = '\0';
 
-		lenType = strlen(indexAlias.type);
+		int lenType = strlen(indexAlias.type);
 		memcpy(newIndex.type, indexAlias.type, lenType);
 		newIndex.type[lenType] = '\0';
 
@@ -655,11 +687,6 @@ Alias_s Parser::parseKeywords(char *exp) {
 		}
 
 		alias = heap.getAlias(newIndex.name);
-
-		//If it is the first element in struct update the struct pointer value and len.
-		//if (a == indexStruct.startPos) {
-		//	heap.updateStructIndex(indexStruct);
-		//}
 
 	} else if (strstr(exp, "\"") == NULL) {
 		trimBothParanthesis(exp);

@@ -1,4 +1,4 @@
-:sysMemAllocHeap 64;
+:sysMemAllocHeap 124;
 
 :struct Pair {
 	:alias first : offset(0);
@@ -8,37 +8,54 @@
 :struct String {
 	:alias len : offset(0); /*offset 0*/
 	:alias cStr : offset(4); /*offset 4*/
-	//:alias pPair : Pair : offset(8); /*offset 8*/ /*Transforms to aliasName/String/Pair/first*/
+	:alias pPair : Pair : offset(8); /*offset 8*/ /*Transforms to String/pPair/first & String/pPair/second*/
 
 }; /*No typedef needed underlying layer will automaticle create a typedef String*/
+
+:alias string : #40 = String;
+&string.pPair.first = "firstPair";
+&string.pPair.second = "secondPair";
+&string.cStr = "hej";
+&string.len = 3;
+
+:if(string.cStr == "hej") { :print("Success"); } :else { :print("ERROR"); }
+:if(string.len == "3") { :print("Success"); } :else { :print("ERROR"); }
+:if(string == "3") { :print("Success"); } :else { :print("ERROR"); }
+:if(string.pPair == "firstPair") { :print("Success"); } :else { :print("ERROR"); }
+:if(string.pPair.second == "secondPair") { :print("Success"); } :else { :print("ERROR"); }
+:if(string.pPair.first == "firstPair") { :print("Success"); } :else { :print("ERROR"); }
+
+:print(string.pPair);
+:print(string.pPair.second);
+:print(string.pPair.first);
+:print(string.cStr);
+:print(string.len);
+:print(string); /*skriver ut len*/
+:print("______________________________________________");
 
 :alias pairNext : #20 = Pair; /* path: pairNext/Pair/pairNext later transforms to
 path: pairNext/first.*/
 &pairNext.second = 12345;
 &pairNext.first = "testAgain";
+
+:if(pairNext.first == "testAgain") { :print("Success"); } :else { :print("ERROR"); }
+:if(pairNext.seond == 12345) { :print("Success"); } :else { :print("ERROR"); }
+:if(pairNext == "testAgain") { :print("Success"); } :else { :print("ERROR"); }
+
 :print(pairNext.first);
 :print(pairNext.second);
 :print(pairNext);
+:print("______________________________________________");
 
-:alias pair : #4 = Pair;
+:alias pair : #0 = Pair;
 &pair.second = "test";
 &pair.first = 67890;
+
+:if(pair.seond == "test") { :print("Success"); } :else { :print("ERROR"); }
+:if(pair.first == 67890) { :print("Success"); } :else { :print("ERROR"); }
+:if(pair == 67890) { :print("Success"); } :else { :print("ERROR"); }
+
 :print(pair.first);
 :print(pair.second);
 :print(pair);
-
-:alias string : #53 = String; /*size is 4 bytes. string contains the start 
-position to the first member alias. path: p/String/len.
- A struct need to contains >= 1 alias*/
-&string.cStr = "hej";
-&string.len = 10;
-/*&string.pPair.first = "firstPair";
-&string.pPair.second = "secondPair";
-:print(string.pPair.second);
-:print(string.pPair.first);
-:print(string.pPair);*/
-:print(string.cStr);
-:print(string.len);
-:print(string); /*skriver ut len*/
-
-/* Program store struct String, Pair start and end position. 
+:print("______________________________________________");

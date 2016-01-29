@@ -257,7 +257,6 @@ void Lexical::evalAlias() {
 		//Wrong name conversion, DO CRASH!!!
 	}
 
-
 	if (!sep1) {
 		//Syntax error DO CRASH!!!
 	}
@@ -285,22 +284,49 @@ void Lexical::evalAlias() {
 
 		int lenStructName = strlen(currentStructName);
 		memcpy(index.name, currentStructName, lenStructName);
-		memcpy(index.name + lenStructName, "/", 1);
+		memcpy(index.name + lenStructName, ".", 1);
 		memcpy(index.name + lenStructName + 1, alias.name, lenName);
-		index.name[lenStructName + 1 + lenName] = '\0';
+		lenStructName += 1 + lenName;
+		index.name[lenStructName] = '\0';
 
+		char tmp[INSTRUCTIONSIZE];
 		//check if it shall point to struct.
-		/*char *nestedStruct = strstr(sep1 +1, ":");
+		char *nestedStruct = strstr(sep1 +1, ":");
 		if (nestedStruct) {
 			len = strlen(sep1) - strlen(nestedStruct) - 1;
-			memcpy(index.name + lenStructName, "/", 1);
-			memcpy(index.name + lenStructName +1, sep1 +1, len);
-			memcpy(index.name + lenStructName + len + 1, "/", 1);
-			memcpy(index.name + lenStructName + len + 2, alias.name, lenName);
-			index.name[lenStructName + len + 2 + lenName] = '\0';
+			memcpy(tmp, sep1 +1, len);
+			tmp[len] = '\0';
+			int i = 0;
+			Index_s indexes[STRUCTMEMBERS];
+			int lenIndexes = 0;
+			parser.heap.getStructIndex(tmp, indexes, lenIndexes);
+			for (int i = 0; i != lenIndexes; ++i) {
+				char *name = indexes[i].name;
+				const char *slash = strstr(name, ".");
+				int lenDot = strlen(slash) -1;
+
+				memcpy(index.name + lenStructName, ".", 1);
+				memcpy(index.name + lenStructName + 1, slash + 1, lenDot);
+				index.name[lenStructName + 1 + lenDot] = '\0';
+
+				index.startPos += indexes[i].startPos;
+
+				parser.heap.insertStructIndex(index);
+
+				//create a index for struct head pointer.
+				if (indexes[i].startPos == 0) {
+					global.findSubStrRev(tmp, index.name, ".");
+					lenDot = strlen(tmp) -1;
+					memcpy(index.name, tmp, lenDot);
+					index.name[lenDot] = '\0';
+					parser.heap.insertStructIndex(index);
+				}
+
+			}
+			return;
 		}
-*/
-		parser.heap.insertStructIndex(index);
+
+ 		parser.heap.insertStructIndex(index);
 		return;
 
 	} else if (sep2) {
