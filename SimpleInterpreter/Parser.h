@@ -7,12 +7,7 @@
 
 struct Alias_s;
 struct Index_s;
-
-struct Operator_s {
-	int pos;
-	char op[3];
-	int len;
-};
+struct Operator_s;
 
 class Parser {
 	public:

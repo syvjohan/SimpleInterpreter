@@ -6,41 +6,45 @@
 :alias str : #32 = "hej";
 :alias number : #35 = 10 + 5;
 
-:print(number); /*skriver ut värdet*/
-:print(str); /*skriver ut värdet*/
+:print(number); /*skriver ut värdet 15*/
+:print(str); /*skriver ut värdet "hej"*/
 
 :print(&str); /*Skriver ut addresen 32*/
 :print( &number ); /*Skriver ut addresen 35*/
 
 :stk.pushTop(10);
 :alias s : #39 = :stk.getTop() + 5;
-:if(s == 15) { :print("success"); } :else { :print("ERRROR"); }
+:if(s == 15) { :print("Success"); } :else { :print("ERRROR"); }
+:print("______________________________________________");
+
 
 :print("WhileLoop");
-:stk.pushAt(4, 0); /*Pushes 0 to memory address 4*/
-:while(:stk.getAt(4) != 10) {
-	:print(:stk.getAt(4));
-	:stk.pushAt(4, :stk.getAt(4) +1);
+:stk.pushAt(5, 0); /*Pushes 0 to memory address 4*/
+:while(:stk.getAt(5) != 10) {
+	:print(:stk.getAt(5));
+	:stk.pushAt(5, :stk.getAt(5) +1);
 }
+:print("______________________________________________");
+
 
 /* < > Jämför längderna på textsträngarna eller storleken på heltal*/
-:if("s" < "number") { :print("success"); } :else { :print("ERRROR"); }
+:if("s" < "number") { :print("Success"); } :else { :print("ERRROR"); }
 
-:if("100" > "s") { :print("success"); } :else { :print("ERRROR"); }
+:if("100" > "s") { :print("Success"); } :else { :print("ERRROR"); }
 
 :if("s" < "number") { :print("Success"); } :else { :print("ERROR"); }
 
-:if(s < number) { :print("true"); } :else { :print("Sucess"); }
+:if(s < number) { :print("true"); } :else { :print("Success"); }
 
 :if(100 > s) { :print("true"); } :else { :print("Success"); }
 
-:if(s == number) { :print("Sucess"); } :else { :print("ERRROR"); } 
+:if(s == number) { :print("Success"); } :else { :print("ERRROR"); } 
 
-:if(s != number) { :print("true"); } :else { :print("Sucess"); }
+:if(s != number) { :print("true"); } :else { :print("Success"); }
 
-:if("number" == "number") { :print("success"); } :else { :print("ERRROR"); }
+:if("number" == "number") { :print("Success"); } :else { :print("ERRROR"); }
 
-:if("s" != "number") { :print("success"); } :else {	:print("ERRROR"); }
+:if("s" != "number") { :print("Success"); } :else {	:print("ERRROR"); }
 
 :if("nej" == "hej") {
 	:print("ERROR");
@@ -55,6 +59,7 @@
 		}
 	}
 }
+:print("______________________________________________");
 
 :subroutine sub { &sum = val2 - val1; };
 
@@ -75,24 +80,28 @@
 :if(sum == 5) { :print("Success"); } :else { :print("ERROR"); }
 :if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
 :if(val1 == 3) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
 
 :call add;
 :print("add: ");
-:if(sum == 11) { :print("Success"); } :else { :prin("ERROR"); }
-:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); }
-:if(val1 == 3) { :print("Success"); }  :else { :prin("ERROR"); }
+:if(sum == 11) { :print("Success"); } :else { :print("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
+:if(val1 == 3) { :print("Success"); }  :else { :print("ERROR"); }
+:print("______________________________________________");
 
 :call mul;
 :print("mul: ");
-:if(sum == 24) { :print("Success"); }  :else { :prin("ERROR"); }
-:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); } 
-:if(val1 == 3) { :print("Success"); }  :else { :prin("ERROR"); }
+:if(sum == 24) { :print("Success"); }  :else { :print("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); } 
+:if(val1 == 3) { :print("Success"); }  :else { :print("ERROR"); }
+:print("______________________________________________");
 
 :call div;
 :print("div: ");
-:if(sum == 2) { :print("Success"); } :else { :prin("ERROR"); } 
-:if(val2 == 8) { :print("Success"); } :else { :prin("ERROR"); }
-:if(val1 == 3) { :print("Success"); } :else { :prin("ERROR"); }
+:if(sum == 2) { :print("Success"); } :else { :print("ERROR"); } 
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
+:if(val1 == 3) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
 
 
 :subroutine subReverseOrder { &sum = val1 - val2; };
@@ -106,21 +115,25 @@
 :call subReverseOrder;
 :print("subReverseOrder");
 :if(sum == -5) { :print("Success"); } :else { :prin("ERROR"); }
+:print("______________________________________________");
 
 
 :call addReverseOrder;
 :print("addReverseOrder");
 :if(sum == 11) { :print("Success"); } :else { :prin("ERROR"); }
+:print("______________________________________________");
 
 
 :call mulReverseOrder;
 :print("mulReverseOrder");
 :if(sum == 24) { :print("Success"); } :else { :prin("ERROR"); }
+:print("______________________________________________");
 
 
 :call divReverseOrder;
 :print("divReverseOrder");
 :if(sum == 0) { :print("Success"); } :else { :prin("ERROR"); }
+:print("______________________________________________");
 
 
 :subroutine subNegative { &sum = val1 - val2Negative; };
@@ -133,19 +146,28 @@
 
 :call subNegative;
 :print("subNegative");
-:if(#55 == 11) { :print("Success"); } :else { :prin("ERROR"); }
+	/* 3 - -8 */
+:if(#55 == 11) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
 
 :call addNegative;
 :print("addNegative");
-:if(#55 == -5) { :print("Success"); } :else { :prin("ERROR"); }
+:if(#55 == -5) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
 
 :call mulNegative;
 :print("mulNegative");
-:if(#55 == -24) { :print("Success"); } :else { :prin("ERROR"); }
+:if(#55 == -24) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
 
 :call divNegative;
 :print("divNegative");
 :if(#55 == 0) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
 
 :subroutine nestedSubroutineCall {
 		:call sub;
@@ -158,3 +180,5 @@
 :call nestedSubroutineCall;
 
 :if(sum == 16) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+

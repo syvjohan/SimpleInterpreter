@@ -145,7 +145,14 @@ Alias_s Heap::getAlias(char *name) {
 				int dest;
 				memcpy(&dest, &heapContainer[i], sizeof(int));
 				sprintf(alias.value, "%i", dest);
+				
 				len = global.intLength(dest);
+
+				//is it negative
+				if (global.isNegativeNumber(alias.value)) {
+					len += 1;
+				}
+
 				alias.value[len] = '\0';
 				alias.len = sizeof(int);
 			}
@@ -387,7 +394,13 @@ void Heap::updateStructHeaderPointer(Index_s index) {
 
 char* Heap::getFullNameStructMember(char *lastname) {
 	bool andFound = global.findAnd(lastname);
-	trimAnd(lastname);
+
+	char searchName[NAMESIZE];
+	int lenSearchName = strlen(lastname);
+	memcpy(searchName, lastname, lenSearchName);
+	searchName[lenSearchName] = '\0';
+
+	trimAnd(searchName);
 
 	char buffer[NAMESIZE];
 	int len = 0;
@@ -399,14 +412,14 @@ char* Heap::getFullNameStructMember(char *lastname) {
 		while (k != 0) {
 			if (name[k] == '.') {
 				if (firstDot == 0) {
-					firstDot = strlen(lastname) - k;
+					firstDot = strlen(searchName) - k;
 					lenFirstWord = k;
 				}
 				len = strlen(name) - k -1;
 				memcpy(buffer, name + k +1, len);
 				buffer[len] = '\0';
 
-				if (global.strCmp(buffer, lastname)) {
+				if (global.strCmp(buffer, searchName)) {
 					if (andFound) {
 						len = strlen(name);
 						memcpy(buffer, "&", 1);

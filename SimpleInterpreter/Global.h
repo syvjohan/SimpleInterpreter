@@ -19,6 +19,12 @@ struct Index_s {
 	int len;
 };
 
+struct Operator_s {
+	int pos;
+	char op[3];
+	int len;
+};
+
 class Global {
 	public:
 		Global();
@@ -31,4 +37,6 @@ class Global {
 		int intLength(int x);
 		void replaceDotsWithSlashes(char *cStr);
 		bool findAnd(char *cStr);
+		bool isNegativeNumber(const char *cStr);
+		Operator_s findOperator(const char *cStr, const int startPos);
 };

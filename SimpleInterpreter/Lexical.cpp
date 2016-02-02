@@ -325,7 +325,7 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 						len = lenInstructions - op.pos;
 						position = op.pos +1;
 					} else {
-						op = parser.findOperator(buffer, position);
+						op = global.findOperator(buffer, position);
 						op.pos += position;
 						len = op.pos - position;
 					}
@@ -548,6 +548,19 @@ void Lexical::evalAlias() {
 			memcpy(alias.value, parserVal, len);
 			alias.value[len] = '\0';
 			alias.len = len;
+
+			//identify type.
+			if (global.checkForDigits(parserVal) == 1) {
+				memcpy(alias.type, "int", 3);
+				alias.type[3] = '\0';
+			} else if (global.checkForAlpha(parserVal) == 1) {
+				memcpy(alias.type, "string", 6);
+				alias.type[6] = '\0';
+			} else if (global.isNegativeNumber(parserVal)) {
+				//Negative number.
+				memcpy(alias.type, "int", 3);
+				alias.type[3] = '\0';
+			}
 		}
 	} else {
 		alias.len = strlen(parserVal);
