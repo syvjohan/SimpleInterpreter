@@ -32,10 +32,14 @@ class Heap : public IStack {
 		//Index
 		//Below functions is specialcases for content inside struct
 		void insertStructIndex(Index_s index);
-		bool updateStructIndex(Index_s index);
+		bool updateStructIndex(Index_s index, char *searchName);
 		bool findStructIndex(Index_s index);
+		Index_s findStructIndex(char *name);
 		Index_s getStructIndex(const char *name);
 		void getStructIndex(const char *type, Index_s *index, int &len);
+		void typedefStructMembers(char *searchName, char *extendName);
+		void updateStructHeaderPointer(Index_s index);
+		char* getFullNameStructMember(char *lastname);
 
 	private:
 		void setHeapSize(size_t size);

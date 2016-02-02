@@ -13,10 +13,10 @@ int main(void) {
 	char *code = lexical.readFile(path);
 
 	lexical.setCode(code);
-	lexical.registerAllSubroutines();
 	lexical.registerAllStructs();
+	lexical.registerAllSubroutines();
 
-	//Need to be set again because of struct registration.
+	//Need to be set again because of struct and subroutines registration.
 	lexical.setCode(code);
 	lexical.getInstructions();
 

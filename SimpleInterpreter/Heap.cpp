@@ -1,5 +1,6 @@
 #include "Heap.h"
 #include "memoryLeak.h"
+#include "Trim.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,7 +150,7 @@ Alias_s Heap::getAlias(char *name) {
 				alias.len = sizeof(int);
 			}
 			break;
-		} else if (global.strCmp(heapIndexStructs[i].name, name)) { //lhs = String/pPair, rhs = string/String/pPair  
+		} else if (global.strCmp(heapIndexStructs[i].name, name)) {
 			//structs
 			len = strlen(heapIndexStructs[i].name);
 			memcpy(alias.name, heapIndexStructs[i].name, len);
@@ -174,6 +175,7 @@ Alias_s Heap::getAlias(char *name) {
 			} else if (!global.strCmp(alias.type, "offset")) {
 				int k = 0;
 				while (k != heapSize) {
+					Index_s s = heapIndexStructs[k];
 					if (heapIndexStructs[k].startPos == heapIndexStructs[i].startPos) {
 							len = strlen(heapIndexStructs[k].type);
 							memcpy(alias.type, heapIndexStructs[k].type, len);
@@ -273,9 +275,9 @@ void Heap::updateHeapIndex(Index_s index) {
 	}
 }
 
-bool Heap::updateStructIndex(Index_s index) {
+bool Heap::updateStructIndex(Index_s index, char *searchName) {
 	for (int i = 0; i != indexStructLen; ++i) {
-		if (global.strCmp(heapIndexStructs[i].name, index.name)) {
+		if (global.strCmp(heapIndexStructs[i].name, searchName)) {
 			heapIndexStructs[i].len = index.len;
 			heapIndexStructs[i].startPos = index.startPos;
 			int lenType = strlen(index.type);
@@ -285,18 +287,6 @@ bool Heap::updateStructIndex(Index_s index) {
 			int lenName = strlen(index.name);
 			memcpy(&heapIndexStructs[i].name, index.name, lenName);
 			heapIndexStructs[i].name[lenName] = '\0';
-
-			//Change the len attribut for typedef type of struct.
-			/*for (int k = 0; k != indexStructLen; ++k) {
-				if (heapIndexStructs[k].startPos == index.startPos) {
-				heapIndexStructs[k].len = index.len;
-
-				lenType = strlen(index.type);
-				memcpy(heapIndexStructs[k].type, index.type, lenType);
-				heapIndexStructs[k].type[lenType] = '\0';
-				break;
-				}
-			}*/
 			return true;
 		}
 	}
@@ -310,6 +300,127 @@ bool Heap::findStructIndex(Index_s index) {
 		}
 	}
 	return false;
+}
+
+Index_s Heap::findStructIndex(char *name) {
+	Index_s index = { NULL, NULL, NULL, 0 };
+	for (int i = 0; i != indexStructLen; ++i) {
+		if (global.strCmp(heapIndexStructs[i].name, name)) {
+			return heapIndexStructs[i];
+		}
+	}
+	return index;
+}
+
+void Heap::typedefStructMembers(char *searchName, char *extendName) {
+	Index_s buffer[1024];
+	int bufferLen = 0;
+	int len1 = 0;
+	int len2 = 0;
+	for (int i = 0; i != indexStructLen; ++i) {
+		Index_s *s = &heapIndexStructs[i];
+		char *res = strstr(s->name, searchName);
+		if (res) {
+			char *findDot = strstr(s->name, ".");
+			if (findDot) {
+				len1 = strlen(searchName);
+				memcpy(tmpStr, searchName, len1);
+				memcpy(tmpStr + len1, ".", 1);
+				len1 += 1;
+				len2 = strlen(extendName);
+				memcpy(tmpStr + len1, extendName, len2);
+				memcpy(tmpStr + len1 + len2, ".", 1);
+				len2 += len1;
+				len1 = strlen(findDot);
+				memcpy(tmpStr + len2, findDot, len1);
+				tmpStr[len2 + len1] = '\0';
+				len1 += len2;
+
+				//Create a new struct member.
+				Index_s newIndex;
+				memcpy(newIndex.name, tmpStr, len1);
+				newIndex.name[len1] = '\0';
+
+				newIndex.len = s->len;
+				newIndex.startPos = s->startPos;
+
+				len1 = strlen(s->type);
+				memcpy(newIndex.type, s->type, len1);
+				newIndex.type[len1] = '\0';
+				buffer[bufferLen] = newIndex;
+				++bufferLen;
+			} else {
+				//Syntax struct is wrong Do CRASH!!!
+			}
+		}
+	}
+	//Insert struct members into struct index array.
+	for (int i = 0; i != bufferLen; ++i) {
+		if (indexStructLen < indexStructMax) {
+			heapIndexStructs[indexStructLen] = buffer[i];
+			++indexStructLen;
+		}
+	}
+}
+
+void Heap::updateStructHeaderPointer(Index_s index) {
+	char buffer[INSTRUCTIONSIZE];
+	bool res = global.findSubStrRev(buffer, index.name, ".");
+	if (res) {
+		int len = strlen(buffer) - 1;
+		buffer[len] = '\0';
+		for (int i = 0; i != indexStructLen; ++i) {
+			Index_s *currentIndex = &heapIndexStructs[i];
+			if (global.strCmp(currentIndex->name, buffer) && currentIndex->type[0] == '\0') {
+				currentIndex->startPos = index.startPos;
+
+				len = strlen(index.type);
+				memcpy(currentIndex->type, index.type, len);
+				currentIndex->type[len] = '\0';
+
+				currentIndex->len = index.len;
+				break;
+			}
+		}
+	}
+}
+
+char* Heap::getFullNameStructMember(char *lastname) {
+	bool andFound = global.findAnd(lastname);
+	trimAnd(lastname);
+
+	char buffer[NAMESIZE];
+	int len = 0;
+	int firstDot = 0;
+	int lenFirstWord = 0;
+	for (int i = 0; i != indexStructLen; ++i) {	
+		char *name = heapIndexStructs[i].name;
+		int k = strlen(name);
+		while (k != 0) {
+			if (name[k] == '.') {
+				if (firstDot == 0) {
+					firstDot = strlen(lastname) - k;
+					lenFirstWord = k;
+				}
+				len = strlen(name) - k -1;
+				memcpy(buffer, name + k +1, len);
+				buffer[len] = '\0';
+
+				if (global.strCmp(buffer, lastname)) {
+					if (andFound) {
+						len = strlen(name);
+						memcpy(buffer, "&", 1);
+						memcpy(buffer +1, name, len);
+						buffer[len +1] = '\0';
+						return buffer;
+					}
+					return name;
+				}
+			}
+			--k;
+		}
+	}
+	return NULL;
 }
 
 void Heap::initializeHeap(size_t size) {

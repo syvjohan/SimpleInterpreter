@@ -150,6 +150,22 @@ void Lexical::registerAllSubroutines(void) {
 						expandSubroutineSize();
 					}
 
+					//Check if subroutine is inside struct.
+					for (int i = 0; i != structsLen; ++i) {
+						CallableUnit_s *s = &structs[i];
+						if (subroutine.startPos > s->startPos && subroutine.endPos < s->endPos) {
+							char tmpName[NAMESIZE];
+							len = strlen(subroutine.name);
+							memcpy(tmpName, subroutine.name, len);
+							int lenStructName = strlen(s->name);
+							memcpy(subroutine.name, s->name, lenStructName);
+							memcpy(subroutine.name +lenStructName, ".", 1);
+							memcpy(subroutine.name + lenStructName +1, tmpName, len);
+							subroutine.name[len + lenStructName +1] = '\0';
+							break;
+						}
+					}
+
 					subroutines[subroutinesLen] = subroutine;
                     ++subroutinesLen;
 
@@ -182,7 +198,23 @@ void Lexical::registerAllStructs() {
 				trimText(name);
 				trimWhitespaces(name);
 
-				char *ret = strstr(findStruct, "};");
+				//count open brackets for ignore.
+				int indexOpen = 0;
+				int indexClose = 0;
+				int moveIndexTo;
+				for (int i = 0; i != fileSize; ++i) {
+					if (findStruct[i] == '{') {
+						++indexOpen;
+					} else if (findStruct[i] == '}') {
+						++indexClose;
+						if (indexClose == indexOpen) {
+							moveIndexTo = i -1;
+							break;
+						}
+					}
+				}
+
+				char *ret = strstr(findStruct + moveIndexTo, "};");
 				if (ret) {
 					CallableUnit_s newStruct;
 					newStruct.endPos = ret - code;
@@ -235,6 +267,105 @@ void Lexical::updateStructsIndexes() {
 void Lexical::updateSubroutinesIndexes() {
 	subroutinesLen = 0;
 	registerAllSubroutines();
+}
+
+void Lexical::typedefSubroutines(char *searchName, char *extendName) {
+	char str[NAMESIZE];
+	int len1 = 0;
+	int len2 = 0;
+	for (int i = 0; i != subroutinesLen; ++i) {
+		CallableUnit_s *s = &subroutines[i];
+		char *res = strstr(s->name, searchName);
+		if (res) {
+			char *findDot = strstr(s->name, ".");
+			if (findDot) {
+				len2 = strlen(extendName);
+				memcpy(str, extendName, len2);
+				memcpy(str + len2, ".", 1);
+				len1 = strlen(findDot);
+				memcpy(str + len2, findDot, len1);
+				str[len2 + len1] = '\0';
+
+				len1 += len2;
+				memcpy(s->name, str, len1);
+				s->name[len1] = '\0';
+			} else {
+				//Syntax struct is wrong Do CRASH!!!
+			}
+		}
+	}
+}
+
+void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
+	char buffer[2048];
+	char instruction[INSTRUCTIONSIZE];
+	char newSearchName[NAMESIZE];
+	Operator_s op;
+	int len1 = 0;
+	int len2 = 0;
+	int len = 0;
+	for (int i = 0; i != subroutinesLen; ++i) {
+		CallableUnit_s *s = &subroutines[i];
+		char *res = strstr(s->name, searchName);
+		if (res) {
+			int position = 0;
+			int lenInstructions = s->endPos - s->startPos;
+			if (lenInstructions > 0) {
+				memcpy(buffer, code + s->startPos, lenInstructions);
+				buffer[lenInstructions] = '\0';
+				trimHeap(buffer);
+				trimNewline(buffer);
+				trimTabb(buffer);
+				trimBracket(buffer);
+				trimSemicolon(buffer);
+				lenInstructions = strlen(buffer);
+				while (position <= lenInstructions) {
+					if (position == lenInstructions) {
+						//last instruction.
+						len = lenInstructions - op.pos;
+						position = op.pos +1;
+					} else {
+						op = parser.findOperator(buffer, position);
+						op.pos += position;
+						len = op.pos - position;
+					}
+					
+					if (op.pos != -1) {
+						len2 = strlen(extendName);
+						memcpy(instruction, extendName, len2);
+						memcpy(instruction + len2, ".", 1);
+						len2 += 1;
+
+						memcpy(instruction + len2, buffer + position, len);
+						memcpy(newSearchName, instruction, len + len2);
+						newSearchName[len + len2] = '\0';
+
+						Index_s foundIndex = parser.heap.findStructIndex(newSearchName);
+
+
+						len1 = strlen(searchName);
+						memcpy(instruction + len2, searchName, len1);
+						len2 += len1;
+						memcpy(instruction + len2, ".", 1);
+
+						len2 += 1;
+						memcpy(instruction + len2, buffer + position, len);
+						len += len2;
+						instruction[len] = '\0';
+
+						position += op.pos +1;
+
+						//Update struct index.					
+						memcpy(foundIndex.name, instruction, len);
+						foundIndex.name[len] = '\0';
+
+						parser.heap.updateStructIndex(foundIndex, newSearchName);
+
+					}
+				}
+			}
+		}
+	}
 }
 
 void Lexical::evalAlias() {
@@ -319,6 +450,9 @@ void Lexical::evalAlias() {
 					lenDot = strlen(tmp) -1;
 					memcpy(index.name, tmp, lenDot);
 					index.name[lenDot] = '\0';
+
+					memset(index.type, '\0', strlen(index.type));
+
 					parser.heap.insertStructIndex(index);
 				}
 
@@ -347,6 +481,9 @@ void Lexical::evalAlias() {
 
 			memcpy(val, sep2 + 1, len);
 			val[len] = '\0';
+
+			memcpy(alias.type, val, len);
+			alias.type[len] = '\0';
 	
 			if (global.checkForDigits(val) == -1) {
 				if (global.checkForAlpha(val) == 1) {
@@ -358,6 +495,19 @@ void Lexical::evalAlias() {
 					memcpy(index.name, alias.name, lenName);
 
 					parser.heap.insertStructIndex(index);
+
+					//structs only! insert pointer name into path. Find all structs with typename.
+					for (int i = 0; i != structsLen; ++i) {
+						CallableUnit_s *s = &structs[i];
+						if (global.strCmp(s->name, index.type)) {
+							//typedef struct members
+							parser.heap.typedefStructMembers(index.type, index.name);
+							//typedef subroutines.
+							typedefSubroutines(index.type, index.name);
+							typedefSubroutinesMembers(index.name, index.type);
+						}
+					}
+
 				} else {
 					//Wrong format DO CRASH!!!
 				}
@@ -392,11 +542,13 @@ void Lexical::evalAlias() {
 	char *parserVal = val;
 	if (!identifyType) {
 		//regular expression.
-		parserVal = parser.regularExpression(val);
-		len = strlen(parserVal);
-		memcpy(alias.value, parserVal, len);
-		alias.value[len] = '\0';
-		alias.len = len;
+		if (val[0] != '\0') {
+			parserVal = parser.regularExpression(val);
+			len = strlen(parserVal);
+			memcpy(alias.value, parserVal, len);
+			alias.value[len] = '\0';
+			alias.len = len;
+		}
 	} else {
 		alias.len = strlen(parserVal);
 		memcpy(alias.value, parserVal, alias.len);
@@ -437,15 +589,16 @@ void Lexical::evalCall(int len) {
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
-		if (global.strCmp(subroutines[i].name, expression)) {
+		CallableUnit_s *s = &subroutines[i];
+		if (global.strCmp(s->name, expression)) {
 			++callsLen;
 			calls[callsLen].pos = index - len;
-			int len = strlen(subroutines[i].name);
-			memcpy(calls[callsLen].name, &subroutines[i].name, len);
+			int len = strlen(s->name);
+			memcpy(calls[callsLen].name, s->name, len);
 			calls[callsLen].name[len] = '\0';
 
-			index = subroutines[i].startPos;
-			currentSubroutine = subroutines[i];
+			index = s->startPos;
+			currentSubroutine = *s;
 			found = 1;
 			break;
 		}
@@ -577,35 +730,35 @@ void Lexical::evalExpressionWithoutKeyword() {
 	char tmpLhs[INSTRUCTIONSIZE];
 	char tmpRhs[INSTRUCTIONSIZE];
 	char tmpStr[INSTRUCTIONSIZE];
-	int len = strlen(expression);
 	
 	char *eq = strstr(expression, "=");
 	if (eq) {
-
-		//Todo fix so it reads from right to left.
 		char *res = parser.regularExpression(expression);
 
-		/*int lenEq = strlen(eq);
-		int lenLhs = len - lenEq;
-		memcpy(tmpLhs, expression, lenLhs);
-		tmpLhs[len - lenEq] = '\0';
+		/*int len0 = 0; 
+		int len1 = 0;
+		len0 = strlen(eq) -1;
+		memcpy(tmpRhs, eq +1, len0);
+		tmpRhs[len0] = '\0';
+		char *resRhs = parser.regularExpression(tmpRhs);
+		memcpy(buffer, resRhs, strlen(buffer));
 
-		int rhsLen = len - lenLhs -1;
-		memcpy(tmpRhs, eq +1, rhsLen);
-		tmpRhs[rhsLen] = '\0';
+		len1 = strlen(expression) - len0 -1;
+		memcpy(tmpLhs, expression, len1);
+		tmpLhs[len1] = '\0';
+		char *resLhs = parser.regularExpression(tmpLhs);
 
-		char *rhs = parser.regularExpression(tmpRhs);
+		len0 = strlen(resLhs);
+		memcpy(tmpStr, resLhs, len0);
+		memcpy(tmpStr + len0, "=", 1);
+		len0 += 1;
 
-		lenLhs = strlen(tmpLhs);
-		memcpy(tmpStr, tmpLhs, lenLhs);
+		len1 = strlen(resRhs);
+		memcpy(tmpStr + len0, buffer, len1);
+		len0 += len1;
+		tmpStr[len0] = '\0';
 
-		memcpy(tmpStr + lenLhs, "=", 1);
-
-		rhsLen = strlen(rhs);
-		memcpy(tmpStr + lenLhs +1, rhs, rhsLen);
-		tmpStr[lenLhs + 1 + rhsLen] = '\0';
-
-		parser.regularExpression(tmpStr);*/
+		parser.calculateResult(tmpStr);*/
 	}
 }
 

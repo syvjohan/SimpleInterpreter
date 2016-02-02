@@ -107,3 +107,14 @@ void Global::replaceDotsWithSlashes(char *cStr) {
 		++i;
 	}
 }
+
+bool Global::findAnd(char *cStr) {
+	int i = 0;
+	while (cStr[i] != '\0') {
+		if (cStr[i] == '&') {
+			return true;
+		}
+		++i;
+	}
+	return false;
+}

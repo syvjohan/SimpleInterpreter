@@ -269,7 +269,7 @@ char* Parser::regularExpression(char *expression) {
 		return a.value;
 	}
 
-	Operator_s op1 = findOperator(expression, op0.pos + op0.len);
+	Operator_s op1 = findOperator(expression, op0.pos +1);
 	if (op1.pos != -1) {
 
 		//Negative number.
@@ -277,7 +277,7 @@ char* Parser::regularExpression(char *expression) {
 			len = strlen(expression);
 		} else {
 			//If there is a second operator set len = operator.
-			len = op1.pos;
+			len = op0.pos +1;
 		}
 	}
 
@@ -289,14 +289,27 @@ char* Parser::regularExpression(char *expression) {
 	rhs[rhsLen] = '\0';
 	
 	if (len > 0) {
-		char *res = calculateResult(lhs);
+		char *res;
+		if (op0.pos != -1 && op1.pos != -1) {
+			res = calculateResult(rhs);
 
-		len = strlen(res);
-		memcpy(str, res, len);
-		str[len] = '\0';
+			strcat(lhs, res);
+			len = strlen(lhs);
+			memcpy(str, lhs, len);
+			str[len] = '\0';
 
-		strcat(str, rhs);
-		str[len + strlen(rhs)] = '\0';
+		} else {
+			res = calculateResult(lhs);
+
+			len = strlen(res);
+			memcpy(str, res, len);
+			str[len] = '\0';
+
+			strcat(str, rhs);
+			str[len + strlen(rhs)] = '\0';
+		}
+
+		
 
 		//Negative number.
 		if (isNegativeNumber(str)) {
@@ -324,18 +337,22 @@ char* Parser::calculateResult(char *exp) {
 	char rhs[INSTRUCTIONSIZE];
 
 	assert(op0.pos > -1, "RegularExpression has failed with the parsing!");
-
+	
+	int rhsLen = strlen(exp) - op0.pos;
 	if (op0.len == 1) {
 		memcpy(lhs, exp, op0.pos);
 		lhs[op0.pos] = '\0';
+
+		memcpy(rhs, exp + op0.pos + op0.len, rhsLen);
+		rhs[rhsLen] = '\0';
+
 	} else if (op0.len == 2) {
 		memcpy(lhs, exp, op0.pos -1);
 		lhs[op0.pos -1] = '\0';
-	}
 
-	int rhsLen = strlen(exp) - op0.pos;
-	memcpy(rhs, exp + op0.pos + op0.len, rhsLen);
-	rhs[rhsLen] = '\0';
+		memcpy(rhs, exp + op0.pos + op0.len -1, rhsLen);
+		rhs[rhsLen] = '\0';
+	}
 
 	Alias_s aliasLhs = parseKeywords(lhs);
 	Alias_s aliasRhs = parseKeywords(rhs);
@@ -363,7 +380,7 @@ char* Parser::calculateResult(char *exp) {
 				int v = atoi(tmpStr);
 				if (v < 0) {
 					tmpStr[0] = '0';
-					tmpStr[1] = '\0';
+					tmpStr[1] = '\0'; 
 				}
 		} else if (global.strCmp(op0.op, "==")) {
 			if (global.strCmp(aliasLhs.value, aliasRhs.value)) {
@@ -427,7 +444,8 @@ char* Parser::calculateResult(char *exp) {
 			//Is it heapIndex or structIndex.
 			char *type = strstr(aliasLhs.name, ".");
 			if (type) {
-				heap.updateStructIndex(index);
+				heap.updateStructIndex(index, index.name);
+				heap.updateStructHeaderPointer(index);
 			} else {
 				heap.updateHeapIndex(index);
 			}
@@ -508,7 +526,8 @@ char* Parser::calculateResult(char *exp) {
 				//Is it heapIndex or structIndex.
 				char *type = strstr(aliasLhs.name, ".");
 				if (type) {
-					heap.updateStructIndex(index);
+					heap.updateStructIndex(index, index.name);
+					heap.updateStructHeaderPointer(index);
 				} else {
 					heap.updateHeapIndex(index);
 				}
@@ -529,6 +548,17 @@ char* Parser::calculateResult(char *exp) {
 Alias_s Parser::parseKeywords(char *exp) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
 	
+	if (exp[0] == '\0') {
+		return alias;
+	}
+
+	char *structName = heap.getFullNameStructMember(exp);
+	if (structName) {
+		int len = strlen(structName);
+		memcpy(exp, structName, len);
+		exp[len] = '\0';
+	}
+
 	Alias_s a = heap.getAlias(exp);
 	char *stack = strstr(exp, ":stk");
 	char *address = strstr(exp, "#");
@@ -600,15 +630,18 @@ Alias_s Parser::parseKeywords(char *exp) {
 		tmpLhs[lenLhs] = '\0';
 		Index_s indexType = heap.getStructIndex(tmpLhs);
 
-		int lenType = strlen(indexType.type);
-		memcpy(tmpStr, tmpLhs, lenLhs);
-		memcpy(tmpStr + lenLhs, ".", 1);
-		memcpy(tmpStr + 1 + lenLhs, indexType.type, lenType);
-		memcpy(tmpStr + 1 + lenLhs + lenType, ".", 1);
-		memcpy(tmpStr + lenLhs + lenType + 2, tmpRhs, lenRhs);
-		tmpStr[lenLhs + lenType + lenRhs + 2] = '\0';
+		int len1 = strlen(tmpLhs);
+		int len2 = strlen(indexType.type);
+		int lendot = strlen(dot);
+		memcpy(tmpStr, indexType.type, len2);
+		memcpy(tmpStr + len2, ".", 1);
+		len2 += 1;
+		memcpy(tmpStr + len2, tmpLhs, len1);
+		memcpy(tmpStr + len2 + len1, dot, lendot);
+		tmpStr[len1 + len2 + lendot] = '\0';
 
 		alias = heap.getAlias(tmpStr);
+
 	} else if (and && !dot && !isAdress) {
 		trimBothParanthesis(and);
 		len = strlen(and) - 1;
@@ -631,56 +664,48 @@ Alias_s Parser::parseKeywords(char *exp) {
 	} else if (and && dot && !isAdress) {
 		trimBothParanthesis(and);
 		//struct
-		int lenDot = strlen(dot) -1;
-		int lenStruct = strlen(and) - 2 - lenDot;
-		memcpy(tmpLhs, and +1, lenStruct);
-		tmpLhs[lenStruct] = '\0';
-		Index_s indexStruct = heap.getStructIndex(tmpLhs); //string
+		//int lenDot = strlen(dot) -1;
+		//int lenAnd = strlen(and) - 1;
+		//int lenStruct = strlen(and) - 2 - lenDot;
+		//memcpy(tmpLhs, and +1, lenStruct);
+		//tmpLhs[lenStruct] = '\0';
+		//Index_s indexStruct = heap.getStructIndex(tmpLhs); //string
 
-		//alias
-		int oldLen = 0;
-		int newLen = 0;
-		int lenStructType = strlen(indexStruct.type);
-		memcpy(tmpStr, indexStruct.type, lenStructType);
-		tmpStr[lenStructType] = '\0';
-		for (int i = 0; dot[i] != '\0'; ++i) {
-			if (dot[i] == '.') {
-				int k = i +1;
-				int it = 0;
-				while (dot[k] != '.' && dot[k] != '\0') {
-					tmpLhs[it] = dot[k];
-					++it;
-					++k;
-				}
-				tmpLhs[it] = '\0';
-				newLen = strlen(tmpLhs) +1;
-				memcpy(tmpStr + lenStructType + oldLen +1, tmpLhs, newLen);
-				memcpy(tmpStr + lenStructType + oldLen, ".", 1);
-				oldLen += newLen;
-				tmpStr[oldLen + lenStructType] = '\0';
-				i = k -1;
-			}
+		//struct
+		char *d = strstr(dot + 1, ".");
+		if (d) {
+			memcpy(tmpLhs, dot +1, strlen(dot) - strlen(d) -1);
+		} else {
+			memcpy(tmpLhs, dot, strlen(dot));
 		}
 
-		Index_s indexAlias = heap.getStructIndex(tmpStr);
+		Index_s indexStruct = heap.getStructIndex(tmpLhs);
+
+		//alias
+		//int lenStructType = strlen(indexStruct.type);
+		//memcpy(tmpStr, indexStruct.type, lenStructType);
+		//memcpy(tmpStr + lenStructType, ".", 1);
+		//memcpy(tmpStr + lenStructType +1, and + 1, lenAnd);
+		//tmpStr[lenStructType + lenAnd +1] = '\0';
+
+		memcpy(tmpRhs, and + 1, strlen(and));
+
+		Index_s indexAlias = heap.getStructIndex(tmpRhs); // Pair.pair.second
 
 		int a = indexStruct.startPos + indexAlias.startPos;
 		Index_s newIndex;
 		newIndex.len = indexAlias.len;
 		newIndex.startPos = a;
 
-		int lenStructName = strlen(indexStruct.name);
-		memcpy(newIndex.name, indexStruct.name, lenStructName);
-		memcpy(newIndex.name + lenStructName, ".", 1);
-		int lenAliasName = strlen(indexAlias.name);
-		memcpy(newIndex.name + lenStructName +1, indexAlias.name, lenAliasName);
-		newIndex.name[lenStructName + lenAliasName +1] = '\0';
+		int lenStructName = strlen(tmpRhs);
+		memcpy(newIndex.name, tmpRhs, lenStructName);
+		newIndex.name[lenStructName] = '\0';
 
 		int lenType = strlen(indexAlias.type);
 		memcpy(newIndex.type, indexAlias.type, lenType);
 		newIndex.type[lenType] = '\0';
 
-		bool isUpdated = heap.updateStructIndex(newIndex); //Update startposition and name.
+		bool isUpdated = heap.updateStructIndex(newIndex, newIndex.name); //Update startposition and name.
 		
 		if (!isUpdated) {
 			heap.insertStructIndex(newIndex);

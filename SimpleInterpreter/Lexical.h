@@ -44,11 +44,13 @@ class Lexical {
 		void resetIndex();
 
 		void updateSubroutinesIndexes();
-		void updateStructsIndexes();
-
 		void expandSubroutineSize(void);
-		void expandStructsSize();
 		void expandCallsSize(void);
+		void typedefSubroutines(char *searchName, char *extendName);
+		void typedefSubroutinesMembers(char *searchName, char *extendName);
+
+		void updateStructsIndexes();
+		void expandStructsSize();
 
 		void evalAlias();
 		void evalDo(int len);

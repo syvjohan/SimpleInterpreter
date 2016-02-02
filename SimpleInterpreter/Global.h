@@ -30,5 +30,5 @@ class Global {
 		int checkForDigits(const char *cStr);
 		int intLength(int x);
 		void replaceDotsWithSlashes(char *cStr);
+		bool findAnd(char *cStr);
 };
-

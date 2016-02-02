@@ -24,6 +24,7 @@ class Parser {
 		Alias_s parseKeywords(char *expression);
 		void setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs);
 		void setLength(Alias_s *aliasLhs, Alias_s aliasRhs);
+		void updateIndex(Alias_s alias);
 
 		void allocateMem();
 

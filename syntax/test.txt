@@ -14,11 +14,7 @@
 
 :stk.pushTop(10);
 :alias s : #39 = :stk.getTop() + 5;
-:if(s == 15) {
-	:print("success");
-} :else {
-	:print("ERRROR");
-}
+:if(s == 15) { :print("success"); } :else { :print("ERRROR"); }
 
 :print("WhileLoop");
 :stk.pushAt(4, 0); /*Pushes 0 to memory address 4*/
@@ -28,59 +24,23 @@
 }
 
 /* < > Jämför längderna på textsträngarna eller storleken på heltal*/
-:if("s" < "number") {
-	:print("success");
-}  :else {
-	:print("ERRROR");
-}
+:if("s" < "number") { :print("success"); } :else { :print("ERRROR"); }
 
-:if("100" > "s") {
-	:print("success");
-} :else {
-	:print("ERRROR");
-}
+:if("100" > "s") { :print("success"); } :else { :print("ERRROR"); }
 
-:if("s" < "number") {
-	:print("Success");
-} :else { 
-	:print("ERROR"); 
-}
+:if("s" < "number") { :print("Success"); } :else { :print("ERROR"); }
 
-:if(s < number) {
-	:print("true");
-} :else {
-	:print("Sucess");
-}
+:if(s < number) { :print("true"); } :else { :print("Sucess"); }
 
-:if(100 > s) {
-	:print("true");
-} :else {
-	:print("Success");
-}
+:if(100 > s) { :print("true"); } :else { :print("Success"); }
 
-:if(s == number) {
-	:print("Sucess");
-} :else {
-	:print("ERRROR");
-} 
+:if(s == number) { :print("Sucess"); } :else { :print("ERRROR"); } 
 
-:if(s != number) {
-	:print("true");
-} :else {
-	:print("Sucess");
-}
+:if(s != number) { :print("true"); } :else { :print("Sucess"); }
 
-:if("number" == "number") {
-	:print("success");
-} :else {
-	:print("ERRROR");
-}
+:if("number" == "number") { :print("success"); } :else { :print("ERRROR"); }
 
-:if("s" != "number") {
-	:print("success");
-} :else {
-	:print("ERRROR");
-}
+:if("s" != "number") { :print("success"); } :else {	:print("ERRROR"); }
 
 :if("nej" == "hej") {
 	:print("ERROR");
@@ -96,21 +56,13 @@
 	}
 }
 
-:subroutine sub {
-	&sum = val2 - val1;
-};
+:subroutine sub { &sum = val2 - val1; };
 
-:subroutine add {
-	&sum = val1 + val2;
-};
+:subroutine add { &sum = val1 + val2; };
 
-:subroutine mul {
-	&sum = val2 * val1;
-};
+:subroutine mul { &sum = val2 * val1; };
 
-:subroutine div {
-	&sum = val2 / val1;
-};
+:subroutine div { &sum = val2 / val1; };
 
 :alias val1 : #43 = 3;
 :alias val2 : #47 = 8; 
@@ -143,21 +95,13 @@
 :if(val1 == 3) { :print("Success"); } :else { :prin("ERROR"); }
 
 
-:subroutine subReverseOrder {
-	&sum = val1 - val2;
-};
+:subroutine subReverseOrder { &sum = val1 - val2; };
 
-:subroutine addReverseOrder {
-	&sum = val1 + val2;
-};
+:subroutine addReverseOrder { &sum = val1 + val2; };
 
-:subroutine mulReverseOrder {
-	&sum = val1 * val2;
-};
+:subroutine mulReverseOrder { &sum = val1 * val2; };
 
-:subroutine divReverseOrder {
-	&sum = val1 / val2;
-};
+:subroutine divReverseOrder { &sum = val1 / val2; };
 
 :call subReverseOrder;
 :print("subReverseOrder");
@@ -179,21 +123,13 @@
 :if(sum == 0) { :print("Success"); } :else { :prin("ERROR"); }
 
 
-:subroutine subNegative {
-	&sum = val1 - val2Negative;
-};
+:subroutine subNegative { &sum = val1 - val2Negative; };
 
-:subroutine addNegative {
-	&sum = val1 + val2Negative;
-};
+:subroutine addNegative { &sum = val1 + val2Negative; };
 
-:subroutine mulNegative {
-	&sum = val1 * val2Negative;
-};
+:subroutine mulNegative { &sum = val1 * val2Negative; };
 
-:subroutine divNegative {
-	&sum = val1 / val2Negative;
-};
+:subroutine divNegative { &sum = val1 / val2Negative; };
 
 :call subNegative;
 :print("subNegative");
