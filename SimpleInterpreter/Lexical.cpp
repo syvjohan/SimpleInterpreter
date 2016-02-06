@@ -320,48 +320,49 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 				trimSemicolon(buffer);
 				lenInstructions = strlen(buffer);
 				while (position <= lenInstructions) {
-					if (position == lenInstructions) {
-						//last instruction.
-						len = lenInstructions - op.pos;
-						position = op.pos +1;
-					} else {
-						op = global.findOperator(buffer, position);
-						op.pos += position;
-						len = op.pos - position;
-					}
-					
-					if (op.pos != -1) {
-						len2 = strlen(extendName);
-						memcpy(instruction, extendName, len2);
-						memcpy(instruction + len2, ".", 1);
-						len2 += 1;
 
-						memcpy(instruction + len2, buffer + position, len);
-						memcpy(newSearchName, instruction, len + len2);
-						newSearchName[len + len2] = '\0';
+				op = global.findOperator(buffer, position);
+				if (op.pos == -1) {
+					len = lenInstructions - position;
+				} else {
+					op.pos += position;
+					len = op.pos - position;
+				}
 
-						Index_s foundIndex = parser.heap.findStructIndex(newSearchName);
+				len2 = strlen(extendName);
+				memcpy(instruction, extendName, len2);
+				memcpy(instruction + len2, ".", 1);
+				len2 += 1;
+
+				memcpy(instruction + len2, buffer + position, len);
+				memcpy(newSearchName, instruction, len + len2);
+				newSearchName[len + len2] = '\0';
+
+				Index_s foundIndex = parser.heap.findStructIndex(newSearchName);
 
 
-						len1 = strlen(searchName);
-						memcpy(instruction + len2, searchName, len1);
-						len2 += len1;
-						memcpy(instruction + len2, ".", 1);
+				len1 = strlen(searchName);
+				memcpy(instruction + len2, searchName, len1);
+				len2 += len1;
+				memcpy(instruction + len2, ".", 1);
 
-						len2 += 1;
-						memcpy(instruction + len2, buffer + position, len);
-						len += len2;
-						instruction[len] = '\0';
+				len2 += 1;
+				memcpy(instruction + len2, buffer + position, len);
+				len += len2;
+				instruction[len] = '\0';
 
-						position += op.pos +1;
+				if (op.pos == -1) {
+					position = instructionLen;
+				} else {
+					position = op.pos + 1;
+				}
 
-						//Update struct index.					
-						memcpy(foundIndex.name, instruction, len);
-						foundIndex.name[len] = '\0';
+				//Update struct index.					
+				memcpy(foundIndex.name, instruction, len);
+				foundIndex.name[len] = '\0';
 
-						parser.heap.updateStructIndex(foundIndex, newSearchName);
+				parser.heap.updateStructIndex(foundIndex, newSearchName);
 
-					}
 				}
 			}
 		}
@@ -485,58 +486,58 @@ void Lexical::evalAlias() {
 			memcpy(alias.type, val, len);
 			alias.type[len] = '\0';
 	
-			if (global.checkForDigits(val) == -1) {
-				if (global.checkForAlpha(val) == 1) {
-					Index_s index = { NULL, NULL, 0, 0 };
-					//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
-					index.len = 0;
-					index.startPos = atoi(address);
-					memcpy(index.type, val, len);
-					memcpy(index.name, alias.name, lenName);
+if (global.checkForDigits(val) == -1) {
+	if (global.checkForAlpha(val) == 1) {
+		Index_s index = { NULL, NULL, 0, 0 };
+		//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
+		index.len = 0;
+		index.startPos = atoi(address);
+		memcpy(index.type, val, len);
+		memcpy(index.name, alias.name, lenName);
 
-					parser.heap.insertStructIndex(index);
+		parser.heap.insertStructIndex(index);
 
-					//structs only! insert pointer name into path. Find all structs with typename.
-					for (int i = 0; i != structsLen; ++i) {
-						CallableUnit_s *s = &structs[i];
-						if (global.strCmp(s->name, index.type)) {
-							//typedef struct members
-							parser.heap.typedefStructMembers(index.type, index.name);
-							//typedef subroutines.
-							typedefSubroutines(index.type, index.name);
-							typedefSubroutinesMembers(index.name, index.type);
-						}
-					}
-
-				} else {
-					//Wrong format DO CRASH!!!
-				}
-			} else {
-				memcpy(alias.type, "int", 3);
-				alias.type[3] = '\0';
+		//structs only! insert pointer name into path. Find all structs with typename.
+		for (int i = 0; i != structsLen; ++i) {
+			CallableUnit_s *s = &structs[i];
+			if (global.strCmp(s->name, index.type)) {
+				//typedef struct members
+				parser.heap.typedefStructMembers(index.type, index.name);
+				//typedef subroutines.
+				typedefSubroutines(index.type, index.name);
+				typedefSubroutinesMembers(index.name, index.type);
 			}
+		}
+
+	} else {
+		//Wrong format DO CRASH!!!
+	}
+} else {
+	memcpy(alias.type, "int", 3);
+	alias.type[3] = '\0';
+}
 
 		}
 	} else {
-		//if No definition
-		memcpy(alias.type, "", 1);
-		memcpy(val, "", 1);
-		alias.len = 0;
+	//if No definition
+	memcpy(alias.type, "", 1);
+	memcpy(val, "", 1);
+	alias.len = 0;
 	}
 
 	//alias name need to contain at least one letter.
 	if (alias.len < 1) {
 		//do CRASH!!!
 	}
-	
+
 	//alias name need to contain at least one letter.
 	if (strlen(address) < 1) {
 		//do CRASH!!!
 	}
-	
+
 	//address can only contain digits.
 	if (global.checkForDigits(address) == -1) {
-			//do CRASH!!!
+		//do CRASH!!!
 	}
 
 	char *parserVal = val;
@@ -573,28 +574,89 @@ void Lexical::evalAlias() {
 	parser.heap.insertAliasAt(i, alias);
 }
 
-//TODO Update code!!
-void Lexical::evalDo(int len) {
-	//endIndex = index;
-	//index -= len;
-	//startIndex = index;
-	//scope.incrementScope(index, -1);
+void Lexical::evalDo() {
+	Loop_s newLoop;
+
+	//find open bracket for loop start
+	int i = index;
+	while (i != fileSize) {
+		if (code[i] == '{') {
+			newLoop.start = i +1;
+			break;
+		}
+	}
+
+	if (newLoop.start == -1) {
+		//Wrong syntax missing open bracket DO CRASH!!!
+	}
+
+	newLoop.stop = -1;
+	newLoop.type = 1;
+	++loopLen;
+	loop[loopLen] = newLoop;
 }
 
 void Lexical::evalWhile() {
+	//type = 1 do while, type = 0 while.
 	char *res = parser.regularExpression(expression);
 	if (global.strCmp(res, "true")) {
-		if (loop[loopLen].start == startIndex - 1 && loop[loopLen].end == (startIndex - instructionLen - 1)) {
+		//do while loop.
+		if(loop[loopLen].end == -1 && loop[loopLen].type == 1) {
+			Loop_s *l = &loop[loopLen];
+			l->end = startIndex - 20;
+			l->stop = -1;
+
+			index = l->start;
+			return;
+		} else if(loop[loopLen].type == 1) {
+			index = loop[loopLen].start;
 			return;
 		}
 
-		++loopLen;
-		loop[loopLen].start = startIndex - 1;
-		loop[loopLen].end = startIndex - instructionLen - 1;
-		loop[loopLen].stop = 0;
+		if (loop[loopLen].type == -1) {
+			++loopLen;
+
+			loop[loopLen].start = startIndex - instructionLen - strlen(keyword);
+			loop[loopLen].stop = 0;
+			loop[loopLen].type = 2;
+
+			int nested = 0;
+			//get end of loop
+			for (int i = startIndex; i != fileSize; ++i) {
+				if (code[i] == ':' && code[i + 1] == 'w' && code[i + 2] == 'h' && code[i + 3] == 'i' && code[i + 4] == 'l' && code[i + 5] == 'e') {
+					++nested;
+					loop[loopLen + nested].start = i;
+					loop[loopLen + nested].stop = 0;
+					loop[loopLen + nested].type = 2;
+				}
+
+				if (code[i] == '}') {
+					if (nested > 0) {
+						loop[loopLen + nested].end = i;
+						--nested;
+					} else {
+						loop[loopLen].end = i;
+						for (int k = loopLen; k != 200; ++k) {
+							if (loop[k].end == -1) {
+								loopLen = k - 1;
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+		} else if (loop[loopLen].type == 2 && loop[loopLen +1].end != -1) {
+			++loopLen;
+		}
+		 //TODO stop är 1 behöver nollställas!
 	} else if (global.strCmp(res, "false")) {
-		--loopLen;
-		loop[loopLen].stop = 1;
+		if (loopLen == 1) {
+			loop[loopLen].stop = 1; //stopping outer loop and continue to read.
+		} else {
+			--loopLen;
+			//loop[loopLen].stop = 0;
+		}
 	}
 }
 
@@ -689,6 +751,10 @@ void Lexical::evalInclude() {
 
 	int lenCode = fileSize;
 
+	if (!isCorrectFileType(expression)) {
+		// Wrong file type Do CRASH!!
+	}
+
 	char *extendedCode = readFile(expression);
 	int lenExtended = strlen(extendedCode);
 
@@ -728,8 +794,24 @@ void Lexical::evalInclude() {
 	instructionLen = 0;
 
 	//Update indexes for subroutines and structs since index is changed in document.
-	updateSubroutinesIndexes();
 	updateStructsIndexes();
+	updateSubroutinesIndexes();
+}
+
+bool Lexical::isCorrectFileType(char *cStr) {
+	char *fileType = strstr(cStr, ".q");
+	if (fileType) {
+		return true;
+	}
+	return false;
+}
+
+bool Lexical::isCorrectMainFileType(char *cStr) {
+	char *fileType = strstr(cStr, ".main.q");
+	if (fileType) {
+		return true;
+	}
+	return false;
 }
 
 void Lexical::evalCodeInsideStruct(char *structCode) {
@@ -794,7 +876,6 @@ void Lexical::splitInstruction(char *instruction) {
 	char *stk = strstr(instruction, ":stk.");
 	char *print = strstr(instruction, ":print(");
 	char *include = strstr(instruction, ":include(");
-	char *STRUCT = strstr(instruction, ":struct");
 
 	if (sysMemAllocHeap) {
 		keyword = ":sysMemAllocHeap";
@@ -838,25 +919,7 @@ void Lexical::splitInstruction(char *instruction) {
 	} 
 
 	if (DO) {
-		int totLen = 0;
-		char *bracket = strstr(DO, "{");
-		if (bracket) {
-			keyword = ":do";
-			totLen = strlen(bracket) -1;
-		} else {
-			// Open bracket missing do CRASH!!
-		}
-
-		//Filter do from rest of expression, recursion.
-		char *rest = strstr(DO +3, ":");
-		if (rest) {
-			len = strlen(rest);
-			memcpy(tmp, rest, len);
-			tmp[len] = '\0';
-			splitInstruction(rest);
-		}
-
-		evalDo(totLen);
+		evalDo();
 		isKeywordMissing = 0;
 	}
 
@@ -915,12 +978,6 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 
-		//Move index forward to ignore call again.
-		//len += 5;
-		//index += len;
-		//startIndex = index + 1;
-		//endIndex = index;
-
 		evalCall(len);
 		isKeywordMissing = 0;
 	}
@@ -938,9 +995,6 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 		evalPrint();
 		isKeywordMissing = 0;
-	}
-
-	if (STRUCT) {
 	}
 
 	if (isKeywordMissing == 1) {
@@ -982,8 +1036,12 @@ void Lexical::getInstructions() {
 
 		if (code[index] == '}') {
 			ignore = 0;
+		}
+
+		if (index == loop[loopLen].end) {
+			ignore = 0;
 			if (loop[loopLen].stop == 0) {
-				startIndex = loop[loopLen].end;
+				startIndex = loop[loopLen].start;
 				index = loop[loopLen].start;
 			}
 		}

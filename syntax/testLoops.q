@@ -1,6 +1,3 @@
-:sysMemAllocHeap 64;
-:sysCreateStack 32;
-
 :print("outerDoWhileLoop");
 :stk.pushAt(0, 0); /*Pushes 0 to memory address 4*/
 :do { 
@@ -47,4 +44,23 @@
 	:stk.pushAt(5, :stk.getAt(5) +1);
 
 } :while(:stk.getAt(5) != 3);
+:print("______________________________________________");
+
+
+:print("WhileLoop");
+:stk.pushAt(0, 0); /*Pushes 0 to memory address 4*/
+:while(:stk.getAt(0) != 5) {
+
+		:print("whileInnerLoop");
+		:stk.pushAt(5, 0);
+		:while(:stk.getAt(5) != 3) {
+			:print(:stk.getAt(5));
+			:stk.pushAt(5, :stk.getAt(5) +1);
+		}
+		:print("______________________________________________");
+
+
+	:print(:stk.getAt(0));
+	:stk.pushAt(0, :stk.getAt(0) +1);
+}
 :print("______________________________________________");

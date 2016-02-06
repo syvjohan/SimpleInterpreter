@@ -10,6 +10,7 @@ int main(void) {
 	Lexical lexical;
 
 	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.txt";
+	//const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\testStruct.q";
 	char *code = lexical.readFile(path);
 
 	lexical.setCode(code);

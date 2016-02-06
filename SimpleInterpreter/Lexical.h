@@ -22,6 +22,7 @@ struct Loop_s {
 	int start = -1;
 	int end = -1;
 	int stop = -1;
+	int type = -1;
 };
 
 class Lexical {
@@ -53,7 +54,7 @@ class Lexical {
 		void expandStructsSize();
 
 		void evalAlias();
-		void evalDo(int len);
+		void evalDo();
 		void evalName();
 		void evalWhile();
 		void evalCall(int len);
@@ -63,6 +64,9 @@ class Lexical {
 		void evalInclude();
 		void evalCodeInsideStruct(char *code);
 		void evalExpressionWithoutKeyword();
+
+		bool isCorrectFileType(char *cStr);
+		bool isCorrectMainFileType(char *cStr);
 
 		char *code;
 		size_t fileSize;

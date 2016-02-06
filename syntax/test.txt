@@ -1,7 +1,8 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
-:include("C:\\Programmering\\SimpleInterpreter\\syntax\\anotherfile.q");
+:include("C:\\Programmering\\SimpleInterpreter\\syntax\\testStruct.q");
+/*:include("C:\\Programmering\\SimpleInterpreter\\syntax\\testLoops.q");*/
 
 :alias str : #32 = "hej";
 :alias number : #35 = 10 + 5;
@@ -36,7 +37,7 @@
 
 :if(s < number) { :print("true"); } :else { :print("Success"); }
 
-:if(100 > s) { :print("true"); } :else { :print("Success"); }
+:if(100 > s) { :print("true"); } :else { :print("Success"); 
 
 :if(s == number) { :print("Success"); } :else { :print("ERRROR"); } 
 
@@ -181,4 +182,3 @@
 
 :if(sum == 16) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
-

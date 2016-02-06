@@ -1,88 +1,20 @@
-:sysMemAllocHeap 124;
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
 
-:struct Pair {
-	:alias first : offset(0);
-	:alias second : offset(9);
-};
+:print("WhileLoop");
+:stk.pushAt(0, 0); /*Pushes 0 to memory address 4*/
+:while(:stk.getAt(0) != 5) {
 
-:struct Calculator {
-	:alias sum : offset(0);
-	:alias val1 : offset(4);
-	:alias val2 : offset(8);
-
-	:subroutine add { &sum = val1 + val2; };
-};
-
-:struct String {
-	:alias len : offset(0); /*offset 0*/
-	:alias cStr : offset(4); /*offset 4*/
-	:alias pPair : Pair : offset(8); /*offset 8*/ /*Transforms to String/pPair/first & String/pPair/second*/
-
-}; /*No typedef needed underlying layer will automaticle create a typedef String*/
+		:print("whileInnerLoop");
+		:stk.pushAt(5, 0);
+		:while(:stk.getAt(5) != 3) {
+			:print(:stk.getAt(5));
+			:stk.pushAt(5, :stk.getAt(5) +1);
+		}
+		:print("______________________________________________");
 
 
-:alias pair : #0 = Pair;
-&pair.second = "test";
-&pair.first = 67890;
-
-:print(pair.first);
-:print(pair.second);
-:print(pair);
-
-:if(pair.second == "test") { :print("Success"); } :else { :print("ERROR"); }
-:if(pair.first == 67890) { :print("Success"); } :else { :print("ERROR"); }
-:if(pair == 67890) { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
-
-
-:alias calc : #100 = Calculator;
-&calc.val1 = 2;
-&calc.val2 = 3;
-:call calc.add;
-
-:print(calc.sum);
-:print(calc.val1);
-:print(calc.val2);
-:print(calc);
-
-:if(calc.sum == 5) { :print("Success"); } :else { :print("ERROR"); }
-:if(calc.val1 == 2) { :print("Success"); } :else { :print("ERROR"); }
-:if(calc.val2 == 3) { :print("Success"); } :else { :print("ERROR"); }
-:if(calc == 5) { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
-
-
-:alias string : #40 = String;
-&string.pPair.first = "firstPair";
-&string.pPair.second = "secondPair";
-&string.cStr = "hej";
-&string.len = 3;
-
-:print(string.pPair);
-:print(string.pPair.second);
-:print(string.pPair.first);
-:print(string); /*skriver ut len*/
-:print(string.cStr);
-:print(string.len);
-
-:if(string.cStr == "hej") { :print("Success"); } :else { :print("ERROR"); }
-:if(string.len == 3) { :print("Success"); } :else { :print("ERROR"); }
-:if(string == 3) { :print("Success"); } :else { :print("ERROR"); }
-:if(string.pPair == "firstPair") { :print("Success"); } :else { :print("ERROR"); }
-:if(string.pPair.second == "secondPair") { :print("Success"); } :else { :print("ERROR"); }
-:if(string.pPair.first == "firstPair") { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
-
-
-:alias pairNext : #20 = Pair; 
-&pairNext.second = 12345;
-&pairNext.first = "testAgain";
-
-:print(pairNext.first);
-:print(pairNext.second);
-:print(pairNext);
-
-:if(pairNext.first == "testAgain") { :print("Success"); } :else { :print("ERROR"); }
-:if(pairNext.second == 12345) { :print("Success"); } :else { :print("ERROR"); }
-:if(pairNext == "testAgain") { :print("Success"); } :else { :print("ERROR"); }
+	:print(:stk.getAt(0));
+	:stk.pushAt(0, :stk.getAt(0) +1);
+}
 :print("______________________________________________");
