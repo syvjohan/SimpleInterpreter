@@ -9,10 +9,12 @@ int main(void) {
 
 	Lexical lexical;
 
-	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.txt";
-	//const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\testStruct.q";
+	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.q";
+	//const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\testLoops.q";
 	char *code = lexical.readFile(path);
 
+	lexical.setCode(code);
+	code = lexical.registerAllIncludes();
 	lexical.setCode(code);
 	lexical.registerAllStructs();
 	lexical.registerAllSubroutines();

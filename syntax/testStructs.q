@@ -1,4 +1,3 @@
-:sysMemAllocHeap 64;
 
 :struct Pair {
 	:alias first : offset(0);

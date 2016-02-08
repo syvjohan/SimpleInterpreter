@@ -37,6 +37,7 @@ class Lexical {
 
 		void registerAllSubroutines(void);
 		void registerAllStructs(void);
+		char* registerAllIncludes(void);
 
 	private:
 		void allocateMem();
@@ -61,7 +62,6 @@ class Lexical {
 		void evalIf();
 		void evalStk();
 		void evalPrint();
-		void evalInclude();
 		void evalCodeInsideStruct(char *code);
 		void evalExpressionWithoutKeyword();
 

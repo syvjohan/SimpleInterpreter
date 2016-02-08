@@ -1,8 +1,8 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
-:include("C:\\Programmering\\SimpleInterpreter\\syntax\\testStruct.q");
-/*:include("C:\\Programmering\\SimpleInterpreter\\syntax\\testLoops.q");*/
+:include("C:\Programmering\SimpleInterpreter\syntax\testStructs.q");
+:include("C:\Programmering\SimpleInterpreter\syntax\testLoops.q");
 
 :alias str : #32 = "hej";
 :alias number : #35 = 10 + 5;
@@ -16,15 +16,6 @@
 :stk.pushTop(10);
 :alias s : #39 = :stk.getTop() + 5;
 :if(s == 15) { :print("Success"); } :else { :print("ERRROR"); }
-:print("______________________________________________");
-
-
-:print("WhileLoop");
-:stk.pushAt(5, 0); /*Pushes 0 to memory address 4*/
-:while(:stk.getAt(5) != 10) {
-	:print(:stk.getAt(5));
-	:stk.pushAt(5, :stk.getAt(5) +1);
-}
 :print("______________________________________________");
 
 

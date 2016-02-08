@@ -653,9 +653,9 @@ void Lexical::evalWhile() {
 	} else if (global.strCmp(res, "false")) {
 		if (loopLen == 1) {
 			loop[loopLen].stop = 1; //stopping outer loop and continue to read.
+			--loopLen;
 		} else {
 			--loopLen;
-			//loop[loopLen].stop = 0;
 		}
 	}
 }
@@ -745,57 +745,63 @@ void Lexical::evalIf() {
 	}
 }
 
-void Lexical::evalInclude() {
-	trimBothParanthesis(expression);
-	trimText(expression);
-
+char* Lexical::registerAllIncludes() {
+	int i = 0;
+	bool isContinue = true;
+	const int lenInclude = 8;
 	int lenCode = fileSize;
+	do {
+		int offset = 0;
+		char *foundInclude = strstr(code, ":include");
+		int p = foundInclude - code;
+		int lenPath = 0;
+		if (foundInclude) {
+			const char *foundSemicolon = strstr(code + p, ";");
+			if (foundSemicolon) {
+				char path[INSTRUCTIONSIZE];
+				lenPath = foundSemicolon - foundInclude - lenInclude;
+				offset = lenInclude;
+				memcpy(path, foundInclude + offset, lenPath);
+				path[lenPath] = '\0';
+				offset += lenPath;
 
-	if (!isCorrectFileType(expression)) {
-		// Wrong file type Do CRASH!!
-	}
+				trimWhitespaces(path);
+				trimNewline(path);
+				trimBothParanthesis(path);
+				trimText(path);
+				char *extendedCode = readFile(path);
+				int lenExtended = strlen(extendedCode);
 
-	char *extendedCode = readFile(expression);
-	int lenExtended = strlen(extendedCode);
+				char *codeBefore = DBG_NEW char[lenCode];
+				int lenCodeBefore = foundInclude - code;
+				memcpy(codeBefore, code, lenCodeBefore);
+				codeBefore[lenCodeBefore] = '\0';
 
-	char *codeBefore = DBG_NEW char[lenCode];
-	int lenCodeBefore = startIndex - instructionLen;
-	memcpy(codeBefore, code, lenCodeBefore );
-	codeBefore[lenCodeBefore] = '\0';
+				char *codeAfter = DBG_NEW char[lenCode];
+				offset += lenCodeBefore;
+				int lenCodeAfter = abs(lenCode - offset);
+				memcpy(codeAfter, code + offset, lenCodeAfter);
+				codeAfter[lenCodeAfter] = '\0';
 
-	char *codeAfter = DBG_NEW char[lenCode];
-	int lenCodeAfter = lenCode - startIndex;
-	memcpy(codeAfter, code + startIndex, lenCodeAfter);
-	codeAfter[lenCodeAfter] = '\0';
+				delete code;
+				code = NULL;
+				code = DBG_NEW char[lenCode + lenExtended];
+				memcpy(code, codeBefore, lenCodeBefore);
+				offset = lenCodeBefore;
+				memcpy(code + offset, extendedCode, lenExtended);
+				offset += lenExtended;
+				memcpy(code + offset, codeAfter, lenCodeAfter);
+				lenCode = lenCodeAfter + lenCodeBefore + lenExtended;
+				code[lenCode] = '\0';
 
-	delete[] code;
-	code = NULL;
-	code = DBG_NEW char[lenCode + lenExtended];
+				fileSize = lenCode;
+			}
 
-	memcpy(code, codeBefore, lenCodeBefore);
-	memcpy(code + strlen(codeBefore), extendedCode, lenExtended);
-	memcpy(code + strlen(codeBefore) + lenExtended, codeAfter, lenCodeAfter);
-	lenCode = lenCodeBefore + lenExtended + lenCodeAfter;
-	code[lenCode] = '\0';
-
-	fileSize = (size_t)lenCode; //Setting the size of the new code base.
-
-	//Free memory
-	delete[] codeAfter;
-	codeAfter = NULL;
-
-	delete[] codeBefore;
-	codeBefore = NULL;
-
-	//Reseting index
-	index -= instructionLen;
-	startIndex -= instructionLen;
-	endIndex = index;
-	instructionLen = 0;
-
-	//Update indexes for subroutines and structs since index is changed in document.
-	updateStructsIndexes();
-	updateSubroutinesIndexes();
+		} else {
+			return code;
+		}
+	} while (isContinue);
+	return code;
 }
 
 bool Lexical::isCorrectFileType(char *cStr) {
@@ -875,7 +881,7 @@ void Lexical::splitInstruction(char *instruction) {
 	char *subroutine = strstr(instruction, ":subroutine");
 	char *stk = strstr(instruction, ":stk.");
 	char *print = strstr(instruction, ":print(");
-	char *include = strstr(instruction, ":include(");
+	//char *include = strstr(instruction, ":include(");
 
 	if (sysMemAllocHeap) {
 		keyword = ":sysMemAllocHeap";
@@ -897,7 +903,7 @@ void Lexical::splitInstruction(char *instruction) {
 		isKeywordMissing = 0;
 	}
 
-	if (include) {
+	/*if (include) {
 		keyword = ":include";
 		len = strlen(include) - 8;
 		memcpy(tmp, include + 8, len);
@@ -905,7 +911,7 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 		evalInclude();
 		isKeywordMissing = 0;
-	}
+	}*/
 
 	if (alias) {
 		keyword = ":alias";
