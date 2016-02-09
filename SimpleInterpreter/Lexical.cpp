@@ -892,7 +892,7 @@ void Lexical::splitInstruction(char *instruction) {
 	int isKeywordMissing = 1;
 	int len = 0;
 
-	trimWhitespacesExceptPartOfTextString(instruction);
+	trimWhitespacesExceptInTextString(instruction);
 
 	const char *print = strstr(instruction, ":print(");
 	char *WHILE = strstr(instruction, ":while");

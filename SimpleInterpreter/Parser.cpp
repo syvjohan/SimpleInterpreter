@@ -638,6 +638,8 @@ void Parser::parsePrint(char *expression, Parts_s *parts, int &len) {
 	bool isHit = false;
 	int lenExp = strlen(expression);
 
+	trimWhitespacesExceptInTextString(expression);
+
 	do {
 		for (int i = endPoint; i <= lenExp; ++i) {
 			if (expression[i] == ',') {

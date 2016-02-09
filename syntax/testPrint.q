@@ -1,6 +1,6 @@
 :print("--------------TestPrint.q--------------");
 :print("hello world!");
-:print("hello  again ", "who are 	you?");
+:print("hello  again " , "who are 	you?");
 :print(""); /*newline*/
 :print("g");
 :print(" "); /*print empty string*/
@@ -11,5 +11,5 @@
 :print("");
 
 :alias name : #33 = "creater";
-:print("My name is: ", creater, " and my place in memory is: ", &name );
+:print("My name is: " , creater, " and my place in memory is: " , &name );
 :print("Correct answer is: My name is: creater and my place in memory is: 33 ");

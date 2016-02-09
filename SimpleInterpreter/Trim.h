@@ -14,7 +14,7 @@ static void trimWhitespaces(char *cStr) {
 	cStr[j] = '\0';
 }
 
-static void trimWhitespacesExceptPartOfTextString(char *cStr) {
+static void trimWhitespacesExceptInTextString(char *cStr) {
 	int insideTextString = 0;
 	int i = 0;
 	int j = 0;
