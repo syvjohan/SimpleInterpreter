@@ -76,7 +76,7 @@ int Parser::stackPushTop(char *cStr) {
 	len = strlen(res);
 
 	Alias_s alias;
-	if (global.checkForAlpha(res) == 1 && identifyType) {
+	if (/*global.checkForAlpha(res) == 1 && */identifyType) {
 		memcpy(alias.type, "string", 6);
 		alias.type[6] = '\0';
 
@@ -538,13 +538,6 @@ Alias_s Parser::parseKeywords(char *exp) {
 	
 	} else if (and && dot && !isAdress) {
 		trimBothParanthesis(and);
-		//struct
-		//int lenDot = strlen(dot) -1;
-		//int lenAnd = strlen(and) - 1;
-		//int lenStruct = strlen(and) - 2 - lenDot;
-		//memcpy(tmpLhs, and +1, lenStruct);
-		//tmpLhs[lenStruct] = '\0';
-		//Index_s indexStruct = heap.getStructIndex(tmpLhs); //string
 
 		//struct
 		char *d = strstr(dot + 1, ".");
@@ -557,15 +550,9 @@ Alias_s Parser::parseKeywords(char *exp) {
 		Index_s indexStruct = heap.getStructIndex(tmpLhs);
 
 		//alias
-		//int lenStructType = strlen(indexStruct.type);
-		//memcpy(tmpStr, indexStruct.type, lenStructType);
-		//memcpy(tmpStr + lenStructType, ".", 1);
-		//memcpy(tmpStr + lenStructType +1, and + 1, lenAnd);
-		//tmpStr[lenStructType + lenAnd +1] = '\0';
-
 		memcpy(tmpRhs, and + 1, strlen(and));
 
-		Index_s indexAlias = heap.getStructIndex(tmpRhs); // Pair.pair.second
+		Index_s indexAlias = heap.getStructIndex(tmpRhs);
 
 		int a = indexStruct.startPos + indexAlias.startPos;
 		Index_s newIndex;
@@ -580,7 +567,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(newIndex.type, indexAlias.type, lenType);
 		newIndex.type[lenType] = '\0';
 
-		bool isUpdated = heap.updateStructIndex(newIndex, newIndex.name); //Update startposition and name.
+		bool isUpdated = heap.updateStructIndex(newIndex, newIndex.name);
 		
 		if (!isUpdated) {
 			heap.insertStructIndex(newIndex);

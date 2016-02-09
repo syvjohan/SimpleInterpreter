@@ -14,6 +14,29 @@ static void trimWhitespaces(char *cStr) {
 	cStr[j] = '\0';
 }
 
+static void trimWhitespacesExceptPartOfTextString(char *cStr) {
+	int insideTextString = 0;
+	int i = 0;
+	int j = 0;
+	while (cStr[i] != '\0') { 
+		if (cStr[i] == '\"') {
+			if (insideTextString == 0) {
+				insideTextString = 1;
+			} else {
+				insideTextString = 0;
+			}
+		}
+
+		if (cStr[i] != ' ' && insideTextString != 1) {
+			cStr[j++] = cStr[i];
+		} else if (insideTextString == 1) {
+			cStr[j++] = cStr[i];
+		}
+		i++;
+	}
+	cStr[j] = '\0';
+}
+
 static void trimBothParanthesis(char *cStr) {
 	int i = 0;
 	int j = 0;

@@ -728,7 +728,7 @@ void Lexical::evalPrint() {
 		if (parts[i].type == 2) {
 			char *and = strstr(parts[i].part, "&");
 			char *adress = strstr(parts[i].part, "#");
-			if (and || adress) {
+			if (and /*|| adress*/) {
 				parser.isAdress = true;
 			}
 
@@ -892,19 +892,9 @@ void Lexical::splitInstruction(char *instruction) {
 	int isKeywordMissing = 1;
 	int len = 0;
 
-	const char *print = strstr(instruction, ":print("); //search before remove whitespaces.
-	if (print) {
-		keyword = ":print";
-		len = strlen(print) - 8;
-		memcpy(tmp, print + 7, len);
-		tmp[len] = '\0';
-		expression = tmp;
-		evalPrint();
-		isKeywordMissing = 0;
-	}
+	trimWhitespacesExceptPartOfTextString(instruction);
 
-	trimWhitespaces(instruction);
-
+	const char *print = strstr(instruction, ":print(");
 	char *WHILE = strstr(instruction, ":while");
 	char *sysMemAllocHeap = strstr(instruction, ":sysMemAllocHeap");
 	char *sysCreateStack = strstr(instruction, ":sysCreateStack");
@@ -982,6 +972,16 @@ void Lexical::splitInstruction(char *instruction) {
 
 	if (ELSE && cmpResult) {
 		ignore = 1;
+		isKeywordMissing = 0;
+	}
+
+	if (print) {
+		keyword = ":print";
+		len = strlen(print) - 8;
+		memcpy(tmp, print + 7, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		evalPrint();
 		isKeywordMissing = 0;
 	}
 

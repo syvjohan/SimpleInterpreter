@@ -453,7 +453,9 @@ void Heap::createStack(size_t stackSize) {
 
 int Heap::pushTop(Alias_s alias) {
 	int len = GetStackLen();
-	SetStackLen(++len);
+	if (len != 0) {
+		SetStackLen(++len);
+	}
 	return insertAliasAt(len, alias);
 }
 

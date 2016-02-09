@@ -1,5 +1,14 @@
+:print("--------------TestPrint.q--------------");
 :print("hello world!");
 :print("hello  again ", "who are 	you?");
+:print(""); /*newline*/
+:print("g");
+:print(" "); /*print empty string*/
+
+:alias test : #33 = 12345;
+:print(test);
+:print("Correct answer is 12345");
+:print("");
 
 :alias name : #33 = "creater";
 :print("My name is: ", creater, " and my place in memory is: ", &name );
