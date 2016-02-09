@@ -12,6 +12,12 @@ struct Alias_s {
 	int len;
 };
 
+struct Parts_s {
+	char part[OUTPUTSIZE];
+	int type; //1 = text. 2 = logic.
+	int len;
+};
+
 struct Index_s {
 	char name[NAMESIZE];
 	char type[TYPESIZE];
@@ -39,4 +45,5 @@ class Global {
 		bool findAnd(char *cStr);
 		bool isNegativeNumber(const char *cStr);
 		Operator_s findOperator(const char *cStr, const int startPos);
+		bool isTextString(char *cStr);
 };

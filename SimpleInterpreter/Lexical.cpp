@@ -369,6 +369,16 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 	}
 }
 
+void Lexical::resetLoopArray() {
+	for (int i = 0; i != LOOPMAX; ++i) {
+		Loop_s *l = &loop[i];
+		l->start = -1;
+		l->end = -1;
+		l->stop = -1;
+		l->type = -1;
+	}
+}
+
 void Lexical::evalAlias() {
 	int len = strlen(expression);
 	char *sep1 = strstr(expression, ":");
@@ -653,7 +663,7 @@ void Lexical::evalWhile() {
 	} else if (global.strCmp(res, "false")) {
 		if (loopLen == 1) {
 			loop[loopLen].stop = 1; //stopping outer loop and continue to read.
-			--loopLen;
+			//--loopLen;
 		} else {
 			--loopLen;
 		}
@@ -710,25 +720,38 @@ void Lexical::evalStk() {
 }
 
 void Lexical::evalPrint() {
-	char *and = strstr(expression, "&");
-	char *adress = strstr(expression, "#");
-	if (and || adress) {
-		parser.isAdress = true;
+	Parts_s parts[NUMBEROFPRINTARGUMENTS];
+	int len = 0;
+	parser.parsePrint(expression, parts, len);
+	
+	for (int i = 0; i != len; ++i) {
+		if (parts[i].type == 2) {
+			char *and = strstr(parts[i].part, "&");
+			char *adress = strstr(parts[i].part, "#");
+			if (and || adress) {
+				parser.isAdress = true;
+			}
+
+			parts[i].part[parts[i].len] = '\0';
+			char *out = parser.regularExpression(parts[i].part);
+			char s[VALUESIZE];
+			int len = strlen(out);
+			memcpy(s, out, len);
+			s[len] = '\0';
+
+			if (len == 0) {
+				printf("\nNULL");
+			} else {
+				printf("\n%s", s);
+			}
+
+			parser.isAdress = false;
+
+		} else {
+			parts[i].part[parts[i].len] = '\0';
+			printf("\n%s", parts[i].part);
+		}
 	}
-
-	char *out = parser.regularExpression(expression);
-	char s[VALUESIZE];
-	int len = strlen(out);
-	memcpy(s, out, len);
-	s[len] = '\0';
-
-	if (len == 0) {
-		printf("\nNULL");
-	} else {
-		printf("\n%s", s);
-	}
-
-	parser.isAdress = false;
 }
 
 void Lexical::evalIf() {
@@ -864,11 +887,23 @@ void Lexical::evalExpressionWithoutKeyword() {
 }
 
 void Lexical::splitInstruction(char *instruction) {
-	trimWhitespaces(instruction);
 	char tmp[INSTRUCTIONSIZE];
 	char tmp2[INSTRUCTIONSIZE];
 	int isKeywordMissing = 1;
 	int len = 0;
+
+	const char *print = strstr(instruction, ":print("); //search before remove whitespaces.
+	if (print) {
+		keyword = ":print";
+		len = strlen(print) - 8;
+		memcpy(tmp, print + 7, len);
+		tmp[len] = '\0';
+		expression = tmp;
+		evalPrint();
+		isKeywordMissing = 0;
+	}
+
+	trimWhitespaces(instruction);
 
 	char *WHILE = strstr(instruction, ":while");
 	char *sysMemAllocHeap = strstr(instruction, ":sysMemAllocHeap");
@@ -880,8 +915,6 @@ void Lexical::splitInstruction(char *instruction) {
 	char *call = strstr(instruction, ":call");
 	char *subroutine = strstr(instruction, ":subroutine");
 	char *stk = strstr(instruction, ":stk.");
-	char *print = strstr(instruction, ":print(");
-	//char *include = strstr(instruction, ":include(");
 
 	if (sysMemAllocHeap) {
 		keyword = ":sysMemAllocHeap";
@@ -902,16 +935,6 @@ void Lexical::splitInstruction(char *instruction) {
 		createStack();
 		isKeywordMissing = 0;
 	}
-
-	/*if (include) {
-		keyword = ":include";
-		len = strlen(include) - 8;
-		memcpy(tmp, include + 8, len);
-		tmp[len] = '\0';
-		expression = tmp;
-		evalInclude();
-		isKeywordMissing = 0;
-	}*/
 
 	if (alias) {
 		keyword = ":alias";
@@ -993,16 +1016,6 @@ void Lexical::splitInstruction(char *instruction) {
 		isKeywordMissing = 0;
 	}
 
-	if (print) {
-		keyword = ":print";
-		len = strlen(print) - 8;
-		memcpy(tmp, print + 7, len);
-		tmp[len] = '\0';
-		expression = tmp;
-		evalPrint();
-		isKeywordMissing = 0;
-	}
-
 	if (isKeywordMissing == 1) {
 		keyword = "regularExpression";
 		trimWhitespaces(instruction);
@@ -1049,6 +1062,10 @@ void Lexical::getInstructions() {
 			if (loop[loopLen].stop == 0) {
 				startIndex = loop[loopLen].start;
 				index = loop[loopLen].start;
+			} else if (loop[loopLen].stop == 1) {
+				startIndex = loop[loopLen].end;
+				index = loop[loopLen].end;
+				resetLoopArray();
 			}
 		}
 

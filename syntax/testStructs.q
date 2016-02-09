@@ -1,3 +1,4 @@
+:print("--------------TestStructs.q--------------");
 
 :struct Pair {
 	:alias first : offset(0);

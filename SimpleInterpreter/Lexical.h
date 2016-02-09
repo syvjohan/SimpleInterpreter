@@ -68,6 +68,8 @@ class Lexical {
 		bool isCorrectFileType(char *cStr);
 		bool isCorrectMainFileType(char *cStr);
 
+		void resetLoopArray();
+
 		char *code;
 		size_t fileSize;
 
@@ -76,7 +78,7 @@ class Lexical {
 		int endIndex = 0;
 		int instructionLen = 0;
 
-		Loop_s loop[200];
+		Loop_s loop[LOOPMAX];
 		int loopLen = 0;
 
 		int ignore = 0;

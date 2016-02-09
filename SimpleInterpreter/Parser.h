@@ -17,6 +17,7 @@ class Parser {
 		char* regularExpression(char *expression);
 		char* calculateResult(char *expression);
 		Alias_s parseKeywords(char *expression);
+		void parsePrint(char *expression, Parts_s *parts, int &len);
 		void setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs);
 		void setLength(Alias_s *aliasLhs, Alias_s aliasRhs);
 		void updateIndex(Alias_s alias);

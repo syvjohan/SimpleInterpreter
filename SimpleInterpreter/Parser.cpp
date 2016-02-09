@@ -641,3 +641,48 @@ void Parser::updateAlias(Alias_s *alias) {
 	int address = heap.getAddress(alias->name);
 	heap.insertAliasAt(address, *alias);
 }
+
+void Parser::parsePrint(char *expression, Parts_s *parts, int &len) {
+	int lenParts = 0;
+	char part[OUTPUTSIZE];
+	int oldEndPoint = 0;
+	int endPoint = 0;
+	int lenPart = 0;
+	bool isHit = false;
+	int lenExp = strlen(expression);
+
+	do {
+		for (int i = endPoint; i <= lenExp; ++i) {
+			if (expression[i] == ',') {
+				oldEndPoint = endPoint;
+				endPoint = i;
+				isHit = true;
+				break;
+			}
+		}
+
+		if (!isHit) {
+			oldEndPoint = endPoint;
+			endPoint = lenExp;
+		}
+		isHit = false;
+
+		lenPart = endPoint - oldEndPoint;
+		memcpy(part, expression + oldEndPoint, lenPart);
+		part[lenPart] = '\0';
+
+		if (global.isTextString(part)) {
+			parts[lenParts].type = 1;
+			trimText(part);
+		} else {
+			trimWhitespaces(part);
+			parts[lenParts].type = 2;
+		}
+		memcpy(&parts[lenParts].part, part, lenPart);
+		parts[lenParts].len = lenPart;
+		++lenParts;
+		endPoint += 1; //Jump over comma.
+	} while (endPoint < lenExp);
+
+	len = lenParts;
+}

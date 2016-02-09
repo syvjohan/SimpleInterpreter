@@ -252,3 +252,14 @@ Operator_s Global::findOperator(const char *cStr, const int startPos) {
 	}
 	return newOp;
 }
+
+bool Global::isTextString(char *cStr) {
+	char *txtStart = strstr(cStr, "\"");
+	if (txtStart) {
+		char *txtEnd = strstr(txtStart + 1, "\"");
+		if (txtEnd) {
+			return true;
+		}
+	}
+	return false;
+}
