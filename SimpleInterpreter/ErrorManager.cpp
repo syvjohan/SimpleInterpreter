@@ -15,6 +15,10 @@ void ErrorManager::PrintMessage(char *errorCode, char *msg) {
 
 	char *name = FindFile();
 	printf("\nIn file: %s", name);
+	
+	//TODO CALCULATE LINENUMBER, 
+	//beräkna anatalet newlines och lagra derass index jämför sedan med index i denna file < och >.
+	//
 
 	printf("\n%s\n", msg);
 	printf("\n%s\n\n", instruction);
