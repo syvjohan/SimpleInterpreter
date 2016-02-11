@@ -31,6 +31,12 @@ struct Operator_s {
 	int len;
 };
 
+struct File_s {
+	char name[PATHSIZE];
+	int startPos = -1;
+	int endPos = -1;
+};
+
 class Global {
 	public:
 		Global();

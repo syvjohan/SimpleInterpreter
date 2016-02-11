@@ -4,6 +4,7 @@
 #include "IStack.h"
 #include "Defines.h"
 #include "Global.h"
+#include "ErrorManager.h"
 
 struct Alias_s;
 struct Index_s;
@@ -60,6 +61,7 @@ class Heap : public IStack {
 		size_t indexStructMax = 0;
 
 		Global global;
+		ErrorManager errorManager;
 };
 
 #endif //!HEAP_H

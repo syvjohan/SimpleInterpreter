@@ -4,8 +4,7 @@
 #include "Defines.h"
 #include "Global.h"
 #include "Parser.h"
-
-class Global;
+#include "ErrorManager.h"
 
 struct CallableUnit_s {
 	char name[NAMESIZE];
@@ -25,6 +24,9 @@ struct Loop_s {
 	int type = -1;
 };
 
+class Global;
+class ErrorManager;
+
 class Lexical {
 	public:
 		Lexical();
@@ -38,6 +40,7 @@ class Lexical {
 		void registerAllSubroutines(void);
 		void registerAllStructs(void);
 		char* registerAllIncludes(void);
+		void registerFile(int start, int end, char *name);
 
 	private:
 		void allocateMem();
@@ -105,7 +108,12 @@ class Lexical {
 		char currentStructName[NAMESIZE];
 		bool isInitializingStructs = false;
 
+		//track files for indexing.
+		File_s files[MAXINCLUDEDFILES];
+		int lenFiles = 0;
+
 		Parser parser;
 		Global global;
+		ErrorManager errorManager;
 };
 #endif //!LEXICAL_H

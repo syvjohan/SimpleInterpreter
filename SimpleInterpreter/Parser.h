@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include "Heap.h"
 #include "Global.h"
+#include "ErrorManager.h"
 
 struct Alias_s;
 struct Index_s;
@@ -47,6 +48,8 @@ class Parser {
 		Global global;
 
 		void updateAlias(Alias_s *alias);
+
+		ErrorManager errorManager;
 };
 
 #endif //!PARSER_H

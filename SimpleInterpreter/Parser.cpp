@@ -1,5 +1,6 @@
 #include "Parser.h"
 #include "Trim.h"
+#include "ErrorCodes.h"
 
 #include <cassert>
 #include <stdio.h>

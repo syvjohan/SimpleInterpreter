@@ -1,5 +1,6 @@
 #include "Lexical.h"
 #include "Trim.h"
+#include "ErrorCodes.h"
 #include "memoryLeak.h"
 
 #include <iostream>
@@ -33,7 +34,7 @@ char* Lexical::readFile(const char *path) {
 	if (file == NULL) {
 		perror(path);
 		printf("Error: %d \n", errno);
-		return "Error";
+		errorManager.ErrorCode(CODE_90);
 	}
 
 	//get size of file.
@@ -171,10 +172,12 @@ void Lexical::registerAllSubroutines(void) {
 
 					i = subroutine.endPos; //sets the program counter to a new value.
 				} else {
-					//Missing end of subroutine }; do CRASH!!
+					//Missing end of subroutine };.
+					errorManager.ErrorCode(CODE_52);
 				}
 			} else {
-				//Missing subroutine open bracket, do CRASH!!!
+				//Missing subroutine open bracket.
+				errorManager.ErrorCode(CODE_51);
 			}
 		} else {
 			//No more subroutines to find end.
@@ -247,10 +250,12 @@ void Lexical::registerAllStructs() {
 
 					isInitializingStructs = false;
 				} else {
-					//Missing end of struct }; do CRASH!!
+					//Missing end of struct };.
+					errorManager.ErrorCode(CODE_42);
 				}
 			} else {
-				//Missing struct open bracket, do CRASH!!!
+				//Missing struct open bracket.
+				errorManager.ErrorCode(CODE_41);
 			}
 		} else {
 			//No more struct to find end.
@@ -396,11 +401,13 @@ void Lexical::evalAlias() {
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
 	if (global.checkForAlpha(alias.name) == -1) {
-		//Wrong name conversion, DO CRASH!!!
+		//Wrong name conversion.
+		errorManager.ErrorCode(CODE_31);
 	}
 
 	if (!sep1) {
-		//Syntax error DO CRASH!!!
+		//Syntax error.
+		errorManager.ErrorCode(CODE_34);
 	}
 
 	if (sep2) {
@@ -520,7 +527,7 @@ if (global.checkForDigits(val) == -1) {
 		}
 
 	} else {
-		//Wrong format DO CRASH!!!
+		errorManager.ErrorCode(CODE_50);
 	}
 } else {
 	memcpy(alias.type, "int", 3);
@@ -537,17 +544,12 @@ if (global.checkForDigits(val) == -1) {
 
 	//alias name need to contain at least one letter.
 	if (alias.len < 1) {
-		//do CRASH!!!
-	}
-
-	//alias name need to contain at least one letter.
-	if (strlen(address) < 1) {
-		//do CRASH!!!
+		errorManager.ErrorCode(CODE_31);
 	}
 
 	//address can only contain digits.
 	if (global.checkForDigits(address) == -1) {
-		//do CRASH!!!
+		errorManager.ErrorCode(CODE_35);
 	}
 
 	char *parserVal = val;
@@ -597,7 +599,8 @@ void Lexical::evalDo() {
 	}
 
 	if (newLoop.start == -1) {
-		//Wrong syntax missing open bracket DO CRASH!!!
+		//Wrong syntax missing open bracket.
+		errorManager.ErrorCode(CODE_56);
 	}
 
 	newLoop.stop = -1;
@@ -821,13 +824,36 @@ char* Lexical::registerAllIncludes() {
 				code[lenCode] = '\0';
 
 				fileSize = lenCode;
+
+				delete [] codeAfter;
+				delete[] codeBefore;
+
+				//register file indexes.
+				registerFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
 			}
 
 		} else {
+			errorManager.SetRegisteredFiles(files, lenFiles);
 			return code;
 		}
 	} while (isContinue);
 	return code;
+}
+
+void Lexical::registerFile(int start, int end, char *name) {
+	if (lenFiles >= MAXINCLUDEDFILES) {
+		errorManager.ErrorCode(CODE_91);
+	}
+
+	File_s file;
+	file.startPos = start + 1;
+	file.endPos = end;
+	int lenName = strlen(name);
+	memcpy(file.name, name, lenName);
+	file.name[lenName] = '\0';
+
+	files[lenFiles] = file;
+	++lenFiles;
 }
 
 bool Lexical::isCorrectFileType(char *cStr) {
@@ -1101,6 +1127,7 @@ void Lexical::getInstructions() {
 					memcpy(instruction, code + startIndex, instructionLen);
 					instruction[instructionLen] = '\0';
 					startIndex = endIndex + 1;
+					errorManager.SetInstruction(instruction, index);
 					splitInstruction(instruction);
 				}
 			}

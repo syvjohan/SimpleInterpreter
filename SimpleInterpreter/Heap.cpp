@@ -1,6 +1,7 @@
 #include "Heap.h"
 #include "memoryLeak.h"
 #include "Trim.h"
+#include "ErrorCodes.h"
 
 #include <stdio.h>
 #include <stdlib.h>

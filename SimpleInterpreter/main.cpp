@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ErrorManager.h"
 #include "Lexical.h"
 #include "memoryLeak.h"
 
