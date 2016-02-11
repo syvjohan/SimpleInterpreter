@@ -696,13 +696,16 @@ void Lexical::evalCall(int len) {
 
 void Lexical::evalStk() {
 	trimBothParanthesis(expression);
+	char *popTop = strstr(expression, "popTop");
 	char *pop = strstr(expression, "pop");
 	char *pushAt = strstr(expression, "pushAt");
 	char *pushTop = strstr(expression, "pushTop");
 	char *getAt = strstr(expression, "getAt");
 	char *getTop = strstr(expression, "getTop");
 
-	if (pop) {
+	if (popTop) {
+		parser.stackPopTop();
+	} else if (pop) {
 		parser.stackPop();
 
 	} else if (pushAt) {

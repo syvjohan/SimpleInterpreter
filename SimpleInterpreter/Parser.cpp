@@ -1,5 +1,4 @@
 #include "Parser.h"
-
 #include "Trim.h"
 
 #include <cassert>
@@ -10,6 +9,10 @@
 Parser::Parser() {}
 
 Parser::~Parser() {}
+
+void Parser::stackPopTop() {
+	heap.popTop();
+}
 
 void Parser::stackPop() {
 	heap.pop();
@@ -449,6 +452,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 		Index_s index = heap.getStructIndex(a.name);
 		alias = heap.getAlias(index.startPos);
 	} else if (stack) {
+		char *popTop = strstr(stack, "popTop");
 		char *pop = strstr(stack, "pop");
 		char *pushAt = strstr(stack, "pushAt");
 		char *pushTop = strstr(stack, "pushTop");
@@ -457,7 +461,10 @@ Alias_s Parser::parseKeywords(char *exp) {
 
 		char *identifyType = strstr(exp, "\"");
 
-		if (pop) {
+		if (popTop) {
+			stackPopTop();
+		}
+		else if (pop) {
 			stackPop();
 		} 
 		else if (pushAt) {

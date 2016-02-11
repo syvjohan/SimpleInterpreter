@@ -16,8 +16,8 @@ class Heap : public IStack {
 		//Heap
 		void initializeHeap(size_t heapSize);
 		int insertAliasAt(int index, Alias_s alias);
-		Alias_s getAlias(char *name);
-		Alias_s getAlias(int index);
+		Alias_s getAlias(const char *name);
+		Alias_s getAlias(const int index);
 		int getAddress(char *name);
 		void updateHeapIndex(Index_s index);
 
@@ -27,6 +27,7 @@ class Heap : public IStack {
 		int pushAt(int index, Alias_s alias);
 		Alias_s getTop();
 		Alias_s getAt(const int index);
+		void popTop();
 		void pop();
 
 		//Index

@@ -47,7 +47,7 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 			if (global.strCmp((char *)alias.type, "string")) {
 
 				if (index + GetStackLen() + len > heapStartPos) {
-					//StackOverfloaw. DO CRASH!!
+					//StackOverflow. DO CRASH!!
 				} else if (index + len > heapSize) {
 					//HeapOverflow. DO CRASH!!
 				}
@@ -121,7 +121,7 @@ int Heap::getAddress(char *name) {
 	return ret;
 }
 
-Alias_s Heap::getAlias(char *name) {
+Alias_s Heap::getAlias(const char *name) {
 	Alias_s alias = { "\0", "\0" , "\0", 0 };
 	int i = 0;
 	int len = 0;
@@ -212,14 +212,14 @@ Alias_s Heap::getAlias(char *name) {
 	return alias;
 }
 
-Alias_s Heap::getAlias(int index) {
+Alias_s Heap::getAlias(const int index) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
-	int len = 0;
-	len = strlen(heapIndex[index].name);
+	int len = strlen(heapIndex[index].name);
+
 	memcpy(alias.name, heapIndex[index].name, len);
 	alias.name[len] = '\0';
 
-	alias.len = heapIndex[index].len;
+ 	alias.len = heapIndex[index].len;
 
 	len = strlen(heapIndex[index].type);
 	memcpy(alias.type, heapIndex[index].type, len);
@@ -441,22 +441,26 @@ void Heap::initializeHeap(size_t size) {
 	heapStartPos = 0;
 }
 
-void Heap::createStack(size_t stackSize) {
-	SetStackSize(stackSize);
+void Heap::createStack(size_t size) {
+	SetStackSize(size);
 	SetStackLen(0);
 
-	if (stackSize < heapSize) {
+	if (GetStackSize() < heapSize) {
 		//Stack cannot be bigger then heap, DO CRASH!!
 	}
-	heapStartPos = heapSize - stackSize;
+	heapStartPos = heapSize - GetStackSize();
 }
 
 int Heap::pushTop(Alias_s alias) {
-	int len = GetStackLen();
-	if (len != 0) {
-		SetStackLen(++len);
+	int res = -1;
+	if (GetStackLen() > 0) {
+		res = insertAliasAt(GetStackLen() + 1, alias);
+	} else {
+		res = insertAliasAt(GetStackLen(), alias);
 	}
-	return insertAliasAt(len, alias);
+	SetStackLen(GetStackLen() + alias.len);
+
+	return res;
 }
 
 int Heap::pushAt(int index, Alias_s alias) {
@@ -464,7 +468,19 @@ int Heap::pushAt(int index, Alias_s alias) {
 }
 
 Alias_s Heap::getTop() {
-	return getAlias(GetStackLen());
+	int len = GetStackLen();
+	if (len > 0) { len -= 1; }
+	Alias_s alias = { NULL, NULL, NULL, 0 };
+	for (int i = len; i >= 0; --i) {
+		if (heapIndex[i].startPos != len) {
+			--len;
+		} else {
+			alias = getAlias(i);
+			break;
+		}
+	}
+
+	return alias;
 }
 
 Alias_s Heap::getAt(int index) {
@@ -472,8 +488,30 @@ Alias_s Heap::getAt(int index) {
 }
 
 void Heap::pop() {
-	int len = GetStackLen();
-	if (len > 0) {
-		SetStackLen(--len);
+	if (GetStackLen() > 0) {
+		SetStackLen(GetStackLen() - 1);
+		Alias_s alias = { NULL, NULL, NULL, 0 };
+		int len = GetStackLen();
+		for (int i = len; i >= 0; --i) {
+			if (heapIndex[i].startPos != len) {
+				--len;
+			} else {
+				alias = getAlias(i);
+				alias.len -= 1;
+				alias.value[alias.len] = '\0';
+				insertAliasAt(i, alias);
+				break;
+			}
+		}
+	}
+}
+
+void Heap::popTop() {
+	for (int i = GetStackLen(); i >= 0; --i) {
+		if (heapIndex[i].startPos != GetStackLen()) {
+			SetStackLen(GetStackLen() - 1);
+		} else {
+			break;
+		}
 	}
 }
