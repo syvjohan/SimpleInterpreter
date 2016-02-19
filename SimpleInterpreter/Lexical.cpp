@@ -852,8 +852,21 @@ void Lexical::registerFile(int start, int end, char *name) {
 	memcpy(file.name, name, lenName);
 	file.name[lenName] = '\0';
 
+	file.numberOfLines = CalculateLinenumbersInFile(file.startPos, file.endPos);
+
 	files[lenFiles] = file;
+
 	++lenFiles;
+}
+
+int Lexical::CalculateLinenumbersInFile(int start, int end) {
+	int counter = 0;
+	for (int i = start; i != end; ++i) {
+		if (code[i] == '\n') {
+			++counter;
+		}
+	}
+	return counter;
 }
 
 bool Lexical::isCorrectFileType(char *cStr) {
@@ -1074,6 +1087,11 @@ void Lexical::getInstructions() {
 	resetIndex();
 
 	while (code[index] != '\0') {	
+		//newline
+		if (code[index] == '\n') {
+			errorManager.AddLine(index);
+		}
+
 		//Comments
 		if (code[index] == '/' && code[index +1] == '*') {
 				comment = 1;

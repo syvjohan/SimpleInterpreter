@@ -1,6 +1,8 @@
 #include "ErrorManager.h"
 #include "ErrorCodes.h"
 #include "memoryLeak.h"
+#include "Global.h"
+#include <Windows.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,13 +16,15 @@ void ErrorManager::PrintMessage(char *errorCode, char *msg) {
 	printf("\nERROR: %s.", errorCode);
 
 	char *name = FindFile();
+
+	//HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	//SetConsoleTextAttribute(hConsole, 100);
+	//SetConsoleTitle("Interpreter Q");
+
 	printf("\nIn file: %s", name);
 	
-	//TODO CALCULATE LINENUMBER, 
-	//beräkna anatalet newlines och lagra derass index jämför sedan med index i denna file < och >.
-	//
-
-	printf("\n%s\n", msg);
+	printf("\nLine: %i.", lines);
+	printf("\nDescription: %s\n", msg);
 	printf("\n%s\n\n", instruction);
 	system("pause");
 }
@@ -45,6 +49,17 @@ char* ErrorManager::FindFile() {
 		}
 	}
 	return "main.q";
+}
+
+void ErrorManager::AddLine(int index) {
+	for (int i = fileIndex; i != lenFiles; ++i) {
+		if (index >= files[i].startPos && index <= files[i].endPos) {
+			++fileIndex;
+			lines = 1; //restart counter because we enter a new file.
+			break;
+		}
+	}
+	++lines;
 }
 
 void ErrorManager::ErrorCode(ERRORCODES errorCode) {

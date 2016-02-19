@@ -41,6 +41,7 @@ class Lexical {
 		void registerAllStructs(void);
 		char* registerAllIncludes(void);
 		void registerFile(int start, int end, char *name);
+		int CalculateLinenumbersInFile(int start, int end);
 
 	private:
 		void allocateMem();
