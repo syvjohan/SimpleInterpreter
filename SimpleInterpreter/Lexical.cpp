@@ -65,7 +65,7 @@ void Lexical::setCode(char *cStr) {
 
 void Lexical::allocateMem() {
 	trimText(expression);
-	
+
 	//Allocate heap memory.
 	int s = atoi(expression);
 	parser.heap.initializeHeap(s);
@@ -160,15 +160,15 @@ void Lexical::registerAllSubroutines(void) {
 							memcpy(tmpName, subroutine.name, len);
 							int lenStructName = strlen(s->name);
 							memcpy(subroutine.name, s->name, lenStructName);
-							memcpy(subroutine.name +lenStructName, ".", 1);
-							memcpy(subroutine.name + lenStructName +1, tmpName, len);
-							subroutine.name[len + lenStructName +1] = '\0';
+							memcpy(subroutine.name + lenStructName, ".", 1);
+							memcpy(subroutine.name + lenStructName + 1, tmpName, len);
+							subroutine.name[len + lenStructName + 1] = '\0';
 							break;
 						}
 					}
 
 					subroutines[subroutinesLen] = subroutine;
-                    ++subroutinesLen;
+					++subroutinesLen;
 
 					i = subroutine.endPos; //sets the program counter to a new value.
 				} else {
@@ -211,7 +211,7 @@ void Lexical::registerAllStructs() {
 					} else if (findStruct[i] == '}') {
 						++indexClose;
 						if (indexClose == indexOpen) {
-							moveIndexTo = i -1;
+							moveIndexTo = i - 1;
 							break;
 						}
 					}
@@ -236,7 +236,7 @@ void Lexical::registerAllStructs() {
 
 					//Get code inside struct.
 					int lenInsideStruct = lenOpenBracket - strlen(ret);
-					char *codeInsideStruct = DBG_NEW char[lenInsideStruct +1];
+					char *codeInsideStruct = DBG_NEW char[lenInsideStruct + 1];
 					memcpy(codeInsideStruct, findOpenBracket, lenInsideStruct);
 					codeInsideStruct[lenInsideStruct] = '\0';
 
@@ -326,47 +326,47 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 				lenInstructions = strlen(buffer);
 				while (position <= lenInstructions) {
 
-				op = global.findOperator(buffer, position);
-				if (op.pos == -1) {
-					len = lenInstructions - position;
-				} else {
-					op.pos += position;
-					len = op.pos - position;
-				}
+					op = global.findOperator(buffer, position);
+					if (op.pos == -1) {
+						len = lenInstructions - position;
+					} else {
+						op.pos += position;
+						len = op.pos - position;
+					}
 
-				len2 = strlen(extendName);
-				memcpy(instruction, extendName, len2);
-				memcpy(instruction + len2, ".", 1);
-				len2 += 1;
+					len2 = strlen(extendName);
+					memcpy(instruction, extendName, len2);
+					memcpy(instruction + len2, ".", 1);
+					len2 += 1;
 
-				memcpy(instruction + len2, buffer + position, len);
-				memcpy(newSearchName, instruction, len + len2);
-				newSearchName[len + len2] = '\0';
+					memcpy(instruction + len2, buffer + position, len);
+					memcpy(newSearchName, instruction, len + len2);
+					newSearchName[len + len2] = '\0';
 
-				Index_s foundIndex = parser.heap.findStructIndex(newSearchName);
+					Index_s foundIndex = parser.heap.findStructIndex(newSearchName);
 
 
-				len1 = strlen(searchName);
-				memcpy(instruction + len2, searchName, len1);
-				len2 += len1;
-				memcpy(instruction + len2, ".", 1);
+					len1 = strlen(searchName);
+					memcpy(instruction + len2, searchName, len1);
+					len2 += len1;
+					memcpy(instruction + len2, ".", 1);
 
-				len2 += 1;
-				memcpy(instruction + len2, buffer + position, len);
-				len += len2;
-				instruction[len] = '\0';
+					len2 += 1;
+					memcpy(instruction + len2, buffer + position, len);
+					len += len2;
+					instruction[len] = '\0';
 
-				if (op.pos == -1) {
-					position = instructionLen;
-				} else {
-					position = op.pos + 1;
-				}
+					if (op.pos == -1) {
+						position = instructionLen;
+					} else {
+						position = op.pos + 1;
+					}
 
-				//Update struct index.					
-				memcpy(foundIndex.name, instruction, len);
-				foundIndex.name[len] = '\0';
+					//Update struct index.					
+					memcpy(foundIndex.name, instruction, len);
+					foundIndex.name[len] = '\0';
 
-				parser.heap.updateStructIndex(foundIndex, newSearchName);
+					parser.heap.updateStructIndex(foundIndex, newSearchName);
 
 				}
 			}
@@ -390,7 +390,7 @@ void Lexical::evalAlias() {
 	char *sep2 = strstr(expression, "=");
 	char *offset = strstr(expression, "offset(");
 	char *identifyType = strstr(expression, "\"");
-	
+
 	char address[ADDRESSSIZE];
 	int lenAddress;
 
@@ -400,7 +400,7 @@ void Lexical::evalAlias() {
 	int lenName = len - strlen(sep1);
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
-	if (global.checkForAlpha(alias.name) == -1) {
+	if (global.checkAliasNameConversion(alias.name) == -1) {
 		//Wrong name conversion.
 		errorManager.ErrorCode(CODE_31);
 	}
@@ -413,9 +413,9 @@ void Lexical::evalAlias() {
 	if (sep2) {
 		lenAddress = strlen(sep1) - strlen(sep2) - 2;
 	} else {
-		lenAddress = len - strlen(sep1) -2;
+		lenAddress = len - strlen(sep1) - 2;
 	}
-	
+
 	memcpy(address, sep1 + 2, lenAddress);
 	address[lenAddress] = '\0';
 
@@ -440,10 +440,10 @@ void Lexical::evalAlias() {
 
 		char tmp[INSTRUCTIONSIZE];
 		//check if it shall point to struct.
-		char *nestedStruct = strstr(sep1 +1, ":");
+		char *nestedStruct = strstr(sep1 + 1, ":");
 		if (nestedStruct) {
 			len = strlen(sep1) - strlen(nestedStruct) - 1;
-			memcpy(tmp, sep1 +1, len);
+			memcpy(tmp, sep1 + 1, len);
 			tmp[len] = '\0';
 			int i = 0;
 			Index_s indexes[STRUCTMEMBERS];
@@ -452,7 +452,7 @@ void Lexical::evalAlias() {
 			for (int i = 0; i != lenIndexes; ++i) {
 				char *name = indexes[i].name;
 				const char *slash = strstr(name, ".");
-				int lenDot = strlen(slash) -1;
+				int lenDot = strlen(slash) - 1;
 
 				memcpy(index.name + lenStructName, ".", 1);
 				memcpy(index.name + lenStructName + 1, slash + 1, lenDot);
@@ -465,7 +465,7 @@ void Lexical::evalAlias() {
 				//create a index for struct head pointer.
 				if (indexes[i].startPos == 0) {
 					global.findSubStrRev(tmp, index.name, ".");
-					lenDot = strlen(tmp) -1;
+					lenDot = strlen(tmp) - 1;
 					memcpy(index.name, tmp, lenDot);
 					index.name[lenDot] = '\0';
 
@@ -478,7 +478,7 @@ void Lexical::evalAlias() {
 			return;
 		}
 
- 		parser.heap.insertStructIndex(index);
+		parser.heap.insertStructIndex(index);
 		return;
 
 	} else if (sep2) {
@@ -494,7 +494,7 @@ void Lexical::evalAlias() {
 
 		} else {
 
-			len = strlen(sep2 +1);
+			len = strlen(sep2 + 1);
 			alias.len = len;
 
 			memcpy(val, sep2 + 1, len);
@@ -502,54 +502,47 @@ void Lexical::evalAlias() {
 
 			memcpy(alias.type, val, len);
 			alias.type[len] = '\0';
-	
-if (global.checkForDigits(val) == -1) {
-	if (global.checkForAlpha(val) == 1) {
-		Index_s index = { NULL, NULL, 0, 0 };
-		//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
-		index.len = 0;
-		index.startPos = atoi(address);
-		memcpy(index.type, val, len);
-		memcpy(index.name, alias.name, lenName);
 
-		parser.heap.insertStructIndex(index);
+			if (global.checkForDigits(val) == -1) {
+				if (global.checkForAlpha(val) == 1) {
+					Index_s index = { NULL, NULL, 0, 0 };
+					//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
+					index.len = 0;
+					index.startPos = atoi(address);
+					memcpy(index.type, val, len);
+					memcpy(index.name, alias.name, lenName);
 
-		//structs only! insert pointer name into path. Find all structs with typename.
-		for (int i = 0; i != structsLen; ++i) {
-			CallableUnit_s *s = &structs[i];
-			if (global.strCmp(s->name, index.type)) {
-				//typedef struct members
-				parser.heap.typedefStructMembers(index.type, index.name);
-				//typedef subroutines.
-				typedefSubroutines(index.type, index.name);
-				typedefSubroutinesMembers(index.name, index.type);
+					parser.heap.insertStructIndex(index);
+
+					//structs only! insert pointer name into path. Find all structs with typename.
+					for (int i = 0; i != structsLen; ++i) {
+						CallableUnit_s *s = &structs[i];
+						if (global.strCmp(s->name, index.type)) {
+							//typedef struct members
+							parser.heap.typedefStructMembers(index.type, index.name);
+							//typedef subroutines.
+							typedefSubroutines(index.type, index.name);
+							typedefSubroutinesMembers(index.name, index.type);
+						}
+					}
+
+				}
+			} else {
+				memcpy(alias.type, "int", 3);
+				alias.type[3] = '\0';
 			}
-		}
-
-	} else {
-		errorManager.ErrorCode(CODE_50);
-	}
-} else {
-	memcpy(alias.type, "int", 3);
-	alias.type[3] = '\0';
-}
 
 		}
 	} else {
-	//if No definition
-	memcpy(alias.type, "", 1);
-	memcpy(val, "", 1);
-	alias.len = 0;
+		//if No definition
+		memcpy(alias.type, "", 1);
+		memcpy(val, "", 1);
+		alias.len = 0;
 	}
 
 	//alias name need to contain at least one letter.
-	if (alias.len < 1) {
+	if (alias.name[0] == '\0') {
 		errorManager.ErrorCode(CODE_31);
-	}
-
-	//address can only contain digits.
-	if (global.checkForDigits(address) == -1) {
-		errorManager.ErrorCode(CODE_35);
 	}
 
 	char *parserVal = val;
@@ -583,6 +576,7 @@ if (global.checkForDigits(val) == -1) {
 
 	//Insert.
 	int i = atoi(address);
+
 	parser.heap.insertAliasAt(i, alias);
 }
 
@@ -593,7 +587,7 @@ void Lexical::evalDo() {
 	int i = index;
 	while (i != fileSize) {
 		if (code[i] == '{') {
-			newLoop.start = i +1;
+			newLoop.start = i + 1;
 			break;
 		}
 	}
@@ -614,14 +608,14 @@ void Lexical::evalWhile() {
 	char *res = parser.regularExpression(expression);
 	if (global.strCmp(res, "true")) {
 		//do while loop.
-		if(loop[loopLen].end == -1 && loop[loopLen].type == 1) {
+		if (loop[loopLen].end == -1 && loop[loopLen].type == 1) {
 			Loop_s *l = &loop[loopLen];
 			l->end = startIndex - 20;
 			l->stop = -1;
 
 			index = l->start;
 			return;
-		} else if(loop[loopLen].type == 1) {
+		} else if (loop[loopLen].type == 1) {
 			index = loop[loopLen].start;
 			return;
 		}
@@ -659,10 +653,10 @@ void Lexical::evalWhile() {
 					}
 				}
 			}
-		} else if (loop[loopLen].type == 2 && loop[loopLen +1].end != -1) {
+		} else if (loop[loopLen].type == 2 && loop[loopLen + 1].end != -1) {
 			++loopLen;
 		}
-		 //TODO stop är 1 behöver nollställas!
+		//TODO stop är 1 behöver nollställas!
 	} else if (global.strCmp(res, "false")) {
 		if (loopLen == 1) {
 			loop[loopLen].stop = 1; //stopping outer loop and continue to read.
@@ -691,7 +685,7 @@ void Lexical::evalCall(int len) {
 			break;
 		}
 	}
-	
+
 	if (!found) {
 		//Subroutine name does not exist, do CRASH!!!
 	}
@@ -729,7 +723,7 @@ void Lexical::evalPrint() {
 	Parts_s parts[NUMBEROFPRINTARGUMENTS];
 	int len = 0;
 	parser.parsePrint(expression, parts, len);
-	
+
 	for (int i = 0; i != len; ++i) {
 		if (parts[i].type == 2) {
 			char *and = strstr(parts[i].part, "&");
@@ -825,7 +819,7 @@ char* Lexical::registerAllIncludes() {
 
 				fileSize = lenCode;
 
-				delete [] codeAfter;
+				delete[] codeAfter;
 				delete[] codeBefore;
 
 				//register file indexes.
@@ -896,12 +890,12 @@ void Lexical::evalExpressionWithoutKeyword() {
 	char tmpLhs[INSTRUCTIONSIZE];
 	char tmpRhs[INSTRUCTIONSIZE];
 	char tmpStr[INSTRUCTIONSIZE];
-	
+
 	char *eq = strstr(expression, "=");
 	if (eq) {
 		char *res = parser.regularExpression(expression);
 
-		/*int len0 = 0; 
+		/*int len0 = 0;
 		int len1 = 0;
 		len0 = strlen(eq) -1;
 		memcpy(tmpRhs, eq +1, len0);
@@ -956,7 +950,7 @@ void Lexical::splitInstruction(char *instruction) {
 		expression = tmp;
 		allocateMem();
 		isKeywordMissing = 0;
-	} 
+	}
 
 	if (sysCreateStack) {
 		keyword = ":sysCreateStack";
@@ -970,14 +964,14 @@ void Lexical::splitInstruction(char *instruction) {
 
 	if (alias) {
 		keyword = ":alias";
-		len = strlen(alias) -6;
-		memcpy(tmp, alias +6, len);
+		len = strlen(alias) - 6;
+		memcpy(tmp, alias + 6, len);
 		tmp[len] = '\0';
 		expression = tmp;
 		evalAlias();
 		isKeywordMissing = 0;
 		return;
-	} 
+	}
 
 	if (DO) {
 		evalDo();
@@ -994,7 +988,7 @@ void Lexical::splitInstruction(char *instruction) {
 		isKeywordMissing = 0;
 		return;
 	}
-	 
+
 	if (IF) {
 		keyword = ":if";
 		len = strlen(IF) - 2;
@@ -1086,16 +1080,16 @@ void Lexical::getInstructions() {
 	char instruction[INSTRUCTIONSIZE];
 	resetIndex();
 
-	while (code[index] != '\0') {	
+	while (code[index] != '\0') {
 		//newline
 		if (code[index] == '\n') {
 			errorManager.AddLine(index);
 		}
 
 		//Comments
-		if (code[index] == '/' && code[index +1] == '*') {
-				comment = 1;
-		} else if (code[index] == '*' && code[index +1] == '/') {
+		if (code[index] == '/' && code[index + 1] == '*') {
+			comment = 1;
+		} else if (code[index] == '*' && code[index + 1] == '/') {
 			comment = 0;
 			startIndex = index + 2;
 		}
@@ -1117,7 +1111,7 @@ void Lexical::getInstructions() {
 		}
 
 		if (index == currentSubroutine.endPos) {
-			for (int i = 0; i != subroutinesLen; ++i) { 
+			for (int i = 0; i != subroutinesLen; ++i) {
 				currentSubroutine = subroutines[i];
 				if (global.strCmp(currentSubroutine.name, calls[callsLen].name)) {
 					index = calls[callsLen].pos;
@@ -1139,7 +1133,7 @@ void Lexical::getInstructions() {
 			if (comment == 0 && ignore == 0) {
 				endIndex = index;
 				//TODO Rewrite and Remove this hax (if (endIndex +1 > startIndex) )!!!
-				if (endIndex +1 >= startIndex) {
+				if (endIndex + 1 >= startIndex) {
 					instructionLen = endIndex - startIndex;
 					instructionLen = abs(instructionLen);
 					memcpy(instruction, code + startIndex, instructionLen);

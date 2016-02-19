@@ -19,7 +19,7 @@ void Parser::stackPop() {
 	heap.pop();
 }
 
-int Parser::stackPushAt(char *cStr) {
+void Parser::stackPushAt(char *cStr) {
 	int len = strlen(cStr) - 6;
 	memcpy(tmpStr, cStr + 6, len);
 	tmpStr[len] = '\0';
@@ -36,7 +36,7 @@ int Parser::stackPushAt(char *cStr) {
 
 		char *resLhs = regularExpression(tmpLhs);
 		int index;
-		if (global.checkForDigits(resLhs) == 1 && identifyType == NULL) {
+		if (global.checkForDigits(resLhs) == 1) {
 			index = atoi(resLhs);
 		}
 
@@ -62,15 +62,14 @@ int Parser::stackPushAt(char *cStr) {
 		memcpy(alias.value, resRhs, alias.len);
 		alias.value[alias.len] = '\0';
 
-		success = heap.pushAt(index, alias);
+		heap.pushAt(index, alias);
 
 	} else {
 		//Only one parameter, DO CRASH!!
 	}
-	return success;
 }
 
-int Parser::stackPushTop(char *cStr) {
+void Parser::stackPushTop(char *cStr) {
 	int len = strlen(cStr) - 7;
 	memcpy(tmpStr, cStr + 7, len);
 	tmpStr[len] = '\0';
@@ -97,7 +96,7 @@ int Parser::stackPushTop(char *cStr) {
 	memcpy(alias.value, res, alias.len);
 	alias.value[alias.len] = '\0';
 
-	return heap.pushTop(alias);
+	heap.pushTop(alias);
 }
 
 Alias_s Parser::stackGetAt(char *cStr) {
@@ -417,9 +416,10 @@ char* Parser::calculateResult(char *exp) {
 			} else {
 				//Wrong syntax do CRASH!
 			}
-		} else {
-			//Cannot compare digits and strings.
-		}
+	} //else if (global.strCmp(aliasLhs.type, "int") && global.strCmp(aliasRhs.type, "string") || global.strCmp(aliasLhs.type, "string") && global.strCmp(aliasRhs.type, "string")) {
+	//		//Cannot compare digits and strings.
+	//		errorManager.ErrorCode(CODE_100);
+	//	}
 
 		return tmpStr;
 }

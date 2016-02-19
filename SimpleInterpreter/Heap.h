@@ -16,7 +16,7 @@ class Heap : public IStack {
 
 		//Heap
 		void initializeHeap(size_t heapSize);
-		int insertAliasAt(int index, Alias_s alias);
+		void insertAliasAt(int index, Alias_s alias);
 		Alias_s getAlias(const char *name);
 		Alias_s getAlias(const int index);
 		int getAddress(char *name);
@@ -24,12 +24,13 @@ class Heap : public IStack {
 
 		//Stack
 		void createStack(size_t stackSize); 
-		int pushTop(Alias_s alias);
-		int pushAt(int index, Alias_s alias);
+		void pushTop(Alias_s alias);
+		void pushAt(int index, Alias_s alias);
 		Alias_s getTop();
 		Alias_s getAt(const int index);
 		void popTop();
 		void pop();
+		bool isStackOverflow(int index, int len);
 
 		//Index
 		//Below functions is specialcases for content inside struct

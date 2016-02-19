@@ -30,8 +30,8 @@ class Parser {
 		void createStack(size_t stackSize);
 		void stackPop();
 		void stackPopTop();
-		int stackPushAt(char *cStr);
-		int stackPushTop(char *cStr);
+		void stackPushAt(char *cStr);
+		void stackPushTop(char *cStr);
 		Alias_s stackGetAt(char *cStr);
 		Alias_s stackGetTop();
 

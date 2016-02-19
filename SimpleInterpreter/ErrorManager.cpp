@@ -71,22 +71,22 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_11", "Overflow: Stackoverflow, cannot write to memory outside the Stack.");
 			break;
 		case CODE_12:
-			PrintMessage("CODE_12", "No code inserted");
+			PrintMessage("CODE_12", "Initialization Stack: Stack cannot be bigger then the Heap.");
 			break;
 		case CODE_13:
-			PrintMessage("CODE_13", "No code inserted");
+			PrintMessage("CODE_13", "Initialization Stack: You cannot create a Stack that is smaller then one byte.");
 			break;
 		case CODE_14:
-			PrintMessage("CODE_14", "No code inserted");
+			PrintMessage("CODE_14", "Initialization Heap: Heap need to be minimum one byte");
 			break;
 		case CODE_15:
-			PrintMessage("CODE_15", "No code inserted");
+			PrintMessage("CODE_15", "Heap: You can only initilize Heap once.");
 			break;
 		case CODE_16:
-			PrintMessage("CODE_16", "No code inserted");
+			PrintMessage("CODE_16", "Stack: You can only create one Stack.");
 			break;
 		case CODE_20:
-			PrintMessage("CODE_20", "Stack: You cannot create alias on Stack.");
+			PrintMessage("CODE_20", "Alias and Stack: You cannot create alias on Stack.");
 			break;
 		case CODE_21:
 			PrintMessage("CODE_21", "No code inserted");
@@ -252,6 +252,27 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			break;
 		case 91:
 			PrintMessage("CODE_91", "Can only include a maximum of 100 files in the same project.");
+			break;
+		case CODE_100:
+			PrintMessage("CODE_100", "Compare: Cannot compare digits and string");
+			break;
+		case CODE_101:
+			PrintMessage("CODE_73", "No code inserted");
+			break;
+		case CODE_102:
+			PrintMessage("CODE_73", "No code inserted");
+			break;
+		case CODE_103:
+			PrintMessage("CODE_73", "No code inserted");
+			break;
+		case CODE_104:
+			PrintMessage("CODE_73", "No code inserted");
+			break;
+		case CODE_105:
+			PrintMessage("CODE_73", "No code inserted");
+			break;
+		case CODE_106:
+			PrintMessage("CODE_73", "No code inserted");
 			break;
 	}
 }

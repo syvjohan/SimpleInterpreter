@@ -22,6 +22,14 @@ Heap::~Heap() {
 }
 
 void Heap::setHeapSize(size_t size) {
+	if (heapIndex) {
+		errorManager.ErrorCode(CODE_15);
+	}
+
+	if (size <= 0) {
+		errorManager.ErrorCode(CODE_14);
+	}
+
 	heapIndex = DBG_NEW Index_s[size];
 	heapContainer = DBG_NEW char[size];
 	heapSize = size;
@@ -29,7 +37,7 @@ void Heap::setHeapSize(size_t size) {
 	expandHeapIndexStruct();
 }
 
-int Heap::insertAliasAt(int index, Alias_s alias) {
+void Heap::insertAliasAt(int index, Alias_s alias) {
 	// Heap overflow
 	if ((alias.len + index) <= heapSize) {
 		int len = 0;
@@ -73,12 +81,10 @@ int Heap::insertAliasAt(int index, Alias_s alias) {
 			memcpy((heapIndex + index)->name, alias.name, len);
 			heapIndex[index].name[len] = '\0';
 		}
-
-		return 1;
 	} else {
 		//Trying to write outside allocated memory DO CRASH!!!
+		errorManager.ErrorCode(CODE_10);
 	}
-	return -1;
 }
 
 //Specialcases for content inside struct.
@@ -443,49 +449,64 @@ void Heap::initializeHeap(size_t size) {
 }
 
 void Heap::createStack(size_t size) {
+	if (GetStackSize() > 0) {
+		errorManager.ErrorCode(CODE_16);
+	}
+
+	if (size <= 0) {
+		errorManager.ErrorCode(CODE_13);
+	}
+
 	SetStackSize(size);
 	SetStackLen(0);
 
-	if (GetStackSize() < heapSize) {
-		//Stack cannot be bigger then heap, DO CRASH!!
+	if (GetStackSize() > heapSize) {
+		//Stack cannot be bigger then heap.
+		errorManager.ErrorCode(CODE_12);
 	}
 	heapStartPos = heapSize - GetStackSize();
 }
 
-int Heap::pushTop(Alias_s alias) {
-	int res = -1;
-	if (GetStackLen() > 0) {
-		res = insertAliasAt(GetStackLen() + 1, alias);
-	} else {
-		res = insertAliasAt(GetStackLen(), alias);
+void Heap::pushTop(Alias_s alias) {
+	if (!isStackOverflow(GetStackLen(), alias.len)) {
+		if (GetStackLen() > 0) {
+			insertAliasAt(GetStackLen() + 1, alias);
+		} else {
+			insertAliasAt(GetStackLen(), alias);
+		}
+		SetStackLen(GetStackLen() + alias.len);
 	}
-	SetStackLen(GetStackLen() + alias.len);
-
-	return res;
 }
 
-int Heap::pushAt(int index, Alias_s alias) {
-	return insertAliasAt(index, alias);
+void Heap::pushAt(int index, Alias_s alias) {
+	if (!isStackOverflow(index, alias.len)) {
+		insertAliasAt(index, alias);
+	}
 }
 
 Alias_s Heap::getTop() {
 	int len = GetStackLen();
 	if (len > 0) { len -= 1; }
 	Alias_s alias = { NULL, NULL, NULL, 0 };
-	for (int i = len; i >= 0; --i) {
-		if (heapIndex[i].startPos != len) {
-			--len;
-		} else {
-			alias = getAlias(i);
-			break;
+	if (!isStackOverflow(len, 0)) {
+		for (int i = len; i >= 0; --i) {
+			if (heapIndex[i].startPos != len) {
+				--len;
+			} else {
+				alias = getAlias(i);
+				break;
+			}
 		}
 	}
-
 	return alias;
 }
 
 Alias_s Heap::getAt(int index) {
-	return getAlias(index);
+	Alias_s alias = { NULL, NULL, NULL, 0 };
+	if (!isStackOverflow(index, 0)) {
+		alias = getAlias(index);
+	}
+	return alias;
 }
 
 void Heap::pop() {
@@ -515,4 +536,12 @@ void Heap::popTop() {
 			break;
 		}
 	}
+}
+
+bool Heap::isStackOverflow(int index, int len) {
+	if (index + len >= (GetStackSize() +2) || index < 0) {
+		errorManager.ErrorCode(CODE_11);
+		return true;
+	}
+	return false;
 }

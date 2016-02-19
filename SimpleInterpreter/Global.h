@@ -47,6 +47,7 @@ class Global {
 		bool findSubStrRev(char *dest, const char* src, const char *find);
 		int checkForAlpha(const char *cStr);
 		int checkForDigits(const char *cStr);
+		int checkAliasNameConversion(const char *cStr);
 		int intLength(int x);
 		void replaceDotsWithSlashes(char *cStr);
 		bool findAnd(char *cStr);

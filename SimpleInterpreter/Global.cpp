@@ -92,6 +92,26 @@ int Global::checkForDigits(const char *cStr) {
 	return 1;
 }
 
+int Global::checkAliasNameConversion(const char *cStr) {
+	if (!((cStr[0] >= 'a' && cStr[0] <= 'z') || (cStr[0] >= 'A' && cStr[0] <= 'Z'))) {
+		return -1;
+	}
+
+	int len = strlen(cStr);
+	if (len >= 2) {
+		int i = 1;
+		while (cStr[i] != '\0') {
+			if (!((cStr[i] >= 'a' && cStr[i] <= 'z') || (cStr[i] >= 'A' && cStr[i] <= 'Z') || (cStr[i] >= '0' && cStr[i] <= '9'))) {
+				return -1;
+			}
+			++i;
+		}
+		return 1;
+	}
+
+	return -1;
+}
+
 int Global::intLength(int x) {
 	if (x == 0) {
 		return 1;
