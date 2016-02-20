@@ -1,9 +1,39 @@
-:sysMemAllocHeap 64;
+/*CODE_40*/
+:struct {
+	:alias var : offset(0);
+};
 
-:include  (        "C:\Programmering\SimpleInterpreter\syntax\tmp2.txt");
-:include("          C:\Programmering\SimpleInterpreter\syntax\tmp3.txt");
+/*CODE_41*/
+/*:struct testStruct 
+	:alias var : offset(0);
+};*/
 
-:alias str : #32 = "hej";
+/*CODE_42*/
+/*:struct testStruct {
+	:alias var : offset(0);*/
 
-:alias number : #35 = 10 + 5;
-:print(number);
+/*CODE_43*/
+/*:struct testStruct
+	:alias var : offset(0);*/
+
+
+/*CODE_50*/
+/*:subroutine {
+	:alias var : offset(0);
+};*/
+
+/*CODE_51*/
+/*:subroutine testSub 
+	:alias var : offset(0);
+};*/
+
+/*CODE_52*/
+/*:subroutine testSub {
+	:alias var : offset(0);*/
+
+/*CODE_53*/
+/*:subroutine testSub
+	:alias var : offset(0);*/
+
+/*CODE_90*/
+/*:include("C:\Programmering\SimpleInterpreter\syntax\wrongPath.q");*/

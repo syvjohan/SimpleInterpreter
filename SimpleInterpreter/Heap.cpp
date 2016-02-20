@@ -38,6 +38,14 @@ void Heap::setHeapSize(size_t size) {
 }
 
 void Heap::insertAliasAt(int index, Alias_s alias) {
+	if (alias.len > 0 && index >= 0 && index < GetStackSize()) {
+		errorManager.ErrorCode(CODE_30);
+	} else {
+		insertAt(index, alias);
+	}
+}
+
+void Heap::insertAt(int index, Alias_s alias) {
 	// Heap overflow
 	if ((alias.len + index) <= heapSize) {
 		int len = 0;
@@ -54,24 +62,13 @@ void Heap::insertAliasAt(int index, Alias_s alias) {
 		//Insert value.
 		if (len > 0) {
 			if (global.strCmp((char *)alias.type, "string")) {
-
-				if (index + GetStackLen() + len > heapStartPos) {
-					//StackOverflow. DO CRASH!!
-				} else if (index + len > heapSize) {
-					//HeapOverflow. DO CRASH!!
-				}
-
 				memcpy(heapContainer + index, alias.value, len);
 
 			} else if (global.strCmp(alias.type, "int")) {
-				int digits = atoi(alias.value);
-				if (GetStackLen() > -1) {
-					if (index + GetStackLen() + sizeof(digits) > heapStartPos) {
-						//StackOverfloaw. DO CRASH!!
-					} else if (index + sizeof(digits) > heapSize) {
-						//HeapOverflow. DO CRASH!!
-					}
+				if (strlen(alias.value) > 9) {
+					errorManager.ErrorCode(CODE_3511);
 				}
+				int digits = atoi(alias.value);
 				memcpy(heapContainer + index, (char *)&digits, sizeof(int));
 			}
 		}
@@ -82,7 +79,7 @@ void Heap::insertAliasAt(int index, Alias_s alias) {
 			heapIndex[index].name[len] = '\0';
 		}
 	} else {
-		//Trying to write outside allocated memory DO CRASH!!!
+		//Trying to write outside allocated memory.
 		errorManager.ErrorCode(CODE_10);
 	}
 }
@@ -470,9 +467,9 @@ void Heap::createStack(size_t size) {
 void Heap::pushTop(Alias_s alias) {
 	if (!isStackOverflow(GetStackLen(), alias.len)) {
 		if (GetStackLen() > 0) {
-			insertAliasAt(GetStackLen() + 1, alias);
+			insertAt(GetStackLen() + 1, alias);
 		} else {
-			insertAliasAt(GetStackLen(), alias);
+			insertAt(GetStackLen(), alias);
 		}
 		SetStackLen(GetStackLen() + alias.len);
 	}
@@ -480,7 +477,7 @@ void Heap::pushTop(Alias_s alias) {
 
 void Heap::pushAt(int index, Alias_s alias) {
 	if (!isStackOverflow(index, alias.len)) {
-		insertAliasAt(index, alias);
+		insertAt(index, alias);
 	}
 }
 
@@ -521,7 +518,7 @@ void Heap::pop() {
 				alias = getAlias(i);
 				alias.len -= 1;
 				alias.value[alias.len] = '\0';
-				insertAliasAt(i, alias);
+				insertAt(i, alias);
 				break;
 			}
 		}
@@ -541,7 +538,6 @@ void Heap::popTop() {
 bool Heap::isStackOverflow(int index, int len) {
 	if (index + len >= (GetStackSize() +2) || index < 0) {
 		errorManager.ErrorCode(CODE_11);
-		return true;
 	}
 	return false;
 }

@@ -32,9 +32,8 @@ char* Lexical::readFile(const char *path) {
 	file = fopen(path, "r");
 
 	if (file == NULL) {
+		printf("Error CODE_90: Wrong file path,\n");
 		perror(path);
-		printf("Error: %d \n", errno);
-		errorManager.ErrorCode(CODE_90);
 	}
 
 	//get size of file.
@@ -131,13 +130,33 @@ void Lexical::registerAllSubroutines(void) {
 		char *findSub = strstr(code + i, ":subroutine");
 		if (findSub) {
 			char *findOpenBracket = strstr(findSub, "{");
+			char *findCloseBracket = strstr(findSub, "}");
+			//Open bracket missing.
+			if (findCloseBracket) {
+				if (findOpenBracket) {
+					if (findOpenBracket > findCloseBracket) {
+						errorManager.ErrorCode(CODE_51);
+					}
+				} else {
+					errorManager.ErrorCode(CODE_51);
+				}
+			} else {
+				errorManager.ErrorCode(CODE_53);
+			}
+
 			if (findOpenBracket) {
 				int len = strlen(findSub) - strlen(findOpenBracket) - 11;
 				char name[NAMESIZE];
+				if (len > NAMESIZE) {
+					errorManager.ErrorCode(CODE_54);
+				}
 				memcpy(name, findSub + 11, len);
 				name[len] = '\0';
 				trimText(name);
 				trimWhitespaces(name);
+				if (name[0] == '\0') {
+					errorManager.ErrorCode(CODE_50);
+				}
 
 				char *ret = strstr(findSub, "};");
 				if (ret) {
@@ -192,19 +211,39 @@ void Lexical::registerAllStructs() {
 		char *findStruct = strstr(code + i, ":struct");
 		if (findStruct) {
 			char *findOpenBracket = strstr(findStruct, "{");
+			char *findCloseBracket = strstr(findStruct, "};");
+			//Open bracket missing.
+			if (findCloseBracket) {
+				if (findOpenBracket) {
+					if (findOpenBracket > findCloseBracket) {
+						errorManager.ErrorCode(CODE_41);
+					}
+				} else {
+					errorManager.ErrorCode(CODE_41);
+				}
+			} else {
+				errorManager.ErrorCode(CODE_43);
+			}
+
 			if (findOpenBracket) {
 				int lenOpenBracket = strlen(findOpenBracket);
 				int lenName = strlen(findStruct) - lenOpenBracket - 7;
 				char name[NAMESIZE];
+				if (lenName > NAMESIZE) {
+					errorManager.ErrorCode(CODE_44);
+				}
 				memcpy(name, findStruct + 7, lenName);
 				name[lenName] = '\0';
 				trimText(name);
 				trimWhitespaces(name);
+				if (name[0] == '\0') {
+					errorManager.ErrorCode(CODE_40);
+				}
 
 				//count open brackets for ignore.
 				int indexOpen = 0;
 				int indexClose = 0;
-				int moveIndexTo;
+				int moveIndexTo = 0;
 				for (int i = 0; i != fileSize; ++i) {
 					if (findStruct[i] == '{') {
 						++indexOpen;
@@ -219,6 +258,14 @@ void Lexical::registerAllStructs() {
 
 				char *ret = strstr(findStruct + moveIndexTo, "};");
 				if (ret) {
+					//check if there has been a new open bracket before close bracket was found.
+					char *wrongOpenBracket = strstr(findStruct + moveIndexTo, "{");
+					if (wrongOpenBracket) {
+						if (ret > wrongOpenBracket) {
+							errorManager.ErrorCode(CODE_42);
+						}
+					}
+
 					CallableUnit_s newStruct;
 					newStruct.endPos = ret - code;
 					newStruct.startPos = findOpenBracket - code;
@@ -388,6 +435,7 @@ void Lexical::evalAlias() {
 	int len = strlen(expression);
 	char *sep1 = strstr(expression, ":");
 	char *sep2 = strstr(expression, "=");
+	char *sep3 = strstr(expression, "#");
 	char *offset = strstr(expression, "offset(");
 	char *identifyType = strstr(expression, "\"");
 
@@ -397,6 +445,11 @@ void Lexical::evalAlias() {
 	char val[VALUESIZE];
 	Alias_s alias;
 
+	if (!sep1) {
+		//Syntax error.
+		errorManager.ErrorCode(CODE_34);
+	}
+
 	int lenName = len - strlen(sep1);
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
@@ -405,15 +458,10 @@ void Lexical::evalAlias() {
 		errorManager.ErrorCode(CODE_31);
 	}
 
-	if (!sep1) {
-		//Syntax error.
-		errorManager.ErrorCode(CODE_34);
-	}
-
 	if (sep2) {
 		lenAddress = strlen(sep1) - strlen(sep2) - 2;
 	} else {
-		lenAddress = len - strlen(sep1) - 2;
+		lenAddress = len - strlen(sep1) - 1;//-2
 	}
 
 	memcpy(address, sep1 + 2, lenAddress);
@@ -482,6 +530,9 @@ void Lexical::evalAlias() {
 		return;
 
 	} else if (sep2) {
+		if (!sep3) {
+			errorManager.ErrorCode(CODE_35);
+		}
 		//With definition.
 		//check datatype and get val.
 		if (identifyType) {
@@ -515,6 +566,7 @@ void Lexical::evalAlias() {
 					parser.heap.insertStructIndex(index);
 
 					//structs only! insert pointer name into path. Find all structs with typename.
+					bool isHit = false;
 					for (int i = 0; i != structsLen; ++i) {
 						CallableUnit_s *s = &structs[i];
 						if (global.strCmp(s->name, index.type)) {
@@ -523,21 +575,27 @@ void Lexical::evalAlias() {
 							//typedef subroutines.
 							typedefSubroutines(index.type, index.name);
 							typedefSubroutinesMembers(index.name, index.type);
+							isHit = true;
 						}
 					}
-
+					if (!isHit) {
+						errorManager.ErrorCode(CODE_3510);
+					}
 				}
 			} else {
 				memcpy(alias.type, "int", 3);
 				alias.type[3] = '\0';
 			}
-
 		}
 	} else {
 		//if No definition
 		memcpy(alias.type, "", 1);
 		memcpy(val, "", 1);
 		alias.len = 0;
+
+		if (!sep3 && !offset && !isInitializingStructs) {
+			errorManager.ErrorCode(CODE_35);
+		}
 	}
 
 	//alias name need to contain at least one letter.
@@ -566,6 +624,8 @@ void Lexical::evalAlias() {
 				//Negative number.
 				memcpy(alias.type, "int", 3);
 				alias.type[3] = '\0';
+			} else {
+				errorManager.ErrorCode(CODE_3510);
 			}
 		}
 	} else {
@@ -575,6 +635,10 @@ void Lexical::evalAlias() {
 	}
 
 	//Insert.
+	if (!offset && !isInitializingStructs && global.checkForDigits(address) == -1) {
+		errorManager.ErrorCode(CODE_35);
+	}
+
 	int i = atoi(address);
 
 	parser.heap.insertAliasAt(i, alias);
@@ -825,7 +889,6 @@ char* Lexical::registerAllIncludes() {
 				//register file indexes.
 				registerFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
 			}
-
 		} else {
 			errorManager.SetRegisteredFiles(files, lenFiles);
 			return code;
@@ -837,20 +900,20 @@ char* Lexical::registerAllIncludes() {
 void Lexical::registerFile(int start, int end, char *name) {
 	if (lenFiles >= MAXINCLUDEDFILES) {
 		errorManager.ErrorCode(CODE_91);
+	} else {
+		File_s file;
+		file.startPos = start + 1;
+		file.endPos = end;
+		int lenName = strlen(name);
+		memcpy(file.name, name, lenName);
+		file.name[lenName] = '\0';
+
+		file.numberOfLines = CalculateLinenumbersInFile(file.startPos, file.endPos);
+
+		files[lenFiles] = file;
+
+		++lenFiles;
 	}
-
-	File_s file;
-	file.startPos = start + 1;
-	file.endPos = end;
-	int lenName = strlen(name);
-	memcpy(file.name, name, lenName);
-	file.name[lenName] = '\0';
-
-	file.numberOfLines = CalculateLinenumbersInFile(file.startPos, file.endPos);
-
-	files[lenFiles] = file;
-
-	++lenFiles;
 }
 
 int Lexical::CalculateLinenumbersInFile(int start, int end) {

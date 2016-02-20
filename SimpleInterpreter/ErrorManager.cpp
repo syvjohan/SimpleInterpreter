@@ -86,7 +86,7 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_16", "Stack: You can only create one Stack.");
 			break;
 		case CODE_20:
-			PrintMessage("CODE_20", "Alias and Stack: You cannot create alias on Stack.");
+			PrintMessage("CODE_20", "No code inserted");
 			break;
 		case CODE_21:
 			PrintMessage("CODE_21", "No code inserted");
@@ -107,16 +107,16 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_26", "No code inserted");
 			break;
 		case CODE_30:
-			PrintMessage("CODE_30", "Alias: Can only be created on the Heap.");
+			PrintMessage("CODE_30", "Alias: You cannot create alias on Stack.");
 			break;
 		case CODE_31:
-			PrintMessage("CODE_31", "Alias: Name need to contain least one character and start with a letter.");
+			PrintMessage("CODE_31", "Alias: Name need to contain least two character and start with a letter, symbols are not allowed.");
 			break;
 		case CODE_32:
 			PrintMessage("CODE_32", "Alias: Cannot find name on Heap.");
 			break;
 		case CODE_33:
-			PrintMessage("CODE_33", "Alias: Cannot verify datatype.");
+			PrintMessage("CODE_33", "No code inserted");
 			break;
 		case CODE_34:
 			PrintMessage("CODE_34", "Alias: Missing ':'.");
@@ -128,13 +128,13 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_3510", "Alias: Datatype int, Int cannot contain letters.");
 			break;
 		case CODE_3511:
-			PrintMessage("CODE_3511", "Alias: Datatype int, Int need to be bigger than INT_MIN or less then INT_MAX.");
+			PrintMessage("CODE_3511", "Alias: Datatype int, Int cant be bigger than INT_MAX.");
 			break;
 		case CODE_3512:
 			PrintMessage("CODE_3512", "No code inserted");
 			break;
 		case CODE_3520:
-			PrintMessage("CODE_3520", "Alias: Datatype string, Missing \" ");
+			PrintMessage("CODE_3520", "No code inserted");
 			break;
 		case CODE_3521:
 			PrintMessage("CODE_3521", "No code inserted");
@@ -152,10 +152,10 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_42", "Struct: Missing close bracket.");
 			break;
 		case CODE_43:
-			PrintMessage("CODE_43", "No code inserted");
+			PrintMessage("CODE_43", "Struct: Missing open and close brackets.");
 			break;
 		case CODE_44:
-			PrintMessage("CODE_44", "No code inserted");
+			PrintMessage("CODE_44", "Struct: struct name length is maximum 50 characters, or there is no open bracket.");
 			break;
 		case CODE_45:
 			PrintMessage("CODE_45", "No code inserted");
@@ -173,22 +173,22 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_52", "Subroutine: Missing close bracket.");
 			break;
 		case CODE_53:
-			PrintMessage("CODE_53", "No code inserted");
+			PrintMessage("CODE_53", "Subroutine: Missing open and close brackets.");
 			break;
 		case CODE_54:
-			PrintMessage("CODE_54", "No code inserted");
+			PrintMessage("CODE_54", "Subroutine: struct name length is maximum 50 characters, or there is no open bracket.");
 			break;
 		case CODE_55:
 			PrintMessage("CODE_55", "No code inserted");
 			break;
 		case CODE_56:
-			PrintMessage("CODE_56", "Loop and statement: Open bracket is missing.");
+			PrintMessage("CODE_56", "No code inserted");
 			break;
 		case CODE_60:
-			PrintMessage("CODE_60", "Loop and statement: Missing compare operator");
+			PrintMessage("CODE_60", "No code inserted");
 			break;
 		case CODE_61:
-			PrintMessage("CODE_61", "Loop and statement: Wrong syntax cannot compare address with value.");
+			PrintMessage("CODE_61", "No code inserted");
 			break;
 		case CODE_62:
 			PrintMessage("CODE_62", "No code inserted");

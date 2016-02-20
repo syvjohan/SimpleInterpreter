@@ -46,6 +46,7 @@ class Heap : public IStack {
 
 	private:
 		void setHeapSize(size_t size);
+		void insertAt(int index, Alias_s alias);
 
 		char *heapContainer;
 		Index_s *heapIndex;

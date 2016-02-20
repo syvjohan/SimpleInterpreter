@@ -10,30 +10,30 @@
 :print( &number ); /*Skriver ut addresen 35*/
 
 :stk.pushTop(10);
-:alias anotherNumber : #39 = :stk.getTop() + 5;
-:if(anotherNumber == 15) { :print("Success"); } :else { :print("ERRROR"); }
+:alias n1 : #39 = :stk.getTop() + 5;
+:if(n1 == 15) { :print("Success"); } :else { :print("ERRROR"); }
 :print("______________________________________________");
 
 
-:if(#32 +1 == "e") { :print("Success"); } :else { :print("ERRROR"); }
-:if(&str +1 == "e") { :print("Success"); } :else { :print("ERRROR"); }
+:if(#32 +1 == "e") { :print("Success"); } :else { :print("ERROR"); }
+:if(&str +1 == "e") { :print("Success"); } :else { :print("ERROR"); }
 
 /* < > Jämför längderna på textsträngarna eller storleken på heltal*/
-:if("anotherNumber" > "number") { :print("Success"); } :else { :print("ERROR"); }
+:if("n1" < "number") { :print("Success"); } :else { :print("ERROR"); }
 
-:if("100" < "anotherNumber") { :print("Success"); } :else { :print("ERROR"); }
+:if("100" > "n1") { :print("Success"); } :else { :print("ERROR"); }
 
-:if(anotherNumber < number) { :print("true"); } :else { :print("Success"); }
+:if(n1 < number) { :print("true"); } :else { :print("Success"); }
 
-:if(100 > anotherNumber) { :print("true"); } :else { :print("Success"); 
+:if(100 > n1) { :print("true"); } :else { :print("Success"); 
 
-:if(anotherNumber == number) { :print("Success"); } :else { :print("ERRROR"); } 
+:if(n1 == number) { :print("Success"); } :else { :print("ERRROR"); } 
 
-:if(anotherNumber != number) { :print("true"); } :else { :print("Success"); }
+:if(n1 != number) { :print("true"); } :else { :print("Success"); }
 
 :if("number" == "number") { :print("Success"); } :else { :print("ERRROR"); }
 
-:if("anotherNumber" != "number") { :print("Success"); } :else {	:print("ERRROR"); }
+:if("n1" != "number") { :print("Success"); } :else {	:print("ERRROR"); }
 
 :if("nej" == "hej") {
 	:print("ERROR");

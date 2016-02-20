@@ -283,3 +283,17 @@ bool Global::isTextString(char *cStr) {
 	}
 	return false;
 }
+
+int Global::findComment(char *cStr) {
+	int len = strlen(cStr);
+	for (int i = 0; i < len; ++i) {
+		if (cStr[i] == '/' && cStr[i + 1] == '*') {
+			for (int k = i; k < len; ++k) {
+				if (cStr[k] == '*' && cStr[k + 1] == '/') {
+					return k;
+				}
+			}
+		}
+	}
+	return 0;
+}

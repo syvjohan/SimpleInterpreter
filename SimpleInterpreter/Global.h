@@ -48,10 +48,12 @@ class Global {
 		int checkForAlpha(const char *cStr);
 		int checkForDigits(const char *cStr);
 		int checkAliasNameConversion(const char *cStr);
+		int isOnlyDigits(const char *cStr);
 		int intLength(int x);
 		void replaceDotsWithSlashes(char *cStr);
 		bool findAnd(char *cStr);
 		bool isNegativeNumber(const char *cStr);
 		Operator_s findOperator(const char *cStr, const int startPos);
 		bool isTextString(char *cStr);
+		int findComment(char *cStr);
 };

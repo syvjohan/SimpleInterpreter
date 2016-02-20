@@ -231,15 +231,9 @@ char* Parser::calculateResult(char *exp) {
 	Alias_s aliasLhs = parseKeywords(lhs);
 	Alias_s aliasRhs = parseKeywords(rhs);
 	
-	if (op0.op[0] == '=') {
+	if (op0.op[0] == '=' && op0.op[1] != '=') {
 		setDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
 		setLength(&aliasLhs, aliasRhs); //Change type in parameter 1.
-	}
-
-	if (global.strCmp(aliasLhs.value, "")) {
-		//alias need to be set to an default value, DO CRASH!!!
-	} else if (global.strCmp(aliasRhs.value, "")) {
-		//alias need to be set to an default value, DO CRASH!!!
 	}
 
 	//do calculation
@@ -295,6 +289,10 @@ char* Parser::calculateResult(char *exp) {
 					tmpStr[5] = '\0';
 				}
 		} else if (global.strCmp(op0.op, "=")) {
+			if (global.checkForAlpha(aliasRhs.value) == -1 && global.checkForDigits(aliasRhs.value) == -1) {
+				errorManager.ErrorCode(CODE_3510);
+			}
+
 			int len = strlen(aliasRhs.value);
 			memcpy(&aliasLhs.value, &aliasRhs.value, len);
 			aliasLhs.value[len] = '\0';
@@ -413,15 +411,11 @@ char* Parser::calculateResult(char *exp) {
 				int len = strlen(aliasLhs.value);
 				memcpy(tmpStr, aliasLhs.value, len);
 				tmpStr[len] = '\0';
-			} else {
-				//Wrong syntax do CRASH!
 			}
-	} //else if (global.strCmp(aliasLhs.type, "int") && global.strCmp(aliasRhs.type, "string") || global.strCmp(aliasLhs.type, "string") && global.strCmp(aliasRhs.type, "string")) {
-	//		//Cannot compare digits and strings.
-	//		errorManager.ErrorCode(CODE_100);
-	//	}
-
-		return tmpStr;
+	} else {
+		//errorManager.ErrorCode(CODE_100);
+	}
+	return tmpStr;
 }
 
 Alias_s Parser::parseKeywords(char *exp) {
@@ -616,13 +610,15 @@ void Parser::setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs) {
 		if (global.strCmp(aliasRhs.type, "int")) {
 			memcpy(aliasLhs->type, "int", 3);
 			aliasLhs->type[3] = '\0';
+			//aliasLhs->len = 0;
 
-			updateAlias(aliasLhs);
+			//updateAlias(aliasLhs);
 		} else if (global.strCmp(aliasRhs.type, "string")) {
 			memcpy(aliasLhs->type, "string", 6);
 			aliasLhs->type[6] = '\0';
+			//aliasLhs->len = 0;
 
-			updateAlias(aliasLhs);
+			//updateAlias(aliasLhs);
 		}
 	}
 }

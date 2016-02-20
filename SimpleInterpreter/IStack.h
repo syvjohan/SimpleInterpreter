@@ -21,6 +21,6 @@ class IStack {
 		void SetStackLen(int len) { stackLen = len; };
 
 	private:
-		int stackSize;
-		int stackLen;
+		int stackSize = -1;
+		int stackLen = -1;
 };
