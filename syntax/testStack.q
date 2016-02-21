@@ -47,6 +47,8 @@
 :print(:stk.getAt(4));
 :print("");
 
+:stk.popTop();
+
 :print("pushTop(Star Wars)");
 :stk.pushTop("Star Wars");
 :print("");

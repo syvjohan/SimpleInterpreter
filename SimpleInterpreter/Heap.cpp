@@ -465,7 +465,7 @@ void Heap::CreateStack(size_t size) {
 }
 
 void Heap::PushTop(Alias_s alias) {
-	if (!IsStackOverflow(GetStackLen(), alias.len)) {
+	if (!IsStackOverflow(GetStackLen() +1, alias.len)) {
 		if (GetStackLen() > 0) {
 			InsertAt(GetStackLen() + 1, alias);
 		} else {
