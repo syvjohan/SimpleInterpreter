@@ -32,47 +32,47 @@ class Lexical {
 		Lexical();
 		~Lexical();
 
-		char* readFile(const char *path);
-		void setCode(char *cStr);
-		void getInstructions();
-		void splitInstruction(char *instruction);
+		char* ReadFile(const char *path);
+		void SetCode(char *cStr);
+		void GetInstructions();
+		void SplitInstruction(char *instruction);
 
-		void registerAllSubroutines(void);
-		void registerAllStructs(void);
-		char* registerAllIncludes(void);
-		void registerFile(int start, int end, char *name);
+		void RegisterAllSubroutines(void);
+		void RegisterAllStructs(void);
+		char* RegisterAllIncludes(void);
+		void RegisterFile(int start, int end, char *name);
 		int CalculateLinenumbersInFile(int start, int end);
 
 	private:
-		void allocateMem();
-		void createStack();
+		void AllocateMem();
+		void CreateStack();
 
-		void resetIndex();
+		void ResetIndex();
 
-		void updateSubroutinesIndexes();
-		void expandSubroutineSize(void);
-		void expandCallsSize(void);
-		void typedefSubroutines(char *searchName, char *extendName);
-		void typedefSubroutinesMembers(char *searchName, char *extendName);
+		void UpdateSubroutinesIndexes();
+		void ExpandSubroutineSize(void);
+		void ExpandCallsSize(void);
+		void TypedefSubroutines(char *searchName, char *extendName);
+		void TypedefSubroutinesMembers(char *searchName, char *extendName);
 
-		void updateStructsIndexes();
-		void expandStructsSize();
+		void UpdateStructsIndexes();
+		void ExpandStructsSize();
 
-		void evalAlias();
-		void evalDo();
-		void evalName();
-		void evalWhile();
-		void evalCall(int len);
-		void evalIf();
-		void evalStk();
-		void evalPrint();
-		void evalCodeInsideStruct(char *code);
-		void evalExpressionWithoutKeyword();
+		void EvalAlias();
+		void EvalDo();
+		void EvalName();
+		void EvalWhile();
+		void EvalCall(int len);
+		void EvalIf();
+		void EvalStk();
+		void EvalPrint();
+		void EvalCodeInsideStruct(char *code);
+		void EvalExpressionWithoutKeyword();
 
-		bool isCorrectFileType(char *cStr);
-		bool isCorrectMainFileType(char *cStr);
+		bool IsCorrectFileType(char *cStr);
+		bool IsCorrectMainFileType(char *cStr);
 
-		void resetLoopArray();
+		void ResetLoopArray();
 
 		char *code;
 		size_t fileSize;

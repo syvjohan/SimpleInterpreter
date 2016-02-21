@@ -15,30 +15,30 @@ class Parser {
 		Parser();
 		~Parser();
 		
-		char* regularExpression(char *expression);
-		char* calculateResult(char *expression);
-		Alias_s parseKeywords(char *expression);
-		void parsePrint(char *expression, Parts_s *parts, int &len);
-		void setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs);
-		void setLength(Alias_s *aliasLhs, Alias_s aliasRhs);
-		void updateIndex(Alias_s alias);
+		char* RegularExpression(char *expression);
+		char* CalculateResult(char *expression);
+		Alias_s ParseKeywords(char *expression);
+		void ParsePrint(char *expression, Parts_s *parts, int &len);
+		void SetDatatype(Alias_s *aliasLhs, Alias_s aliasRhs);
+		void SetLength(Alias_s *aliasLhs, Alias_s aliasRhs);
+		void UpdateIndex(Alias_s alias);
 
-		void allocateMem();
+		void AllocateMem();
 
-		Heap heap;
-
-		void createStack(size_t stackSize);
-		void stackPop();
-		void stackPopTop();
-		void stackPushAt(char *cStr);
-		void stackPushTop(char *cStr);
-		Alias_s stackGetAt(char *cStr);
-		Alias_s stackGetTop();
+		void CreateStack(size_t stackSize);
+		void StackPop();
+		void StackPopTop();
+		void StackPushAt(char *cStr);
+		void StackPushTop(char *cStr);
+		Alias_s StackGetAt(char *cStr);
+		Alias_s StackGetTop();
 
 		Operator_s findOperator(const char *cStr, const int startPos);
 		bool isNegativeNumber(const char *cStr);
 
 		bool isAdress = false;
+
+		Heap heap;
 
 	private:
 		char tmpStr[INSTRUCTIONSIZE];
@@ -47,7 +47,7 @@ class Parser {
 
 		Global global;
 
-		void updateAlias(Alias_s *alias);
+		void UpdateAlias(Alias_s *alias);
 
 		ErrorManager errorManager;
 };

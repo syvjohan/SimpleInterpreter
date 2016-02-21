@@ -15,38 +15,38 @@ class Heap : public IStack {
 		~Heap();
 
 		//Heap
-		void initializeHeap(size_t heapSize);
-		void insertAliasAt(int index, Alias_s alias);
-		Alias_s getAlias(const char *name);
-		Alias_s getAlias(const int index);
-		int getAddress(char *name);
-		void updateHeapIndex(Index_s index);
+		void InitializeHeap(size_t heapSize);
+		void InsertAliasAt(int index, Alias_s alias);
+		Alias_s GetAlias(const char *name);
+		Alias_s GetAlias(const int index);
+		int GetAddress(char *name);
+		void UpdateHeapIndex(Index_s index);
 
 		//Stack
-		void createStack(size_t stackSize); 
-		void pushTop(Alias_s alias);
-		void pushAt(int index, Alias_s alias);
-		Alias_s getTop();
-		Alias_s getAt(const int index);
-		void popTop();
-		void pop();
-		bool isStackOverflow(int index, int len);
+		void CreateStack(size_t stackSize); 
+		void PushTop(Alias_s alias);
+		void PushAt(int index, Alias_s alias);
+		Alias_s GetTop();
+		Alias_s GetAt(const int index);
+		void PopTop();
+		void Pop();
+		bool IsStackOverflow(int index, int len);
 
 		//Index
 		//Below functions is specialcases for content inside struct
-		void insertStructIndex(Index_s index);
-		bool updateStructIndex(Index_s index, char *searchName);
-		bool findStructIndex(Index_s index);
-		Index_s findStructIndex(char *name);
-		Index_s getStructIndex(const char *name);
-		void getStructIndex(const char *type, Index_s *index, int &len);
-		void typedefStructMembers(char *searchName, char *extendName);
-		void updateStructHeaderPointer(Index_s index);
-		char* getFullNameStructMember(char *lastname);
+		void InsertStructIndex(Index_s index);
+		bool UpdateStructIndex(Index_s index, char *searchName);
+		bool FindStructIndex(Index_s index);
+		Index_s FindStructIndex(char *name);
+		Index_s GetStructIndex(const char *name);
+		void GetStructIndex(const char *type, Index_s *index, int &len);
+		void TypedefStructMembers(char *searchName, char *extendName);
+		void UpdateStructHeaderPointer(Index_s index);
+		char* GetFullNameStructMember(char *lastname);
 
 	private:
-		void setHeapSize(size_t size);
-		void insertAt(int index, Alias_s alias);
+		void SetHeapSize(size_t size);
+		void InsertAt(int index, Alias_s alias);
 
 		char *heapContainer;
 		Index_s *heapIndex;
@@ -57,7 +57,7 @@ class Heap : public IStack {
 
 		//Index
 		//Specialcases for content inside struct
-		void expandHeapIndexStruct();
+		void ExpandHeapIndexStruct();
 		Index_s *heapIndexStructs;
 		size_t indexStructLen = 0;
 		size_t indexStructMax = 0;

@@ -2,6 +2,7 @@
 #include "ErrorCodes.h"
 #include "memoryLeak.h"
 #include "Global.h"
+#include "Console.h"
 #include <Windows.h>
 
 #include <stdio.h>
@@ -13,19 +14,17 @@ ErrorManager::ErrorManager() {}
 ErrorManager::~ErrorManager() {}
 
 void ErrorManager::PrintMessage(char *errorCode, char *msg) {
+	ConsoleBackgroundAndTextColors(4, 0);
 	printf("\nERROR: %s.", errorCode);
 
 	char *name = FindFile();
 
-	//HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	//SetConsoleTextAttribute(hConsole, 100);
-	//SetConsoleTitle("Interpreter Q");
-
-	printf("\nIn file: %s", name);
-	
+	printf("\nIn file: %s", name);	
 	printf("\nLine: %i.", lines);
+
 	printf("\nDescription: %s\n", msg);
 	printf("\n%s\n\n", instruction);
+
 	system("pause");
 }
 
@@ -247,10 +246,10 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 		case CODE_86:
 			PrintMessage("CODE_86", "No code inserted");
 			break;
-		case 90:
+		case CODE_90:
 			PrintMessage("CODE_90", "Wrong file path.");
 			break;
-		case 91:
+		case CODE_91:
 			PrintMessage("CODE_91", "Can only include a maximum of 100 files in the same project.");
 			break;
 		case CODE_100:

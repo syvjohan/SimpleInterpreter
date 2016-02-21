@@ -5,26 +5,26 @@
 Global::Global() {}
 Global::~Global() {}
 
-int Global::strCmp(const char *cStr1, const char *cStr2) {
+bool Global::StrCmp(const char *cStr1, const char *cStr2) {
 	if (cStr1 == NULL || cStr2 == NULL) {
-		return 0;
+		return false;
 	}
 
 	if (cStr1 == 0 || cStr2 == 0) {
-		return 0;
+		return false;
 	}
 
 	int i = 0;
 	while (cStr1[i] != '\0' || cStr2[i] != '\0') {
 		if (cStr1[i] != cStr2[i]) {
-			return 0;
+			return false;
 		}
 		++i;
 	}
-	return 1;
+	return true;
 }
 
-const char* Global::strstrr(const char *in, const char *find) {
+const char* Global::Strstrr(const char *in, const char *find) {
 	int inLength = strlen(in);
 	int findLength = strlen(find);
 
@@ -54,8 +54,8 @@ const char* Global::strstrr(const char *in, const char *find) {
 	return NULL;
 }
 
-bool Global::findSubStrRev(char *dest, const char* src, const char *find) {
-	const char *result = strstrr(src, find);
+bool Global::FindSubStrRev(char *dest, const char* src, const char *find) {
+	const char *result = Strstrr(src, find);
 
 	if (result) {
 		const int length = result - src + 1;
@@ -69,7 +69,7 @@ bool Global::findSubStrRev(char *dest, const char* src, const char *find) {
 	return false;
 }
 
-int Global::checkForAlpha(const char *cStr) {
+int Global::CheckForAlpha(const char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (!((cStr[i] >= 'a' && cStr[i] <= 'z') || (cStr[i] >= 'A' && cStr[i] <= 'Z'))) {
@@ -80,7 +80,7 @@ int Global::checkForAlpha(const char *cStr) {
 	return 1;
 }
 
-int Global::checkForDigits(const char *cStr) {
+int Global::CheckForDigits(const char *cStr) {
 	int i = 0;
 	if (cStr[0] == '\0') { return -1; }
 	while (cStr[i] != '\0') {
@@ -92,7 +92,7 @@ int Global::checkForDigits(const char *cStr) {
 	return 1;
 }
 
-int Global::checkAliasNameConversion(const char *cStr) {
+int Global::CheckAliasNameConversion(const char *cStr) {
 	if (!((cStr[0] >= 'a' && cStr[0] <= 'z') || (cStr[0] >= 'A' && cStr[0] <= 'Z'))) {
 		return -1;
 	}
@@ -112,14 +112,14 @@ int Global::checkAliasNameConversion(const char *cStr) {
 	return -1;
 }
 
-int Global::intLength(int x) {
+int Global::IntLength(int x) {
 	if (x == 0) {
 		return 1;
 	}
 	return floor(log10(abs(abs(x)))) + 1;
 }
 
-void Global::replaceDotsWithSlashes(char *cStr) {
+void Global::ReplaceDotsWithSlashes(char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (cStr[i] == '.') {
@@ -129,7 +129,7 @@ void Global::replaceDotsWithSlashes(char *cStr) {
 	}
 }
 
-bool Global::findAnd(char *cStr) {
+bool Global::FindAnd(char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (cStr[i] == '&') {
@@ -140,10 +140,10 @@ bool Global::findAnd(char *cStr) {
 	return false;
 }
 
-bool Global::isNegativeNumber(const char *cStr) {
-	Operator_s op0 = findOperator(cStr, 0);
+bool Global::IsNegativeNumber(const char *cStr) {
+	Operator_s op0 = FindOperator(cStr, 0);
 	if (op0.op[0] == '-' && op0.pos == 0) {
-		Operator_s op1 = findOperator(cStr, op0.len);
+		Operator_s op1 = FindOperator(cStr, op0.len);
 		if (op1.len == 0) {
 			return true;
 		}
@@ -151,7 +151,7 @@ bool Global::isNegativeNumber(const char *cStr) {
 	return false;
 }
 
-Operator_s Global::findOperator(const char *cStr, const int startPos) {
+Operator_s Global::FindOperator(const char *cStr, const int startPos) {
 	int len = strlen(cStr);
 	int pl = INT_MAX;
 	int mi = INT_MAX;
@@ -165,55 +165,55 @@ Operator_s Global::findOperator(const char *cStr, const int startPos) {
 
 	char buffer[INSTRUCTIONSIZE];
 
-	if (findSubStrRev(buffer, cStr + startPos, "=")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "=")) {
 		if (buffer) {
 			eq = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "+")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "+")) {
 		if (buffer) {
 			pl = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "-")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "-")) {
 		if (buffer) {
 			mi = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "*")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "*")) {
 		if (buffer) {
 			mu = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "/")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "/")) {
 		if (buffer) {
 			di = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, ">")) {
+	if (FindSubStrRev(buffer, cStr + startPos, ">")) {
 		if (buffer) {
 			cmpBi = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "<")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "<")) {
 		if (buffer) {
 			cmpSm = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "==")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "==")) {
 		if (buffer) {
 			cmpEq = strlen(buffer) - 1;
 		}
 	}
 
-	if (findSubStrRev(buffer, cStr + startPos, "!=")) {
+	if (FindSubStrRev(buffer, cStr + startPos, "!=")) {
 		if (buffer) {
 			cmpNEq = strlen(buffer) - 1;
 		}
@@ -273,7 +273,7 @@ Operator_s Global::findOperator(const char *cStr, const int startPos) {
 	return newOp;
 }
 
-bool Global::isTextString(char *cStr) {
+bool Global::IsTextString(char *cStr) {
 	char *txtStart = strstr(cStr, "\"");
 	if (txtStart) {
 		char *txtEnd = strstr(txtStart + 1, "\"");
@@ -284,7 +284,7 @@ bool Global::isTextString(char *cStr) {
 	return false;
 }
 
-int Global::findComment(char *cStr) {
+int Global::FindComment(char *cStr) {
 	int len = strlen(cStr);
 	for (int i = 0; i < len; ++i) {
 		if (cStr[i] == '/' && cStr[i + 1] == '*') {

@@ -7,7 +7,7 @@
 #include <errno.h>
 
 Lexical::Lexical() {
-	expandCallsSize();
+	ExpandCallsSize();
 }
 
 Lexical::~Lexical() {
@@ -27,7 +27,7 @@ Lexical::~Lexical() {
 	}
 }
 
-char* Lexical::readFile(const char *path) {
+char* Lexical::ReadFile(const char *path) {
 	FILE *file;
 	file = fopen(path, "r");
 
@@ -58,27 +58,27 @@ char* Lexical::readFile(const char *path) {
 	return readCode;
 }
 
-void Lexical::setCode(char *cStr) {
+void Lexical::SetCode(char *cStr) {
 	code = cStr;
 }
 
-void Lexical::allocateMem() {
+void Lexical::AllocateMem() {
 	trimText(expression);
 
 	//Allocate heap memory.
 	int s = atoi(expression);
-	parser.heap.initializeHeap(s);
+	parser.heap.InitializeHeap(s);
 }
 
-void Lexical::createStack() {
+void Lexical::CreateStack() {
 	trimText(expression);
 
 	//Create stack on heap
 	int s = atoi(expression);
-	parser.heap.createStack(s);
+	parser.heap.CreateStack(s);
 }
 
-void Lexical::expandCallsSize(void) {
+void Lexical::ExpandCallsSize(void) {
 	if (calls == NULL) {
 		callsMax = 100;
 		calls = DBG_NEW Call_s[callsMax * sizeof(Call_s)];
@@ -93,7 +93,7 @@ void Lexical::expandCallsSize(void) {
 	}
 }
 
-void Lexical::expandStructsSize() {
+void Lexical::ExpandStructsSize() {
 	if (structs == NULL) {
 		structsMax = 100;
 		structs = DBG_NEW CallableUnit_s[structsMax * sizeof(CallableUnit_s)];
@@ -108,7 +108,7 @@ void Lexical::expandStructsSize() {
 	}
 }
 
-void Lexical::expandSubroutineSize(void) {
+void Lexical::ExpandSubroutineSize(void) {
 	if (subroutines == NULL) {
 		subroutinesMax = 100;
 		subroutines = DBG_NEW CallableUnit_s[subroutinesMax * sizeof(CallableUnit_s)];
@@ -124,7 +124,7 @@ void Lexical::expandSubroutineSize(void) {
 }
 
 //Makes it possible to call a subroutine that has been declared after it is called.
-void Lexical::registerAllSubroutines(void) {
+void Lexical::RegisterAllSubroutines(void) {
 	int i = 0;
 	do {
 		char *findSub = strstr(code + i, ":subroutine");
@@ -167,7 +167,7 @@ void Lexical::registerAllSubroutines(void) {
 					subroutine.name[len] = '\0';
 
 					if (subroutinesLen == subroutinesMax) {
-						expandSubroutineSize();
+						ExpandSubroutineSize();
 					}
 
 					//Check if subroutine is inside struct.
@@ -205,7 +205,7 @@ void Lexical::registerAllSubroutines(void) {
 	} while (i < fileSize);
 }
 
-void Lexical::registerAllStructs() {
+void Lexical::RegisterAllStructs() {
 	int i = 0;
 	do {
 		char *findStruct = strstr(code + i, ":struct");
@@ -273,7 +273,7 @@ void Lexical::registerAllStructs() {
 					newStruct.name[lenName] = '\0';
 
 					if (structsLen == structsMax) {
-						expandStructsSize();
+						ExpandStructsSize();
 					}
 
 					structs[structsLen] = newStruct;
@@ -289,7 +289,7 @@ void Lexical::registerAllStructs() {
 
 					memcpy(currentStructName, name, lenName);
 					isInitializingStructs = true;
-					evalCodeInsideStruct(codeInsideStruct);
+					EvalCodeInsideStruct(codeInsideStruct);
 
 					//Free memory
 					delete[] codeInsideStruct;
@@ -311,17 +311,17 @@ void Lexical::registerAllStructs() {
 	} while (i < fileSize);
 }
 
-void Lexical::updateStructsIndexes() {
+void Lexical::UpdateStructsIndexes() {
 	structsLen = 0;
-	registerAllStructs();
+	RegisterAllStructs();
 }
 
-void Lexical::updateSubroutinesIndexes() {
+void Lexical::UpdateSubroutinesIndexes() {
 	subroutinesLen = 0;
-	registerAllSubroutines();
+	RegisterAllSubroutines();
 }
 
-void Lexical::typedefSubroutines(char *searchName, char *extendName) {
+void Lexical::TypedefSubroutines(char *searchName, char *extendName) {
 	char str[NAMESIZE];
 	int len1 = 0;
 	int len2 = 0;
@@ -348,7 +348,7 @@ void Lexical::typedefSubroutines(char *searchName, char *extendName) {
 	}
 }
 
-void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
+void Lexical::TypedefSubroutinesMembers(char *searchName, char *extendName) {
 	char buffer[2048];
 	char instruction[INSTRUCTIONSIZE];
 	char newSearchName[NAMESIZE];
@@ -373,7 +373,7 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 				lenInstructions = strlen(buffer);
 				while (position <= lenInstructions) {
 
-					op = global.findOperator(buffer, position);
+					op = global.FindOperator(buffer, position);
 					if (op.pos == -1) {
 						len = lenInstructions - position;
 					} else {
@@ -390,7 +390,7 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 					memcpy(newSearchName, instruction, len + len2);
 					newSearchName[len + len2] = '\0';
 
-					Index_s foundIndex = parser.heap.findStructIndex(newSearchName);
+					Index_s foundIndex = parser.heap.FindStructIndex(newSearchName);
 
 
 					len1 = strlen(searchName);
@@ -413,7 +413,7 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 					memcpy(foundIndex.name, instruction, len);
 					foundIndex.name[len] = '\0';
 
-					parser.heap.updateStructIndex(foundIndex, newSearchName);
+					parser.heap.UpdateStructIndex(foundIndex, newSearchName);
 
 				}
 			}
@@ -421,7 +421,7 @@ void Lexical::typedefSubroutinesMembers(char *searchName, char *extendName) {
 	}
 }
 
-void Lexical::resetLoopArray() {
+void Lexical::ResetLoopArray() {
 	for (int i = 0; i != LOOPMAX; ++i) {
 		Loop_s *l = &loop[i];
 		l->start = -1;
@@ -431,7 +431,7 @@ void Lexical::resetLoopArray() {
 	}
 }
 
-void Lexical::evalAlias() {
+void Lexical::EvalAlias() {
 	int len = strlen(expression);
 	char *sep1 = strstr(expression, ":");
 	char *sep2 = strstr(expression, "=");
@@ -453,7 +453,7 @@ void Lexical::evalAlias() {
 	int lenName = len - strlen(sep1);
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
-	if (global.checkAliasNameConversion(alias.name) == -1) {
+	if (global.CheckAliasNameConversion(alias.name) == -1) {
 		//Wrong name conversion.
 		errorManager.ErrorCode(CODE_31);
 	}
@@ -496,7 +496,7 @@ void Lexical::evalAlias() {
 			int i = 0;
 			Index_s indexes[STRUCTMEMBERS];
 			int lenIndexes = 0;
-			parser.heap.getStructIndex(tmp, indexes, lenIndexes);
+			parser.heap.GetStructIndex(tmp, indexes, lenIndexes);
 			for (int i = 0; i != lenIndexes; ++i) {
 				char *name = indexes[i].name;
 				const char *slash = strstr(name, ".");
@@ -508,25 +508,25 @@ void Lexical::evalAlias() {
 
 				index.startPos += indexes[i].startPos;
 
-				parser.heap.insertStructIndex(index);
+				parser.heap.InsertStructIndex(index);
 
 				//create a index for struct head pointer.
 				if (indexes[i].startPos == 0) {
-					global.findSubStrRev(tmp, index.name, ".");
+					global.FindSubStrRev(tmp, index.name, ".");
 					lenDot = strlen(tmp) - 1;
 					memcpy(index.name, tmp, lenDot);
 					index.name[lenDot] = '\0';
 
 					memset(index.type, '\0', strlen(index.type));
 
-					parser.heap.insertStructIndex(index);
+					parser.heap.InsertStructIndex(index);
 				}
 
 			}
 			return;
 		}
 
-		parser.heap.insertStructIndex(index);
+		parser.heap.InsertStructIndex(index);
 		return;
 
 	} else if (sep2) {
@@ -554,8 +554,8 @@ void Lexical::evalAlias() {
 			memcpy(alias.type, val, len);
 			alias.type[len] = '\0';
 
-			if (global.checkForDigits(val) == -1) {
-				if (global.checkForAlpha(val) == 1) {
+			if (global.CheckForDigits(val) == -1) {
+				if (global.CheckForAlpha(val) == 1) {
 					Index_s index = { NULL, NULL, 0, 0 };
 					//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
 					index.len = 0;
@@ -563,18 +563,18 @@ void Lexical::evalAlias() {
 					memcpy(index.type, val, len);
 					memcpy(index.name, alias.name, lenName);
 
-					parser.heap.insertStructIndex(index);
+					parser.heap.InsertStructIndex(index);
 
 					//structs only! insert pointer name into path. Find all structs with typename.
 					bool isHit = false;
 					for (int i = 0; i != structsLen; ++i) {
 						CallableUnit_s *s = &structs[i];
-						if (global.strCmp(s->name, index.type)) {
+						if (global.StrCmp(s->name, index.type)) {
 							//typedef struct members
-							parser.heap.typedefStructMembers(index.type, index.name);
+							parser.heap.TypedefStructMembers(index.type, index.name);
 							//typedef subroutines.
-							typedefSubroutines(index.type, index.name);
-							typedefSubroutinesMembers(index.name, index.type);
+							TypedefSubroutines(index.type, index.name);
+							TypedefSubroutinesMembers(index.name, index.type);
 							isHit = true;
 						}
 					}
@@ -607,20 +607,20 @@ void Lexical::evalAlias() {
 	if (!identifyType) {
 		//regular expression.
 		if (val[0] != '\0') {
-			parserVal = parser.regularExpression(val);
+			parserVal = parser.RegularExpression(val);
 			len = strlen(parserVal);
 			memcpy(alias.value, parserVal, len);
 			alias.value[len] = '\0';
 			alias.len = len;
 
 			//identify type.
-			if (global.checkForDigits(parserVal) == 1) {
+			if (global.CheckForDigits(parserVal) == 1) {
 				memcpy(alias.type, "int", 3);
 				alias.type[3] = '\0';
-			} else if (global.checkForAlpha(parserVal) == 1) {
+			} else if (global.CheckForAlpha(parserVal) == 1) {
 				memcpy(alias.type, "string", 6);
 				alias.type[6] = '\0';
-			} else if (global.isNegativeNumber(parserVal)) {
+			} else if (global.IsNegativeNumber(parserVal)) {
 				//Negative number.
 				memcpy(alias.type, "int", 3);
 				alias.type[3] = '\0';
@@ -635,16 +635,16 @@ void Lexical::evalAlias() {
 	}
 
 	//Insert.
-	if (!offset && !isInitializingStructs && global.checkForDigits(address) == -1) {
+	if (!offset && !isInitializingStructs && global.CheckForDigits(address) == -1) {
 		errorManager.ErrorCode(CODE_35);
 	}
 
 	int i = atoi(address);
 
-	parser.heap.insertAliasAt(i, alias);
+	parser.heap.InsertAliasAt(i, alias);
 }
 
-void Lexical::evalDo() {
+void Lexical::EvalDo() {
 	Loop_s newLoop;
 
 	//find open bracket for loop start
@@ -667,10 +667,10 @@ void Lexical::evalDo() {
 	loop[loopLen] = newLoop;
 }
 
-void Lexical::evalWhile() {
+void Lexical::EvalWhile() {
 	//type = 1 do while, type = 0 while.
-	char *res = parser.regularExpression(expression);
-	if (global.strCmp(res, "true")) {
+	char *res = parser.RegularExpression(expression);
+	if (global.StrCmp(res, "true")) {
 		//do while loop.
 		if (loop[loopLen].end == -1 && loop[loopLen].type == 1) {
 			Loop_s *l = &loop[loopLen];
@@ -721,7 +721,7 @@ void Lexical::evalWhile() {
 			++loopLen;
 		}
 		//TODO stop är 1 behöver nollställas!
-	} else if (global.strCmp(res, "false")) {
+	} else if (global.StrCmp(res, "false")) {
 		if (loopLen == 1) {
 			loop[loopLen].stop = 1; //stopping outer loop and continue to read.
 			//--loopLen;
@@ -731,12 +731,12 @@ void Lexical::evalWhile() {
 	}
 }
 
-void Lexical::evalCall(int len) {
+void Lexical::EvalCall(int len) {
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
 		CallableUnit_s *s = &subroutines[i];
-		if (global.strCmp(s->name, expression)) {
+		if (global.StrCmp(s->name, expression)) {
 			++callsLen;
 			calls[callsLen].pos = index - len;
 			int len = strlen(s->name);
@@ -755,7 +755,7 @@ void Lexical::evalCall(int len) {
 	}
 }
 
-void Lexical::evalStk() {
+void Lexical::EvalStk() {
 	trimBothParanthesis(expression);
 	char *popTop = strstr(expression, "popTop");
 	char *pop = strstr(expression, "pop");
@@ -765,28 +765,28 @@ void Lexical::evalStk() {
 	char *getTop = strstr(expression, "getTop");
 
 	if (popTop) {
-		parser.stackPopTop();
+		parser.StackPopTop();
 	} else if (pop) {
-		parser.stackPop();
+		parser.StackPop();
 
 	} else if (pushAt) {
-		parser.stackPushAt(pushAt);
+		parser.StackPushAt(pushAt);
 
 	} else if (pushTop) {
-		parser.stackPushTop(pushTop);
+		parser.StackPushTop(pushTop);
 
 	} else if (getAt) {
-		parser.stackGetAt(getAt);
+		parser.StackGetAt(getAt);
 
 	} else if (getTop) {
-		parser.stackGetTop();
+		parser.StackGetTop();
 	}
 }
 
-void Lexical::evalPrint() {
+void Lexical::EvalPrint() {
 	Parts_s parts[NUMBEROFPRINTARGUMENTS];
 	int len = 0;
-	parser.parsePrint(expression, parts, len);
+	parser.ParsePrint(expression, parts, len);
 
 	for (int i = 0; i != len; ++i) {
 		if (parts[i].type == 2) {
@@ -797,7 +797,7 @@ void Lexical::evalPrint() {
 			}
 
 			parts[i].part[parts[i].len] = '\0';
-			char *out = parser.regularExpression(parts[i].part);
+			char *out = parser.RegularExpression(parts[i].part);
 			char s[VALUESIZE];
 			int len = strlen(out);
 			memcpy(s, out, len);
@@ -818,21 +818,21 @@ void Lexical::evalPrint() {
 	}
 }
 
-void Lexical::evalIf() {
+void Lexical::EvalIf() {
 	trimBothParanthesis(expression);
 
-	char *res = parser.regularExpression(expression);
+	char *res = parser.RegularExpression(expression);
 
-	if (global.strCmp(res, "true")) {
+	if (global.StrCmp(res, "true")) {
 		cmpResult = 1;
-	} else if (global.strCmp(res, "false")) {
+	} else if (global.StrCmp(res, "false")) {
 		cmpResult = 0;
 	} else {
 		//Something went completly wrong, DO CRASH!!!
 	}
 }
 
-char* Lexical::registerAllIncludes() {
+char* Lexical::RegisterAllIncludes() {
 	int i = 0;
 	bool isContinue = true;
 	const int lenInclude = 8;
@@ -856,7 +856,7 @@ char* Lexical::registerAllIncludes() {
 				trimNewline(path);
 				trimBothParanthesis(path);
 				trimText(path);
-				char *extendedCode = readFile(path);
+				char *extendedCode = ReadFile(path);
 				int lenExtended = strlen(extendedCode);
 
 				char *codeBefore = DBG_NEW char[lenCode];
@@ -887,7 +887,7 @@ char* Lexical::registerAllIncludes() {
 				delete[] codeBefore;
 
 				//register file indexes.
-				registerFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
+				RegisterFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
 			}
 		} else {
 			errorManager.SetRegisteredFiles(files, lenFiles);
@@ -897,7 +897,7 @@ char* Lexical::registerAllIncludes() {
 	return code;
 }
 
-void Lexical::registerFile(int start, int end, char *name) {
+void Lexical::RegisterFile(int start, int end, char *name) {
 	if (lenFiles >= MAXINCLUDEDFILES) {
 		errorManager.ErrorCode(CODE_91);
 	} else {
@@ -926,7 +926,7 @@ int Lexical::CalculateLinenumbersInFile(int start, int end) {
 	return counter;
 }
 
-bool Lexical::isCorrectFileType(char *cStr) {
+bool Lexical::IsCorrectFileType(char *cStr) {
 	char *fileType = strstr(cStr, ".q");
 	if (fileType) {
 		return true;
@@ -934,7 +934,7 @@ bool Lexical::isCorrectFileType(char *cStr) {
 	return false;
 }
 
-bool Lexical::isCorrectMainFileType(char *cStr) {
+bool Lexical::IsCorrectMainFileType(char *cStr) {
 	char *fileType = strstr(cStr, ".main.q");
 	if (fileType) {
 		return true;
@@ -942,21 +942,21 @@ bool Lexical::isCorrectMainFileType(char *cStr) {
 	return false;
 }
 
-void Lexical::evalCodeInsideStruct(char *structCode) {
+void Lexical::EvalCodeInsideStruct(char *structCode) {
 	char *oldCode = code;
-	setCode(structCode);
-	getInstructions();
-	setCode(oldCode);
+	SetCode(structCode);
+	GetInstructions();
+	SetCode(oldCode);
 }
 
-void Lexical::evalExpressionWithoutKeyword() {
+void Lexical::EvalExpressionWithoutKeyword() {
 	char tmpLhs[INSTRUCTIONSIZE];
 	char tmpRhs[INSTRUCTIONSIZE];
 	char tmpStr[INSTRUCTIONSIZE];
 
 	char *eq = strstr(expression, "=");
 	if (eq) {
-		char *res = parser.regularExpression(expression);
+		char *res = parser.RegularExpression(expression);
 
 		/*int len0 = 0;
 		int len1 = 0;
@@ -985,7 +985,7 @@ void Lexical::evalExpressionWithoutKeyword() {
 	}
 }
 
-void Lexical::splitInstruction(char *instruction) {
+void Lexical::SplitInstruction(char *instruction) {
 	char tmp[INSTRUCTIONSIZE];
 	char tmp2[INSTRUCTIONSIZE];
 	int isKeywordMissing = 1;
@@ -1011,7 +1011,7 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, sysMemAllocHeap + 16, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		allocateMem();
+		AllocateMem();
 		isKeywordMissing = 0;
 	}
 
@@ -1021,7 +1021,7 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, sysCreateStack + 15, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		createStack();
+		CreateStack();
 		isKeywordMissing = 0;
 	}
 
@@ -1031,13 +1031,13 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, alias + 6, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		evalAlias();
+		EvalAlias();
 		isKeywordMissing = 0;
 		return;
 	}
 
 	if (DO) {
-		evalDo();
+		EvalDo();
 		isKeywordMissing = 0;
 	}
 
@@ -1047,7 +1047,7 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, WHILE + 7, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		evalWhile();
+		EvalWhile();
 		isKeywordMissing = 0;
 		return;
 	}
@@ -1058,7 +1058,7 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, IF + 3, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		evalIf();
+		EvalIf();
 
 		if (cmpResult) {
 			ignore = 0;
@@ -1080,7 +1080,7 @@ void Lexical::splitInstruction(char *instruction) {
 		memcpy(tmp, print + 7, len);
 		tmp[len] = '\0';
 		expression = tmp;
-		evalPrint();
+		EvalPrint();
 		isKeywordMissing = 0;
 	}
 
@@ -1094,7 +1094,7 @@ void Lexical::splitInstruction(char *instruction) {
 			memcpy(tmp, stk + 5, len);
 			tmp[len] = '\0';
 			expression = tmp;
-			evalStk();
+			EvalStk();
 			isKeywordMissing = 0;
 		}
 	}
@@ -1106,7 +1106,7 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = tmp;
 
-		evalCall(len);
+		EvalCall(len);
 		isKeywordMissing = 0;
 	}
 
@@ -1127,21 +1127,21 @@ void Lexical::splitInstruction(char *instruction) {
 		tmp[len] = '\0';
 		expression = instruction;
 
-		evalExpressionWithoutKeyword();
+		EvalExpressionWithoutKeyword();
 	}
 }
 
-void Lexical::resetIndex() {
+void Lexical::ResetIndex() {
 	index = 0;
 	startIndex = 0;
 	endIndex = 0;
 	instructionLen = 0;
 }
 
-void Lexical::getInstructions() {
+void Lexical::GetInstructions() {
 	int comment = 0;
 	char instruction[INSTRUCTIONSIZE];
-	resetIndex();
+	ResetIndex();
 
 	while (code[index] != '\0') {
 		//newline
@@ -1169,14 +1169,14 @@ void Lexical::getInstructions() {
 			} else if (loop[loopLen].stop == 1) {
 				startIndex = loop[loopLen].end;
 				index = loop[loopLen].end;
-				resetLoopArray();
+				ResetLoopArray();
 			}
 		}
 
 		if (index == currentSubroutine.endPos) {
 			for (int i = 0; i != subroutinesLen; ++i) {
 				currentSubroutine = subroutines[i];
-				if (global.strCmp(currentSubroutine.name, calls[callsLen].name)) {
+				if (global.StrCmp(currentSubroutine.name, calls[callsLen].name)) {
 					index = calls[callsLen].pos;
 					--callsLen;
 
@@ -1203,7 +1203,7 @@ void Lexical::getInstructions() {
 					instruction[instructionLen] = '\0';
 					startIndex = endIndex + 1;
 					errorManager.SetInstruction(instruction, index);
-					splitInstruction(instruction);
+					SplitInstruction(instruction);
 				}
 			}
 			startIndex = index;

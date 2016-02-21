@@ -74,6 +74,7 @@
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Console.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="ErrorCodes.h" />
     <ClInclude Include="ErrorManager.h" />

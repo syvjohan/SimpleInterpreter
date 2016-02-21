@@ -11,15 +11,15 @@ Parser::Parser() {}
 
 Parser::~Parser() {}
 
-void Parser::stackPopTop() {
-	heap.popTop();
+void Parser::StackPopTop() {
+	heap.PopTop();
 }
 
-void Parser::stackPop() {
-	heap.pop();
+void Parser::StackPop() {
+	heap.Pop();
 }
 
-void Parser::stackPushAt(char *cStr) {
+void Parser::StackPushAt(char *cStr) {
 	int len = strlen(cStr) - 6;
 	memcpy(tmpStr, cStr + 6, len);
 	tmpStr[len] = '\0';
@@ -34,9 +34,9 @@ void Parser::stackPushAt(char *cStr) {
 		memcpy(tmpLhs, tmpStr, len);
 		tmpLhs[len] = '\0';
 
-		char *resLhs = regularExpression(tmpLhs);
+		char *resLhs = RegularExpression(tmpLhs);
 		int index;
-		if (global.checkForDigits(resLhs) == 1) {
+		if (global.CheckForDigits(resLhs) == 1) {
 			index = atoi(resLhs);
 		}
 
@@ -44,7 +44,7 @@ void Parser::stackPushAt(char *cStr) {
 		memcpy(tmpRhs, comma +1, len);
 		tmpRhs[len] = '\0';
 
-		char *resRhs = regularExpression(tmpRhs);
+		char *resRhs = RegularExpression(tmpRhs);
 		len = strlen(resRhs);
 
 		if (identifyType) {
@@ -52,7 +52,7 @@ void Parser::stackPushAt(char *cStr) {
 			alias.type[len] = '\0';
 			alias.len = len;
 
-		} else if (global.checkForDigits(resRhs) == 1 && identifyType == NULL) {
+		} else if (global.CheckForDigits(resRhs) == 1 && identifyType == NULL) {
 			memcpy(alias.type, "int", 3);
 			alias.type[3] = '\0';
 			alias.len = len;
@@ -62,20 +62,20 @@ void Parser::stackPushAt(char *cStr) {
 		memcpy(alias.value, resRhs, alias.len);
 		alias.value[alias.len] = '\0';
 
-		heap.pushAt(index, alias);
+		heap.PushAt(index, alias);
 
 	} else {
 		//Only one parameter, DO CRASH!!
 	}
 }
 
-void Parser::stackPushTop(char *cStr) {
+void Parser::StackPushTop(char *cStr) {
 	int len = strlen(cStr) - 7;
 	memcpy(tmpStr, cStr + 7, len);
 	tmpStr[len] = '\0';
 
 	char *identifyType = strstr(cStr, "\"");
-	char *res = regularExpression(tmpStr);
+	char *res = RegularExpression(tmpStr);
 	len = strlen(res);
 
 	Alias_s alias;
@@ -84,7 +84,7 @@ void Parser::stackPushTop(char *cStr) {
 		alias.type[6] = '\0';
 
 		alias.len = len;
-	} else if (global.checkForDigits(res) == 1 && identifyType == NULL) {
+	} else if (global.CheckForDigits(res) == 1 && identifyType == NULL) {
 		memcpy(alias.type, "int", 3);
 		alias.type[3] = '\0';
 
@@ -96,10 +96,10 @@ void Parser::stackPushTop(char *cStr) {
 	memcpy(alias.value, res, alias.len);
 	alias.value[alias.len] = '\0';
 
-	heap.pushTop(alias);
+	heap.PushTop(alias);
 }
 
-Alias_s Parser::stackGetAt(char *cStr) {
+Alias_s Parser::StackGetAt(char *cStr) {
 	int len = strlen(cStr) - 5;
 	memcpy(tmpStr, cStr + 5, len);
 	tmpStr[len] = '\0';
@@ -107,20 +107,20 @@ Alias_s Parser::stackGetAt(char *cStr) {
 	char *identifyType = strstr(tmpStr, "\"");
 	
 	Alias_s alias = { NULL, NULL, NULL, 0 };
-	if (global.checkForDigits(tmpStr) == 1 && identifyType == NULL) {
+	if (global.CheckForDigits(tmpStr) == 1 && identifyType == NULL) {
 		int val = atoi(tmpStr);
-		alias = heap.getAt(val);
+		alias = heap.GetAt(val);
 	} else {
 		//Syntax wrong expression need to be a valid integer, DO CRASH!!
 	}
 	return alias;
 }
 
-Alias_s Parser::stackGetTop() {
-	return heap.getTop();
+Alias_s Parser::StackGetTop() {
+	return heap.GetTop();
 }
 
-char* Parser::regularExpression(char *expression) {
+char* Parser::RegularExpression(char *expression) {
 	trimBothParanthesis(expression);
 	int len = strlen(expression);
 	char str[INSTRUCTIONSIZE];
@@ -128,11 +128,11 @@ char* Parser::regularExpression(char *expression) {
 	char rhs[INSTRUCTIONSIZE];
 
 	//If there is no operators return expression(end condition).
-	Operator_s op0 = global.findOperator(expression, 0);
+	Operator_s op0 = global.FindOperator(expression, 0);
 	if (op0.pos == -1) {
 		Alias_s a;
 		//Is it a stack call?
-		a = parseKeywords(expression);
+		a = ParseKeywords(expression);
 
 		if (strlen(a.value) == 0) {
 			memcpy(a.value, expression, a.len);
@@ -141,11 +141,11 @@ char* Parser::regularExpression(char *expression) {
 	}
 
 	//Negative number.
-	if (global.isNegativeNumber(expression)) {
+	if (global.IsNegativeNumber(expression)) {
 		return expression;
 	}
 
-	Operator_s op1 = global.findOperator(expression, op0.pos + 1);
+	Operator_s op1 = global.FindOperator(expression, op0.pos + 1);
 	if (op1.pos != -1) {
 
 		//Negative number.
@@ -167,7 +167,7 @@ char* Parser::regularExpression(char *expression) {
 	if (len > 0) {
 		char *res;
 		if (op0.pos != -1 && op1.pos != -1) {
-			res = calculateResult(rhs);
+			res = CalculateResult(rhs);
 
 			strcat(lhs, res);
 			len = strlen(lhs);
@@ -175,7 +175,7 @@ char* Parser::regularExpression(char *expression) {
 			str[len] = '\0';
 
 		} else {
-			res = calculateResult(lhs);
+			res = CalculateResult(lhs);
 
 			len = strlen(res);
 			memcpy(str, res, len);
@@ -186,7 +186,7 @@ char* Parser::regularExpression(char *expression) {
 		}
 
 		//Negative number.
-		if (global.isNegativeNumber(str)) {
+		if (global.IsNegativeNumber(str)) {
 			return str;
 		}
 
@@ -195,17 +195,17 @@ char* Parser::regularExpression(char *expression) {
 		memcpy(tmpStr, str, len);
 		tmpStr[len] = '\0';
 
-		regularExpression(tmpStr);
+		RegularExpression(tmpStr);
 
 		return tmpStr;
 	}
 	return "";
 }
 
-char* Parser::calculateResult(char *exp) {
+char* Parser::CalculateResult(char *exp) {
 	tmpStr[0] = '\0'; //reseting...
 
-	Operator_s op0 = global.findOperator(exp, 0);
+	Operator_s op0 = global.FindOperator(exp, 0);
 
 	char lhs[INSTRUCTIONSIZE];
 	char rhs[INSTRUCTIONSIZE];
@@ -228,47 +228,47 @@ char* Parser::calculateResult(char *exp) {
 		rhs[rhsLen] = '\0';
 	}
 
-	Alias_s aliasLhs = parseKeywords(lhs);
-	Alias_s aliasRhs = parseKeywords(rhs);
+	Alias_s aliasLhs = ParseKeywords(lhs);
+	Alias_s aliasRhs = ParseKeywords(rhs);
 	
 	if (op0.op[0] == '=' && op0.op[1] != '=') {
-		setDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
-		setLength(&aliasLhs, aliasRhs); //Change type in parameter 1.
+		SetDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
+		SetLength(&aliasLhs, aliasRhs); //Change type in parameter 1.
 	}
 
 	//do calculation
 	//Both are digits
-	if (global.strCmp(aliasLhs.type, "int") && global.strCmp(aliasRhs.type, "int")) {
-		if (global.strCmp(op0.op, "+")) {
+	if (global.StrCmp(aliasLhs.type, "int") && global.StrCmp(aliasRhs.type, "int")) {
+		if (global.StrCmp(op0.op, "+")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) + atoi(aliasRhs.value));
-		} else if (global.strCmp(op0.op, "-")) {
+		} else if (global.StrCmp(op0.op, "-")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) - atoi(aliasRhs.value));
-		} else if (global.strCmp(op0.op, "*")) {
+		} else if (global.StrCmp(op0.op, "*")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) * atoi(aliasRhs.value));
-		} else if (global.strCmp(op0.op, "/")) {
+		} else if (global.StrCmp(op0.op, "/")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) / atoi(aliasRhs.value));
 				int v = atoi(tmpStr);
 				if (v < 0) {
 					tmpStr[0] = '0';
 					tmpStr[1] = '\0'; 
 				}
-		} else if (global.strCmp(op0.op, "==")) {
-			if (global.strCmp(aliasLhs.value, aliasRhs.value)) {
+		} else if (global.StrCmp(op0.op, "==")) {
+			if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				} else {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-		} else if (global.strCmp(op0.op, "!=")) {
-			if (global.strCmp(aliasLhs.value, aliasRhs.value)) {
+		} else if (global.StrCmp(op0.op, "!=")) {
+			if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				} else {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				}
-		} else if (global.strCmp(op0.op, "<")) {
+		} else if (global.StrCmp(op0.op, "<")) {
 				int l = atoi(aliasLhs.value);
 				int r = atoi(aliasRhs.value);
 				if (l < r) {
@@ -278,7 +278,7 @@ char* Parser::calculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-		} else if (global.strCmp(op0.op, ">")) {
+		} else if (global.StrCmp(op0.op, ">")) {
 				int l = atoi(aliasLhs.value);
 				int r = atoi(aliasRhs.value);
 				if (l < r) {
@@ -288,8 +288,8 @@ char* Parser::calculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-		} else if (global.strCmp(op0.op, "=")) {
-			if (global.checkForAlpha(aliasRhs.value) == -1 && global.checkForDigits(aliasRhs.value) == -1) {
+		} else if (global.StrCmp(op0.op, "=")) {
+			if (global.CheckForAlpha(aliasRhs.value) == -1 && global.CheckForDigits(aliasRhs.value) == -1) {
 				errorManager.ErrorCode(CODE_3510);
 			}
 
@@ -297,8 +297,8 @@ char* Parser::calculateResult(char *exp) {
 			memcpy(&aliasLhs.value, &aliasRhs.value, len);
 			aliasLhs.value[len] = '\0';
 			aliasLhs.len = sizeof(int);
-			int a = heap.getAddress(aliasLhs.name);
-			heap.insertAliasAt(a, aliasLhs);
+			int a = heap.GetAddress(aliasLhs.name);
+			heap.InsertAliasAt(a, aliasLhs);
 
 			//Update index.
 			Index_s index;
@@ -320,10 +320,10 @@ char* Parser::calculateResult(char *exp) {
 			//Is it heapIndex or structIndex.
 			char *type = strstr(aliasLhs.name, ".");
 			if (type) {
-				heap.updateStructIndex(index, index.name);
-				heap.updateStructHeaderPointer(index);
+				heap.UpdateStructIndex(index, index.name);
+				heap.UpdateStructHeaderPointer(index);
 			} else {
-				heap.updateHeapIndex(index);
+				heap.UpdateHeapIndex(index);
 			}
 
 			len = strlen(aliasLhs.value);
@@ -335,32 +335,32 @@ char* Parser::calculateResult(char *exp) {
 			}
 		}
 		//Both are text strings.
-	else if (global.strCmp(aliasLhs.type, "string") && global.strCmp(aliasRhs.type, "string")) {
-		if (global.strCmp(op0.op, "+")) {
+	else if (global.StrCmp(aliasLhs.type, "string") && global.StrCmp(aliasRhs.type, "string")) {
+		if (global.StrCmp(op0.op, "+")) {
 				return strcat(aliasLhs.value, aliasRhs.value);
-		} else if (global.strCmp(op0.op, "-")) {
+		} else if (global.StrCmp(op0.op, "-")) {
 				//Wrong syntax do CRASH!!!
-		} else if (global.strCmp(op0.op, "*")) {
+		} else if (global.StrCmp(op0.op, "*")) {
 				//Wrong syntax do CRASH!!!
-		} else if (global.strCmp(op0.op, "/")) {
+		} else if (global.StrCmp(op0.op, "/")) {
 				//Wrong syntax do CRASH!!!
-			} else if (global.strCmp(op0.op, "==")) {
-				if (global.strCmp(aliasLhs.value, aliasRhs.value)) {
+			} else if (global.StrCmp(op0.op, "==")) {
+				if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				} else {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-			} else if (global.strCmp(op0.op, "!=")) {
-				if (global.strCmp(aliasLhs.value, aliasRhs.value)) {
+			} else if (global.StrCmp(op0.op, "!=")) {
+				if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				} else {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				}
-			} else if (global.strCmp(op0.op, "<")) {
+			} else if (global.StrCmp(op0.op, "<")) {
 				if (aliasLhs.len < aliasRhs.len) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
@@ -368,7 +368,7 @@ char* Parser::calculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-			} else if (global.strCmp(op0.op, ">")) {
+			} else if (global.StrCmp(op0.op, ">")) {
 				if (aliasLhs.len > aliasRhs.len) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
@@ -376,11 +376,11 @@ char* Parser::calculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-			} else if (global.strCmp(op0.op, "=")) {
+			} else if (global.StrCmp(op0.op, "=")) {
 				memcpy(&aliasLhs.value, &aliasRhs.value, strlen(aliasRhs.value));
 				aliasLhs.len = aliasRhs.len;
-				int a = heap.getAddress(aliasLhs.name);
-				heap.insertAliasAt(a, aliasLhs);
+				int a = heap.GetAddress(aliasLhs.name);
+				heap.InsertAliasAt(a, aliasLhs);
 				
 				//Update index.
 				Index_s index;
@@ -402,10 +402,10 @@ char* Parser::calculateResult(char *exp) {
 				//Is it heapIndex or structIndex.
 				char *type = strstr(aliasLhs.name, ".");
 				if (type) {
-					heap.updateStructIndex(index, index.name);
-					heap.updateStructHeaderPointer(index);
+					heap.UpdateStructIndex(index, index.name);
+					heap.UpdateStructHeaderPointer(index);
 				} else {
-					heap.updateHeapIndex(index);
+					heap.UpdateHeapIndex(index);
 				}
 
 				int len = strlen(aliasLhs.value);
@@ -418,21 +418,21 @@ char* Parser::calculateResult(char *exp) {
 	return tmpStr;
 }
 
-Alias_s Parser::parseKeywords(char *exp) {
+Alias_s Parser::ParseKeywords(char *exp) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
 	
 	if (exp[0] == '\0') {
 		return alias;
 	}
 
-	char *structName = heap.getFullNameStructMember(exp);
+	char *structName = heap.GetFullNameStructMember(exp);
 	if (structName) {
 		int len = strlen(structName);
 		memcpy(exp, structName, len);
 		exp[len] = '\0';
 	}
 
-	Alias_s a = heap.getAlias(exp);
+	Alias_s a = heap.GetAlias(exp);
 	char *stack = strstr(exp, ":stk");
 	char *address = strstr(exp, "#");
 	char *and = strstr(exp, "&");
@@ -444,8 +444,8 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(&alias, &a, sizeof(a));
 
 	} else if (a.name[0] != '\0') {
-		Index_s index = heap.getStructIndex(a.name);
-		alias = heap.getAlias(index.startPos);
+		Index_s index = heap.GetStructIndex(a.name);
+		alias = heap.GetAlias(index.startPos);
 	} else if (stack) {
 		char *popTop = strstr(stack, "popTop");
 		char *pop = strstr(stack, "pop");
@@ -457,22 +457,22 @@ Alias_s Parser::parseKeywords(char *exp) {
 		char *identifyType = strstr(exp, "\"");
 
 		if (popTop) {
-			stackPopTop();
+			StackPopTop();
 		}
 		else if (pop) {
-			stackPop();
+			StackPop();
 		} 
 		else if (pushAt) {
-			stackPushAt(stack);
+			StackPushAt(stack);
 		} 
 		else if (pushTop) {
-			stackPushTop(pushTop);
+			StackPushTop(pushTop);
 		} 
 		else if (getAt) {
-			alias = stackGetAt(getAt);
+			alias = StackGetAt(getAt);
 		} 
 		else if (getTop) {
-			alias = heap.getTop();
+			alias = heap.GetTop();
 		} 
 		else {
 			//unsupported stack command.
@@ -484,7 +484,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(tmpStr, address +1, len);
 		tmpStr[len] = '\0';
 		int a = atoi(tmpStr);
-		alias = heap.getAlias(a);
+		alias = heap.GetAlias(a);
 
 	} else if (address && isAdress) {
 		trimBothParanthesis(address);
@@ -492,7 +492,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(alias.type, "address", 7);
 		memcpy(alias.name, tmpStr, len);
 
-		int digits = heap.getAddress(tmpStr);
+		int digits = heap.GetAddress(tmpStr);
 		sprintf(alias.value, "%d", digits);
 
 		alias.len = strlen(alias.value);
@@ -505,7 +505,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 		int lenLhs = len - lenRhs - 1;
 		memcpy(tmpLhs, exp, lenLhs);
 		tmpLhs[lenLhs] = '\0';
-		Index_s indexType = heap.getStructIndex(tmpLhs);
+		Index_s indexType = heap.GetStructIndex(tmpLhs);
 
 		int len1 = strlen(tmpLhs);
 		int len2 = strlen(indexType.type);
@@ -517,14 +517,14 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(tmpStr + len2 + len1, dot, lendot);
 		tmpStr[len1 + len2 + lendot] = '\0';
 
-		alias = heap.getAlias(tmpStr);
+		alias = heap.GetAlias(tmpStr);
 
 	} else if (and && !dot && !isAdress) {
 		trimBothParanthesis(and);
 		len = strlen(and) - 1;
 		memcpy(tmpStr, and + 1, len);
 		tmpStr[len] = '\0';
-		alias = heap.getAlias(tmpStr);
+		alias = heap.GetAlias(tmpStr);
 
 	} else if (and && !dot && isAdress) {
 		trimBothParanthesis(and);
@@ -535,7 +535,7 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(alias.type, "address", 6);
 		memcpy(alias.name, tmpStr, alias.len);
 
-		int digits = heap.getAddress(tmpStr);
+		int digits = heap.GetAddress(tmpStr);
 		sprintf(alias.value, "%d", digits);
 	
 	} else if (and && dot && !isAdress) {
@@ -549,12 +549,12 @@ Alias_s Parser::parseKeywords(char *exp) {
 			memcpy(tmpLhs, dot, strlen(dot));
 		}
 
-		Index_s indexStruct = heap.getStructIndex(tmpLhs);
+		Index_s indexStruct = heap.GetStructIndex(tmpLhs);
 
 		//alias
 		memcpy(tmpRhs, and + 1, strlen(and));
 
-		Index_s indexAlias = heap.getStructIndex(tmpRhs);
+		Index_s indexAlias = heap.GetStructIndex(tmpRhs);
 
 		int a = indexStruct.startPos + indexAlias.startPos;
 		Index_s newIndex;
@@ -569,13 +569,13 @@ Alias_s Parser::parseKeywords(char *exp) {
 		memcpy(newIndex.type, indexAlias.type, lenType);
 		newIndex.type[lenType] = '\0';
 
-		bool isUpdated = heap.updateStructIndex(newIndex, newIndex.name);
+		bool isUpdated = heap.UpdateStructIndex(newIndex, newIndex.name);
 		
 		if (!isUpdated) {
-			heap.insertStructIndex(newIndex);
+			heap.InsertStructIndex(newIndex);
 		}
 
-		alias = heap.getAlias(newIndex.name);
+		alias = heap.GetAlias(newIndex.name);
 
 	} else if (strstr(exp, "\"") == NULL) {
 		trimBothParanthesis(exp);
@@ -605,15 +605,15 @@ Alias_s Parser::parseKeywords(char *exp) {
 	return alias;
 }
 
-void Parser::setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs) {
-	if (!global.strCmp(aliasRhs.type, "")) {
-		if (global.strCmp(aliasRhs.type, "int")) {
+void Parser::SetDatatype(Alias_s *aliasLhs, Alias_s aliasRhs) {
+	if (!global.StrCmp(aliasRhs.type, "")) {
+		if (global.StrCmp(aliasRhs.type, "int")) {
 			memcpy(aliasLhs->type, "int", 3);
 			aliasLhs->type[3] = '\0';
 			//aliasLhs->len = 0;
 
 			//updateAlias(aliasLhs);
-		} else if (global.strCmp(aliasRhs.type, "string")) {
+		} else if (global.StrCmp(aliasRhs.type, "string")) {
 			memcpy(aliasLhs->type, "string", 6);
 			aliasLhs->type[6] = '\0';
 			//aliasLhs->len = 0;
@@ -623,17 +623,17 @@ void Parser::setDatatype(Alias_s *aliasLhs, Alias_s aliasRhs) {
 	}
 }
 
-void Parser::setLength(Alias_s *aliasLhs, Alias_s aliasRhs) {
+void Parser::SetLength(Alias_s *aliasLhs, Alias_s aliasRhs) {
 	aliasLhs->len = aliasRhs.len;
-	updateAlias(aliasLhs);
+	UpdateAlias(aliasLhs);
 }
 
-void Parser::updateAlias(Alias_s *alias) {
-	int address = heap.getAddress(alias->name);
-	heap.insertAliasAt(address, *alias);
+void Parser::UpdateAlias(Alias_s *alias) {
+	int address = heap.GetAddress(alias->name);
+	heap.InsertAliasAt(address, *alias);
 }
 
-void Parser::parsePrint(char *expression, Parts_s *parts, int &len) {
+void Parser::ParsePrint(char *expression, Parts_s *parts, int &len) {
 	int lenParts = 0;
 	char part[OUTPUTSIZE];
 	int oldEndPoint = 0;
@@ -664,7 +664,7 @@ void Parser::parsePrint(char *expression, Parts_s *parts, int &len) {
 		memcpy(part, expression + oldEndPoint, lenPart);
 		part[lenPart] = '\0';
 
-		if (global.isTextString(part)) {
+		if (global.IsTextString(part)) {
 			parts[lenParts].type = 1;
 			trimText(part);
 		} else {

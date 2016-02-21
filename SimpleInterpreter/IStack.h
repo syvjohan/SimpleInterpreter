@@ -7,13 +7,13 @@ class IStack {
 		IStack() {};
 		virtual ~IStack() {};
 
-		virtual void createStack(size_t stackSize) = 0;
-		virtual void pushTop(Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
-		virtual void pushAt(int index, Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
-		virtual Alias_s getTop() = 0;
-		virtual Alias_s getAt(int index) = 0;
-		virtual void popTop() = 0;
-		virtual void pop() = 0;
+		virtual void CreateStack(size_t stackSize) = 0;
+		virtual void PushTop(Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
+		virtual void PushAt(int index, Alias_s alias) = 0; //returns 0 if not possible to insert value and 1 for success.
+		virtual Alias_s GetTop() = 0;
+		virtual Alias_s GetAt(int index) = 0;
+		virtual void PopTop() = 0;
+		virtual void Pop() = 0;
 
 		int GetStackSize() { return stackSize; };
 		void SetStackSize(int size) { stackSize = size; };
