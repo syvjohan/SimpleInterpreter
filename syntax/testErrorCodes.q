@@ -49,6 +49,42 @@ var = 12g4k5;*/
 /*CODE_3511*/
 /*:alias var : #32 = 9999999999;*/
 
+/*CODE_40*/
+/*:struct {
+	:alias var : offset(0);
+};*/
+
+/*CODE_41*/
+/*:struct testStruct 
+	:alias var : offset(0);
+};*/
+
+/*CODE_42*/
+/*:struct testStruct {
+	:alias var : offset(0);*/
+
+/*CODE_43*/
+/*:struct testStruct
+	:alias var : offset(0);*/
+
+/*CODE_50*/
+/*:subroutine {
+	:alias var : offset(0);
+};*/
+
+/*CODE_51*/
+/*:subroutine testSub 
+	:alias var : offset(0);
+};*/
+
+/*CODE_52*/
+/*:subroutine testSub {
+	:alias var : offset(0);*/
+
+/*CODE_53*/
+/*:subroutine testSub
+	:alias var : offset(0);*/
+
 /*CODE_66*/
 /*:alias var : #32 = "Hello";
 var = 12345;*/
@@ -60,7 +96,10 @@ var = 12345;*/
 /*12345 = ;*/
 
 /*CODE_90*/
-/*OK! Lexical.cpp ReadFile(const char*){}*/
+/*OK. Lexical.cpp ReadFile(const char*){}*/
+
+/*CODE_90*/
+/*:include("C:\Programmering\SimpleInterpreter\syntax\wrongPath.q");*/
 
 /*CODE_91*/
 /*OK*/

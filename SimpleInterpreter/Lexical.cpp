@@ -125,190 +125,221 @@ void Lexical::ExpandSubroutineSize(void) {
 
 //Makes it possible to call a subroutine that has been declared after it is called.
 void Lexical::RegisterAllSubroutines(void) {
+	bool insideComment = false;
 	int i = 0;
-	do {
-		char *findSub = strstr(code + i, ":subroutine");
-		if (findSub) {
-			char *findOpenBracket = strstr(findSub, "{");
-			char *findCloseBracket = strstr(findSub, "}");
-			//Open bracket missing.
-			if (findCloseBracket) {
-				if (findOpenBracket) {
-					if (findOpenBracket > findCloseBracket) {
+	while (code[i] != '\0') {
+		//Comments
+		if (code[i] == '/' && code[i + 1] == '*') {
+			insideComment = true;
+		} else if (code[i] == '*' && code[i + 1] == '/') {
+			insideComment = false;
+		}
+
+		if (!insideComment) {
+			if (code[i] == ':' && code[i +1] == 's' && code[i +2] == 'u' && code[i +3] == 'b' && code[i +4] == 'r' &&
+				code[i +5] == 'o' && code[i +6] == 'u' && code[i +7] == 't' && code[i +8] == 'i' &&
+				code[i + 9] == 'n' && code[i +10] == 'e') {
+				char *findSub = code + i +11;
+
+				char *findOpenBracket = strstr(findSub, "{");
+				char *findCloseBracket = strstr(findSub, "}");
+
+				//Close bracket missing.
+				char *findWrongOpenBracket = strstr(findOpenBracket +1, "{");
+				if (findWrongOpenBracket) {
+					if (findWrongOpenBracket < findCloseBracket) {
+						errorManager.ErrorCode(CODE_52);
+					}
+				}
+
+				//Open bracket missing.
+				if (findCloseBracket) {
+					if (findOpenBracket) {
+						if (findOpenBracket > findCloseBracket) {
+							errorManager.ErrorCode(CODE_51);
+						}
+					} else {
 						errorManager.ErrorCode(CODE_51);
 					}
 				} else {
-					errorManager.ErrorCode(CODE_51);
-				}
-			} else {
-				errorManager.ErrorCode(CODE_53);
-			}
-
-			if (findOpenBracket) {
-				int len = strlen(findSub) - strlen(findOpenBracket) - 11;
-				char name[NAMESIZE];
-				if (len > NAMESIZE) {
 					errorManager.ErrorCode(CODE_54);
 				}
-				memcpy(name, findSub + 11, len);
-				name[len] = '\0';
-				trimText(name);
-				trimWhitespaces(name);
-				if (name[0] == '\0') {
-					errorManager.ErrorCode(CODE_50);
-				}
 
-				char *ret = strstr(findSub, "};");
-				if (ret) {
-					CallableUnit_s subroutine;
-					subroutine.endPos = ret - code;
-					subroutine.startPos = findOpenBracket - code;
-					memcpy(subroutine.name, name, len);
-					subroutine.name[len] = '\0';
-
-					if (subroutinesLen == subroutinesMax) {
-						ExpandSubroutineSize();
+				if (findOpenBracket) {
+					int len = strlen(findSub) - strlen(findOpenBracket);
+					char name[NAMESIZE];
+					if (len > NAMESIZE) {
+						errorManager.ErrorCode(CODE_54);
+					}
+					memcpy(name, findSub, len);
+					name[len] = '\0';
+					trimText(name);
+					trimWhitespaces(name);
+					if (name[0] == '\0') {
+						errorManager.ErrorCode(CODE_50);
 					}
 
-					//Check if subroutine is inside struct.
-					for (int i = 0; i != structsLen; ++i) {
-						CallableUnit_s *s = &structs[i];
-						if (subroutine.startPos > s->startPos && subroutine.endPos < s->endPos) {
-							char tmpName[NAMESIZE];
-							len = strlen(subroutine.name);
-							memcpy(tmpName, subroutine.name, len);
-							int lenStructName = strlen(s->name);
-							memcpy(subroutine.name, s->name, lenStructName);
-							memcpy(subroutine.name + lenStructName, ".", 1);
-							memcpy(subroutine.name + lenStructName + 1, tmpName, len);
-							subroutine.name[len + lenStructName + 1] = '\0';
-							break;
+					char *ret = strstr(findSub, "};");
+					if (ret) {
+						CallableUnit_s subroutine;
+						subroutine.endPos = ret - code;
+						subroutine.startPos = findOpenBracket - code;
+						memcpy(subroutine.name, name, len);
+						subroutine.name[len] = '\0';
+
+						if (subroutinesLen == subroutinesMax) {
+							ExpandSubroutineSize();
 						}
+
+						//Check if subroutine is inside struct.
+						for (int i = 0; i != structsLen; ++i) {
+							CallableUnit_s *s = &structs[i];
+							if (subroutine.startPos > s->startPos && subroutine.endPos < s->endPos) {
+								char tmpName[NAMESIZE];
+								len = strlen(subroutine.name);
+								memcpy(tmpName, subroutine.name, len);
+								int lenStructName = strlen(s->name);
+								memcpy(subroutine.name, s->name, lenStructName);
+								memcpy(subroutine.name + lenStructName, ".", 1);
+								memcpy(subroutine.name + lenStructName + 1, tmpName, len);
+								subroutine.name[len + lenStructName + 1] = '\0';
+								break;
+							}
+						}
+
+						subroutines[subroutinesLen] = subroutine;
+						++subroutinesLen;
+
+						i = subroutine.endPos; //sets the program counter to a new value.
+					} else {
+						//Missing end of subroutine };.
+						errorManager.ErrorCode(CODE_52);
 					}
-
-					subroutines[subroutinesLen] = subroutine;
-					++subroutinesLen;
-
-					i = subroutine.endPos; //sets the program counter to a new value.
 				} else {
-					//Missing end of subroutine };.
-					errorManager.ErrorCode(CODE_52);
+					//Missing subroutine open bracket.
+					errorManager.ErrorCode(CODE_51);
 				}
-			} else {
-				//Missing subroutine open bracket.
-				errorManager.ErrorCode(CODE_51);
 			}
-		} else {
-			//No more subroutines to find end.
-			return;
 		}
-	} while (i < fileSize);
+		++i;
+	}
 }
 
 void Lexical::RegisterAllStructs() {
+	bool insideComment = false;
 	int i = 0;
-	do {
-		char *findStruct = strstr(code + i, ":struct");
-		if (findStruct) {
-			char *findOpenBracket = strstr(findStruct, "{");
-			char *findCloseBracket = strstr(findStruct, "};");
-			//Open bracket missing.
-			if (findCloseBracket) {
-				if (findOpenBracket) {
-					if (findOpenBracket > findCloseBracket) {
+	while (code[i] != '\0') {
+		//Comments
+		if (code[i] == '/' && code[i + 1] == '*') {
+			insideComment = true;
+		} else if (code[i] == '*' && code[i + 1] == '/') {
+			insideComment = false;
+		}
+
+		if (!insideComment) {
+			if (code[i] == ':' && code[i +1] == 's' && code[i +2] == 't' && code[i +3] == 'r' && code[i +4] == 'u' &&
+				code[i +5] == 'c' && code[i +6] == 't') {
+				char *findStruct = code + i + 7;
+
+				char *findOpenBracket = strstr(findStruct, "{");
+				char *findCloseBracket = strstr(findStruct, "};");
+
+				//Open bracket missing.
+				if (findCloseBracket) {
+					if (findOpenBracket) {
+						if (findOpenBracket > findCloseBracket) {
+							errorManager.ErrorCode(CODE_41);
+						}
+					} else {
 						errorManager.ErrorCode(CODE_41);
 					}
 				} else {
+					errorManager.ErrorCode(CODE_43);
+				}
+
+				if (findOpenBracket) {
+					int lenOpenBracket = strlen(findOpenBracket);
+					int lenName = strlen(findStruct) - lenOpenBracket;
+					char name[NAMESIZE];
+					if (lenName > NAMESIZE) {
+						errorManager.ErrorCode(CODE_44);
+					}
+					memcpy(name, findStruct, lenName);
+					name[lenName] = '\0';
+					trimText(name);
+					trimWhitespaces(name);
+					if (name[0] == '\0') {
+						errorManager.ErrorCode(CODE_40);
+					}
+
+					//count open brackets for ignore.
+					int indexOpen = 0;
+					int indexClose = 0;
+					int moveIndexTo = 0;
+					for (int i = 0; i != fileSize; ++i) {
+						if (findStruct[i] == '{') {
+							++indexOpen;
+						} else if (findStruct[i] == '}') {
+							++indexClose;
+							if (indexClose == indexOpen) {
+								moveIndexTo = i - 1;
+								break;
+							}
+						}
+					}
+
+					char *ret = strstr(findStruct + moveIndexTo, "};");
+					if (ret) {
+						//check if there has been a new open bracket before close bracket was found.
+						char *wrongOpenBracket = strstr(findStruct + moveIndexTo, "{");
+						if (wrongOpenBracket) {
+							if (ret > wrongOpenBracket) {
+								errorManager.ErrorCode(CODE_42);
+							}
+						}
+
+						CallableUnit_s newStruct;
+						newStruct.endPos = ret - code;
+						newStruct.startPos = findOpenBracket - code;
+						memcpy(newStruct.name, name, lenName);
+						newStruct.name[lenName] = '\0';
+
+						if (structsLen == structsMax) {
+							ExpandStructsSize();
+						}
+
+						structs[structsLen] = newStruct;
+						++structsLen;
+
+						i = newStruct.endPos; //sets the program counter to a new value.
+
+						//Get code inside struct.
+						int lenInsideStruct = lenOpenBracket - strlen(ret);
+						char *codeInsideStruct = DBG_NEW char[lenInsideStruct + 1];
+						memcpy(codeInsideStruct, findOpenBracket, lenInsideStruct);
+						codeInsideStruct[lenInsideStruct] = '\0';
+
+						memcpy(currentStructName, name, lenName);
+						isInitializingStructs = true;
+						EvalCodeInsideStruct(codeInsideStruct);
+
+						//Free memory
+						delete[] codeInsideStruct;
+						codeInsideStruct = NULL;
+
+						isInitializingStructs = false;
+					} else {
+						//Missing end of struct };.
+						errorManager.ErrorCode(CODE_42);
+					}
+				} else {
+					//Missing struct open bracket.
 					errorManager.ErrorCode(CODE_41);
 				}
-			} else {
-				errorManager.ErrorCode(CODE_43);
 			}
-
-			if (findOpenBracket) {
-				int lenOpenBracket = strlen(findOpenBracket);
-				int lenName = strlen(findStruct) - lenOpenBracket - 7;
-				char name[NAMESIZE];
-				if (lenName > NAMESIZE) {
-					errorManager.ErrorCode(CODE_44);
-				}
-				memcpy(name, findStruct + 7, lenName);
-				name[lenName] = '\0';
-				trimText(name);
-				trimWhitespaces(name);
-				if (name[0] == '\0') {
-					errorManager.ErrorCode(CODE_40);
-				}
-
-				//count open brackets for ignore.
-				int indexOpen = 0;
-				int indexClose = 0;
-				int moveIndexTo = 0;
-				for (int i = 0; i != fileSize; ++i) {
-					if (findStruct[i] == '{') {
-						++indexOpen;
-					} else if (findStruct[i] == '}') {
-						++indexClose;
-						if (indexClose == indexOpen) {
-							moveIndexTo = i - 1;
-							break;
-						}
-					}
-				}
-
-				char *ret = strstr(findStruct + moveIndexTo, "};");
-				if (ret) {
-					//check if there has been a new open bracket before close bracket was found.
-					char *wrongOpenBracket = strstr(findStruct + moveIndexTo, "{");
-					if (wrongOpenBracket) {
-						if (ret > wrongOpenBracket) {
-							errorManager.ErrorCode(CODE_42);
-						}
-					}
-
-					CallableUnit_s newStruct;
-					newStruct.endPos = ret - code;
-					newStruct.startPos = findOpenBracket - code;
-					memcpy(newStruct.name, name, lenName);
-					newStruct.name[lenName] = '\0';
-
-					if (structsLen == structsMax) {
-						ExpandStructsSize();
-					}
-
-					structs[structsLen] = newStruct;
-					++structsLen;
-
-					i = newStruct.endPos; //sets the program counter to a new value.
-
-					//Get code inside struct.
-					int lenInsideStruct = lenOpenBracket - strlen(ret);
-					char *codeInsideStruct = DBG_NEW char[lenInsideStruct + 1];
-					memcpy(codeInsideStruct, findOpenBracket, lenInsideStruct);
-					codeInsideStruct[lenInsideStruct] = '\0';
-
-					memcpy(currentStructName, name, lenName);
-					isInitializingStructs = true;
-					EvalCodeInsideStruct(codeInsideStruct);
-
-					//Free memory
-					delete[] codeInsideStruct;
-					codeInsideStruct = NULL;
-
-					isInitializingStructs = false;
-				} else {
-					//Missing end of struct };.
-					errorManager.ErrorCode(CODE_42);
-				}
-			} else {
-				//Missing struct open bracket.
-				errorManager.ErrorCode(CODE_41);
-			}
-		} else {
-			//No more struct to find end.
-			return;
 		}
-	} while (i < fileSize);
+		++i;
+	}
 }
 
 void Lexical::UpdateStructsIndexes() {
@@ -833,67 +864,80 @@ void Lexical::EvalIf() {
 }
 
 char* Lexical::RegisterAllIncludes() {
-	int i = 0;
+	bool insideComment = false;
 	bool isContinue = true;
 	const int lenInclude = 8;
 	int lenCode = fileSize;
-	do {
+	int i = 0;
+
+	while (code[i] != '\0' && isContinue) {
 		int offset = 0;
-		char *foundInclude = strstr(code, ":include");
-		int p = foundInclude - code;
 		int lenPath = 0;
-		if (foundInclude) {
-			const char *foundSemicolon = strstr(code + p, ";");
-			if (foundSemicolon) {
-				char path[INSTRUCTIONSIZE];
-				lenPath = foundSemicolon - foundInclude - lenInclude;
-				offset = lenInclude;
-				memcpy(path, foundInclude + offset, lenPath);
-				path[lenPath] = '\0';
-				offset += lenPath;
 
-				trimWhitespaces(path);
-				trimNewline(path);
-				trimBothParanthesis(path);
-				trimText(path);
-				char *extendedCode = ReadFile(path);
-				int lenExtended = strlen(extendedCode);
+		//Comments
+		if (code[i] == '/' && code[i + 1] == '*') {
+			insideComment = true;
+		} else if (code[i] == '*' && code[i + 1] == '/') {
+			insideComment = false;
+		}
 
-				char *codeBefore = DBG_NEW char[lenCode];
-				int lenCodeBefore = foundInclude - code;
-				memcpy(codeBefore, code, lenCodeBefore);
-				codeBefore[lenCodeBefore] = '\0';
+		if (!insideComment) {
+			if (code[i] == ':' && code[i + 1] == 'i' && code[i + 2] == 'n' && code[i + 3] == 'c' && code[i + 4] == 'l' &&
+				code[i + 5] == 'u' && code[i + 6] == 'd' && code[i + 7] == 'e') {
+				char *foundInclude = code + i + 8;
 
-				char *codeAfter = DBG_NEW char[lenCode];
-				offset += lenCodeBefore;
-				int lenCodeAfter = abs(lenCode - offset);
-				memcpy(codeAfter, code + offset, lenCodeAfter);
-				codeAfter[lenCodeAfter] = '\0';
+				const char *foundSemicolon = strstr(foundInclude, ";");
+				if (foundSemicolon) {
+					char path[INSTRUCTIONSIZE];
+					lenPath = foundSemicolon - foundInclude;
+					offset = lenInclude;
+					memcpy(path, foundInclude, lenPath);
+					path[lenPath] = '\0';
+					offset += lenPath;
 
-				delete code;
-				code = NULL;
-				code = DBG_NEW char[lenCode + lenExtended];
-				memcpy(code, codeBefore, lenCodeBefore);
-				offset = lenCodeBefore;
-				memcpy(code + offset, extendedCode, lenExtended);
-				offset += lenExtended;
-				memcpy(code + offset, codeAfter, lenCodeAfter);
-				lenCode = lenCodeAfter + lenCodeBefore + lenExtended;
-				code[lenCode] = '\0';
+					trimWhitespaces(path);
+					trimNewline(path);
+					trimBothParanthesis(path);
+					trimText(path);
+					char *extendedCode = ReadFile(path);
+					int lenExtended = strlen(extendedCode);
 
-				fileSize = lenCode;
+					char *codeBefore = DBG_NEW char[lenCode];
+					int lenCodeBefore = foundInclude - code - lenInclude;
+					memcpy(codeBefore, code, lenCodeBefore);
+					codeBefore[lenCodeBefore] = '\0';
 
-				delete[] codeAfter;
-				delete[] codeBefore;
+					char *codeAfter = DBG_NEW char[lenCode];
+					offset += lenCodeBefore;
+					int lenCodeAfter = abs(lenCode - offset);
+					memcpy(codeAfter, code + offset, lenCodeAfter);
+					codeAfter[lenCodeAfter] = '\0';
 
-				//register file indexes.
-				RegisterFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
+					delete code;
+					code = NULL;
+					code = DBG_NEW char[lenCode + lenExtended];
+					memcpy(code, codeBefore, lenCodeBefore);
+					offset = lenCodeBefore;
+					memcpy(code + offset, extendedCode, lenExtended);
+					offset += lenExtended;
+					memcpy(code + offset, codeAfter, lenCodeAfter);
+					lenCode = lenCodeAfter + lenCodeBefore + lenExtended;
+					code[lenCode] = '\0';
+
+					fileSize = lenCode;
+
+					delete[] codeAfter;
+					delete[] codeBefore;
+
+					//register file indexes.
+					RegisterFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
+				}
 			}
 		} else {
 			errorManager.SetRegisteredFiles(files, lenFiles);
-			return code;
 		}
-	} while (isContinue);
+		++i;
+	}
 	return code;
 }
 

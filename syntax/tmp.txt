@@ -1,39 +1,4 @@
-/*CODE_40*/
-:struct {
-	:alias var : offset(0);
-};
-
-/*CODE_41*/
-/*:struct testStruct 
-	:alias var : offset(0);
-};*/
-
-/*CODE_42*/
-/*:struct testStruct {
-	:alias var : offset(0);*/
-
-/*CODE_43*/
-/*:struct testStruct
-	:alias var : offset(0);*/
 
 
-/*CODE_50*/
-/*:subroutine {
-	:alias var : offset(0);
-};*/
 
-/*CODE_51*/
-/*:subroutine testSub 
-	:alias var : offset(0);
-};*/
 
-/*CODE_52*/
-/*:subroutine testSub {
-	:alias var : offset(0);*/
-
-/*CODE_53*/
-/*:subroutine testSub
-	:alias var : offset(0);*/
-
-/*CODE_90*/
-/*:include("C:\Programmering\SimpleInterpreter\syntax\wrongPath.q");*/

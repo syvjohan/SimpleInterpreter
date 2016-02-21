@@ -142,7 +142,7 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_36", "No code inserted");
 			break;
 		case CODE_40:
-			PrintMessage("CODE_40", "Struct: Struct name does not exist.");
+			PrintMessage("CODE_40", "Struct: Struct name missing.");
 			break;
 		case CODE_41:
 			PrintMessage("CODE_41", "Struct: Missing open bracket.");
@@ -154,7 +154,7 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_43", "Struct: Missing open and close brackets.");
 			break;
 		case CODE_44:
-			PrintMessage("CODE_44", "Struct: struct name length is maximum 50 characters, or there is no open bracket.");
+			PrintMessage("CODE_44", "Struct: struct name length is maximum 50 characters, or there is no open and close brackets.");
 			break;
 		case CODE_45:
 			PrintMessage("CODE_45", "No code inserted");
@@ -163,7 +163,7 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_46", "No code inserted");
 			break;
 		case CODE_50:
-			PrintMessage("CODE_50", "Subroutine: Subroutine name does not exist.");
+			PrintMessage("CODE_50", "Subroutine: Subroutine name missing.");
 			break;
 		case CODE_51:
 			PrintMessage("CODE_51", "Subroutine: Missing open bracket.");
@@ -172,10 +172,10 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_52", "Subroutine: Missing close bracket.");
 			break;
 		case CODE_53:
-			PrintMessage("CODE_53", "Subroutine: Missing open and close brackets.");
+			PrintMessage("CODE_53", "No code inserted");
 			break;
 		case CODE_54:
-			PrintMessage("CODE_54", "Subroutine: struct name length is maximum 50 characters, or there is no open bracket.");
+			PrintMessage("CODE_54", "Subroutine: struct name length is maximum 50 characters, or there is no open and close brackets.");
 			break;
 		case CODE_55:
 			PrintMessage("CODE_55", "No code inserted");
