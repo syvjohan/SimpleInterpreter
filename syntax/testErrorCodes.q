@@ -49,7 +49,18 @@ var = 12g4k5;*/
 /*CODE_3511*/
 /*:alias var : #32 = 9999999999;*/
 
+/*CODE_66*/
+/*:alias var : #32 = "Hello";
+var = 12345;*/
 
+/*CODE_71*/
+/* = 12345;*/
+
+/*CODE_72*/
+/*12345 = ;*/
+
+/*CODE_90*/
+/*OK! Lexical.cpp ReadFile(const char*){}*/
 
 /*CODE_91*/
 /*OK*/

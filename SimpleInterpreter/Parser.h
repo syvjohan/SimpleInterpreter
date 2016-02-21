@@ -48,6 +48,7 @@ class Parser {
 		Global global;
 
 		void UpdateAlias(Alias_s *alias);
+		int regularExpressionCallCounter = 0;
 
 		ErrorManager errorManager;
 };

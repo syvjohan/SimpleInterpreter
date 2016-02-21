@@ -163,6 +163,14 @@ char* Parser::RegularExpression(char *expression) {
 	int rhsLen = strlen(expression) - len;
 	memcpy(rhs, expression + len, rhsLen);
 	rhs[rhsLen] = '\0';
+
+	if (regularExpressionCallCounter == 0) {
+		if (op0.pos == 0) {
+			errorManager.ErrorCode(CODE_71);
+		} else if (op0.pos == len - 1 && rhsLen == 0) {
+			errorManager.ErrorCode(CODE_72);
+		}
+	}
 	
 	if (len > 0) {
 		char *res;
@@ -195,10 +203,12 @@ char* Parser::RegularExpression(char *expression) {
 		memcpy(tmpStr, str, len);
 		tmpStr[len] = '\0';
 
+		++regularExpressionCallCounter;
 		RegularExpression(tmpStr);
 
 		return tmpStr;
 	}
+	regularExpressionCallCounter = 0;
 	return "";
 }
 
@@ -232,8 +242,12 @@ char* Parser::CalculateResult(char *exp) {
 	Alias_s aliasRhs = ParseKeywords(rhs);
 	
 	if (op0.op[0] == '=' && op0.op[1] != '=') {
-		SetDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
-		SetLength(&aliasLhs, aliasRhs); //Change type in parameter 1.
+		if (lhs[0] == '&') {
+			SetDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
+			SetLength(&aliasLhs, aliasRhs); //Change type in parameter 1.
+		} else {
+			errorManager.ErrorCode(CODE_66);
+		}
 	}
 
 	//do calculation

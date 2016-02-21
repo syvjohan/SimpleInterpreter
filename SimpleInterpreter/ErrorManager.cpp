@@ -205,7 +205,7 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_66", "Expression: Lhs need to be a modifiable value(&);");
 			break;
 		case CODE_70:
-			PrintMessage("CODE_70", "Expression: Address can only contain digits and need to start with #");
+			PrintMessage("CODE_70", "No code inserted");
 			break;
 		case CODE_71:
 			PrintMessage("CODE_71", "Expression: Lhs is undefined.");
@@ -256,22 +256,22 @@ void ErrorManager::ErrorCode(ERRORCODES errorCode) {
 			PrintMessage("CODE_100", "Compare: Cannot compare digits and string");
 			break;
 		case CODE_101:
-			PrintMessage("CODE_73", "No code inserted");
+			PrintMessage("CODE_101", "No code inserted");
 			break;
 		case CODE_102:
-			PrintMessage("CODE_73", "No code inserted");
+			PrintMessage("CODE_102", "No code inserted");
 			break;
 		case CODE_103:
-			PrintMessage("CODE_73", "No code inserted");
+			PrintMessage("CODE_103", "No code inserted");
 			break;
 		case CODE_104:
-			PrintMessage("CODE_73", "No code inserted");
+			PrintMessage("CODE_104", "No code inserted");
 			break;
 		case CODE_105:
-			PrintMessage("CODE_73", "No code inserted");
+			PrintMessage("CODE_105", "No code inserted");
 			break;
 		case CODE_106:
-			PrintMessage("CODE_73", "No code inserted");
+			PrintMessage("CODE_106", "No code inserted");
 			break;
 	}
 }
