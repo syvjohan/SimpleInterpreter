@@ -1,6 +1,9 @@
 #include "Parser.h"
 #include "Trim.h"
 #include "ErrorCodes.h"
+#include "ErrorManager.h"
+#include "HelpClass.h"
+#include "HelpStructs.h"
 
 #include <cassert>
 #include <stdio.h>
@@ -36,7 +39,7 @@ void Parser::StackPushAt(char *cStr) {
 
 		char *resLhs = RegularExpression(tmpLhs);
 		int index;
-		if (global.CheckForDigits(resLhs) == 1) {
+		if (HelpClass::CheckForDigits(resLhs) == 1) {
 			index = atoi(resLhs);
 		}
 
@@ -52,7 +55,7 @@ void Parser::StackPushAt(char *cStr) {
 			alias.type[len] = '\0';
 			alias.len = len;
 
-		} else if (global.CheckForDigits(resRhs) == 1 && identifyType == NULL) {
+		} else if (HelpClass::CheckForDigits(resRhs) == 1 && identifyType == NULL) {
 			memcpy(alias.type, "int", 3);
 			alias.type[3] = '\0';
 			alias.len = len;
@@ -79,18 +82,16 @@ void Parser::StackPushTop(char *cStr) {
 	len = strlen(res);
 
 	Alias_s alias;
-	if (/*global.checkForAlpha(res) == 1 && */identifyType) {
+	if (identifyType) {
 		memcpy(alias.type, "string", 6);
 		alias.type[6] = '\0';
 
 		alias.len = len;
-	} else if (global.CheckForDigits(res) == 1 && identifyType == NULL) {
+	} else if (HelpClass::CheckForDigits(res) == 1 && identifyType == NULL) {
 		memcpy(alias.type, "int", 3);
 		alias.type[3] = '\0';
 
 		alias.len = len;
-	} else {
-		//Syntax is wrong, DO CRASH!!
 	}
 	memcpy(alias.name, "\0", 1);
 	memcpy(alias.value, res, alias.len);
@@ -99,7 +100,7 @@ void Parser::StackPushTop(char *cStr) {
 	heap.PushTop(alias);
 }
 
-Alias_s Parser::StackGetAt(char *cStr) {
+Alias_s Parser::StackGetAt(const char *cStr) {
 	int len = strlen(cStr) - 5;
 	memcpy(tmpStr, cStr + 5, len);
 	tmpStr[len] = '\0';
@@ -107,12 +108,11 @@ Alias_s Parser::StackGetAt(char *cStr) {
 	char *identifyType = strstr(tmpStr, "\"");
 	
 	Alias_s alias = { NULL, NULL, NULL, 0 };
-	if (global.CheckForDigits(tmpStr) == 1 && identifyType == NULL) {
+	if (HelpClass::CheckForDigits(tmpStr) == 1 && identifyType == NULL) {
 		int val = atoi(tmpStr);
 		alias = heap.GetAt(val);
-	} else {
-		//Syntax wrong expression need to be a valid integer, DO CRASH!!
 	}
+
 	return alias;
 }
 
@@ -128,7 +128,7 @@ char* Parser::RegularExpression(char *expression) {
 	char rhs[INSTRUCTIONSIZE];
 
 	//If there is no operators return expression(end condition).
-	Operator_s op0 = global.FindOperator(expression, 0);
+	Operator_s op0 = HelpClass::FindOperator(expression, 0);
 	if (op0.pos == -1) {
 		Alias_s a;
 		//Is it a stack call?
@@ -141,11 +141,11 @@ char* Parser::RegularExpression(char *expression) {
 	}
 
 	//Negative number.
-	if (global.IsNegativeNumber(expression)) {
+	if (HelpClass::IsNegativeNumber(expression)) {
 		return expression;
 	}
 
-	Operator_s op1 = global.FindOperator(expression, op0.pos + 1);
+	Operator_s op1 = HelpClass::FindOperator(expression, op0.pos + 1);
 	if (op1.pos != -1) {
 
 		//Negative number.
@@ -166,9 +166,9 @@ char* Parser::RegularExpression(char *expression) {
 
 	if (regularExpressionCallCounter == 0) {
 		if (op0.pos == 0) {
-			errorManager.ErrorCode(CODE_71);
+			ErrorManager::ErrorCode(CODE_71);
 		} else if (op0.pos == len - 1 && rhsLen == 0) {
-			errorManager.ErrorCode(CODE_72);
+			ErrorManager::ErrorCode(CODE_72);
 		}
 	}
 	
@@ -194,7 +194,7 @@ char* Parser::RegularExpression(char *expression) {
 		}
 
 		//Negative number.
-		if (global.IsNegativeNumber(str)) {
+		if (HelpClass::IsNegativeNumber(str)) {
 			return str;
 		}
 
@@ -212,15 +212,13 @@ char* Parser::RegularExpression(char *expression) {
 	return "";
 }
 
-char* Parser::CalculateResult(char *exp) {
+char* Parser::CalculateResult(const char *exp) {
 	tmpStr[0] = '\0'; //reseting...
 
-	Operator_s op0 = global.FindOperator(exp, 0);
+	Operator_s op0 = HelpClass::FindOperator(exp, 0);
 
 	char lhs[INSTRUCTIONSIZE];
 	char rhs[INSTRUCTIONSIZE];
-
-	assert(op0.pos > -1, "RegularExpression has failed with the parsing!");
 	
 	int rhsLen = strlen(exp) - op0.pos;
 	if (op0.len == 1) {
@@ -246,43 +244,43 @@ char* Parser::CalculateResult(char *exp) {
 			SetDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
 			SetLength(&aliasLhs, aliasRhs); //Change type in parameter 1.
 		} else {
-			errorManager.ErrorCode(CODE_66);
+			ErrorManager::ErrorCode(CODE_66);
 		}
 	}
 
 	//do calculation
 	//Both are digits
-	if (global.StrCmp(aliasLhs.type, "int") && global.StrCmp(aliasRhs.type, "int")) {
-		if (global.StrCmp(op0.op, "+")) {
+	if (HelpClass::StrCmp(aliasLhs.type, "int") && HelpClass::StrCmp(aliasRhs.type, "int")) {
+		if (HelpClass::StrCmp(op0.op, "+")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) + atoi(aliasRhs.value));
-		} else if (global.StrCmp(op0.op, "-")) {
+		} else if (HelpClass::StrCmp(op0.op, "-")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) - atoi(aliasRhs.value));
-		} else if (global.StrCmp(op0.op, "*")) {
+		} else if (HelpClass::StrCmp(op0.op, "*")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) * atoi(aliasRhs.value));
-		} else if (global.StrCmp(op0.op, "/")) {
+		} else if (HelpClass::StrCmp(op0.op, "/")) {
 				sprintf(tmpStr, "%d", atoi(aliasLhs.value) / atoi(aliasRhs.value));
 				int v = atoi(tmpStr);
 				if (v < 0) {
 					tmpStr[0] = '0';
 					tmpStr[1] = '\0'; 
 				}
-		} else if (global.StrCmp(op0.op, "==")) {
-			if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
+		} else if (HelpClass::StrCmp(op0.op, "==")) {
+			if (HelpClass::StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				} else {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-		} else if (global.StrCmp(op0.op, "!=")) {
-			if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
+		} else if (HelpClass::StrCmp(op0.op, "!=")) {
+			if (HelpClass::StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				} else {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				}
-		} else if (global.StrCmp(op0.op, "<")) {
+		} else if (HelpClass::StrCmp(op0.op, "<")) {
 				int l = atoi(aliasLhs.value);
 				int r = atoi(aliasRhs.value);
 				if (l < r) {
@@ -292,7 +290,7 @@ char* Parser::CalculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-		} else if (global.StrCmp(op0.op, ">")) {
+		} else if (HelpClass::StrCmp(op0.op, ">")) {
 				int l = atoi(aliasLhs.value);
 				int r = atoi(aliasRhs.value);
 				if (l < r) {
@@ -302,9 +300,9 @@ char* Parser::CalculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-		} else if (global.StrCmp(op0.op, "=")) {
-			if (global.CheckForAlpha(aliasRhs.value) == -1 && global.CheckForDigits(aliasRhs.value) == -1) {
-				errorManager.ErrorCode(CODE_3510);
+		} else if (HelpClass::StrCmp(op0.op, "=")) {
+			if (HelpClass::CheckForAlpha(aliasRhs.value) == -1 && HelpClass::CheckForDigits(aliasRhs.value) == -1) {
+				ErrorManager::ErrorCode(CODE_3510);
 			}
 
 			int len = strlen(aliasRhs.value);
@@ -349,32 +347,32 @@ char* Parser::CalculateResult(char *exp) {
 			}
 		}
 		//Both are text strings.
-	else if (global.StrCmp(aliasLhs.type, "string") && global.StrCmp(aliasRhs.type, "string")) {
-		if (global.StrCmp(op0.op, "+")) {
+	else if (HelpClass::StrCmp(aliasLhs.type, "string") && HelpClass::StrCmp(aliasRhs.type, "string")) {
+		if (HelpClass::StrCmp(op0.op, "+")) {
 				return strcat(aliasLhs.value, aliasRhs.value);
-		} else if (global.StrCmp(op0.op, "-")) {
+		} else if (HelpClass::StrCmp(op0.op, "-")) {
 				//Wrong syntax do CRASH!!!
-		} else if (global.StrCmp(op0.op, "*")) {
+		} else if (HelpClass::StrCmp(op0.op, "*")) {
 				//Wrong syntax do CRASH!!!
-		} else if (global.StrCmp(op0.op, "/")) {
+		} else if (HelpClass::StrCmp(op0.op, "/")) {
 				//Wrong syntax do CRASH!!!
-			} else if (global.StrCmp(op0.op, "==")) {
-				if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
+		} else if (HelpClass::StrCmp(op0.op, "==")) {
+			if (HelpClass::StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				} else {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-			} else if (global.StrCmp(op0.op, "!=")) {
-				if (global.StrCmp(aliasLhs.value, aliasRhs.value)) {
+		} else if (HelpClass::StrCmp(op0.op, "!=")) {
+			if (HelpClass::StrCmp(aliasLhs.value, aliasRhs.value)) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				} else {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
 				}
-			} else if (global.StrCmp(op0.op, "<")) {
+		} else if (HelpClass::StrCmp(op0.op, "<")) {
 				if (aliasLhs.len < aliasRhs.len) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
@@ -382,7 +380,7 @@ char* Parser::CalculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-			} else if (global.StrCmp(op0.op, ">")) {
+		} else if (HelpClass::StrCmp(op0.op, ">")) {
 				if (aliasLhs.len > aliasRhs.len) {
 					memcpy(tmpStr, "true", 4);
 					tmpStr[4] = '\0';
@@ -390,7 +388,7 @@ char* Parser::CalculateResult(char *exp) {
 					memcpy(tmpStr, "false", 5);
 					tmpStr[5] = '\0';
 				}
-			} else if (global.StrCmp(op0.op, "=")) {
+		} else if (HelpClass::StrCmp(op0.op, "=")) {
 				memcpy(&aliasLhs.value, &aliasRhs.value, strlen(aliasRhs.value));
 				aliasLhs.len = aliasRhs.len;
 				int a = heap.GetAddress(aliasLhs.name);
@@ -611,28 +609,20 @@ Alias_s Parser::ParseKeywords(char *exp) {
 
 		memcpy(alias.type, "string", 6);
 		alias.type[6] = '\0';
-
-	} else {
-		//Syntax for expression is wrong DO CRASH!!
 	}
 
 	return alias;
 }
 
 void Parser::SetDatatype(Alias_s *aliasLhs, Alias_s aliasRhs) {
-	if (!global.StrCmp(aliasRhs.type, "")) {
-		if (global.StrCmp(aliasRhs.type, "int")) {
+	if (!HelpClass::StrCmp(aliasRhs.type, "")) {
+		if (HelpClass::StrCmp(aliasRhs.type, "int")) {
 			memcpy(aliasLhs->type, "int", 3);
 			aliasLhs->type[3] = '\0';
-			//aliasLhs->len = 0;
 
-			//updateAlias(aliasLhs);
-		} else if (global.StrCmp(aliasRhs.type, "string")) {
+		} else if (HelpClass::StrCmp(aliasRhs.type, "string")) {
 			memcpy(aliasLhs->type, "string", 6);
 			aliasLhs->type[6] = '\0';
-			//aliasLhs->len = 0;
-
-			//updateAlias(aliasLhs);
 		}
 	}
 }
@@ -678,7 +668,7 @@ void Parser::ParsePrint(char *expression, Parts_s *parts, int &len) {
 		memcpy(part, expression + oldEndPoint, lenPart);
 		part[lenPart] = '\0';
 
-		if (global.IsTextString(part)) {
+		if (HelpClass::IsTextString(part)) {
 			parts[lenParts].type = 1;
 			trimText(part);
 		} else {

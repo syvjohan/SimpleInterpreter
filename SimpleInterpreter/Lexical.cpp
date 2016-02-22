@@ -2,6 +2,9 @@
 #include "Trim.h"
 #include "ErrorCodes.h"
 #include "memoryLeak.h"
+#include "ErrorManager.h"
+#include "HelpClass.h"
+#include "HelpStructs.h"
 
 #include <iostream>
 #include <errno.h>
@@ -148,7 +151,7 @@ void Lexical::RegisterAllSubroutines(void) {
 				char *findWrongOpenBracket = strstr(findOpenBracket +1, "{");
 				if (findWrongOpenBracket) {
 					if (findWrongOpenBracket < findCloseBracket) {
-						errorManager.ErrorCode(CODE_52);
+						ErrorManager::ErrorCode(CODE_52);
 					}
 				}
 
@@ -156,27 +159,27 @@ void Lexical::RegisterAllSubroutines(void) {
 				if (findCloseBracket) {
 					if (findOpenBracket) {
 						if (findOpenBracket > findCloseBracket) {
-							errorManager.ErrorCode(CODE_51);
+							ErrorManager::ErrorCode(CODE_51);
 						}
 					} else {
-						errorManager.ErrorCode(CODE_51);
+						ErrorManager::ErrorCode(CODE_51);
 					}
 				} else {
-					errorManager.ErrorCode(CODE_54);
+					ErrorManager::ErrorCode(CODE_54);
 				}
 
 				if (findOpenBracket) {
 					int len = strlen(findSub) - strlen(findOpenBracket);
 					char name[NAMESIZE];
 					if (len > NAMESIZE) {
-						errorManager.ErrorCode(CODE_54);
+						ErrorManager::ErrorCode(CODE_54);
 					}
 					memcpy(name, findSub, len);
 					name[len] = '\0';
 					trimText(name);
 					trimWhitespaces(name);
 					if (name[0] == '\0') {
-						errorManager.ErrorCode(CODE_50);
+						ErrorManager::ErrorCode(CODE_50);
 					}
 
 					char *ret = strstr(findSub, "};");
@@ -213,11 +216,11 @@ void Lexical::RegisterAllSubroutines(void) {
 						i = subroutine.endPos; //sets the program counter to a new value.
 					} else {
 						//Missing end of subroutine };.
-						errorManager.ErrorCode(CODE_52);
+						ErrorManager::ErrorCode(CODE_52);
 					}
 				} else {
 					//Missing subroutine open bracket.
-					errorManager.ErrorCode(CODE_51);
+					ErrorManager::ErrorCode(CODE_51);
 				}
 			}
 		}
@@ -248,13 +251,13 @@ void Lexical::RegisterAllStructs() {
 				if (findCloseBracket) {
 					if (findOpenBracket) {
 						if (findOpenBracket > findCloseBracket) {
-							errorManager.ErrorCode(CODE_41);
+							ErrorManager::ErrorCode(CODE_41);
 						}
 					} else {
-						errorManager.ErrorCode(CODE_41);
+						ErrorManager::ErrorCode(CODE_41);
 					}
 				} else {
-					errorManager.ErrorCode(CODE_43);
+					ErrorManager::ErrorCode(CODE_43);
 				}
 
 				if (findOpenBracket) {
@@ -262,14 +265,14 @@ void Lexical::RegisterAllStructs() {
 					int lenName = strlen(findStruct) - lenOpenBracket;
 					char name[NAMESIZE];
 					if (lenName > NAMESIZE) {
-						errorManager.ErrorCode(CODE_44);
+						ErrorManager::ErrorCode(CODE_44);
 					}
 					memcpy(name, findStruct, lenName);
 					name[lenName] = '\0';
 					trimText(name);
 					trimWhitespaces(name);
 					if (name[0] == '\0') {
-						errorManager.ErrorCode(CODE_40);
+						ErrorManager::ErrorCode(CODE_40);
 					}
 
 					//count open brackets for ignore.
@@ -294,7 +297,7 @@ void Lexical::RegisterAllStructs() {
 						char *wrongOpenBracket = strstr(findStruct + moveIndexTo, "{");
 						if (wrongOpenBracket) {
 							if (ret > wrongOpenBracket) {
-								errorManager.ErrorCode(CODE_42);
+								ErrorManager::ErrorCode(CODE_42);
 							}
 						}
 
@@ -330,11 +333,11 @@ void Lexical::RegisterAllStructs() {
 						isInitializingStructs = false;
 					} else {
 						//Missing end of struct };.
-						errorManager.ErrorCode(CODE_42);
+						ErrorManager::ErrorCode(CODE_42);
 					}
 				} else {
 					//Missing struct open bracket.
-					errorManager.ErrorCode(CODE_41);
+					ErrorManager::ErrorCode(CODE_41);
 				}
 			}
 		}
@@ -352,7 +355,7 @@ void Lexical::UpdateSubroutinesIndexes() {
 	RegisterAllSubroutines();
 }
 
-void Lexical::TypedefSubroutines(char *searchName, char *extendName) {
+void Lexical::TypedefSubroutines(char *searchName, const char *extendName) {
 	char str[NAMESIZE];
 	int len1 = 0;
 	int len2 = 0;
@@ -379,7 +382,7 @@ void Lexical::TypedefSubroutines(char *searchName, char *extendName) {
 	}
 }
 
-void Lexical::TypedefSubroutinesMembers(char *searchName, char *extendName) {
+void Lexical::TypedefSubroutinesMembers(char *searchName, const char *extendName) {
 	char buffer[2048];
 	char instruction[INSTRUCTIONSIZE];
 	char newSearchName[NAMESIZE];
@@ -404,7 +407,7 @@ void Lexical::TypedefSubroutinesMembers(char *searchName, char *extendName) {
 				lenInstructions = strlen(buffer);
 				while (position <= lenInstructions) {
 
-					op = global.FindOperator(buffer, position);
+					op = HelpClass::FindOperator(buffer, position);
 					if (op.pos == -1) {
 						len = lenInstructions - position;
 					} else {
@@ -478,15 +481,15 @@ void Lexical::EvalAlias() {
 
 	if (!sep1) {
 		//Syntax error.
-		errorManager.ErrorCode(CODE_34);
+		ErrorManager::ErrorCode(CODE_34);
 	}
 
 	int lenName = len - strlen(sep1);
 	memcpy(alias.name, expression, lenName);
 	alias.name[lenName] = '\0';
-	if (global.CheckAliasNameConversion(alias.name) == -1) {
+	if (HelpClass::CheckAliasNameConversion(alias.name) == -1) {
 		//Wrong name conversion.
-		errorManager.ErrorCode(CODE_31);
+		ErrorManager::ErrorCode(CODE_31);
 	}
 
 	if (sep2) {
@@ -543,7 +546,7 @@ void Lexical::EvalAlias() {
 
 				//create a index for struct head pointer.
 				if (indexes[i].startPos == 0) {
-					global.FindSubStrRev(tmp, index.name, ".");
+					HelpClass::FindSubStrRev(tmp, index.name, ".");
 					lenDot = strlen(tmp) - 1;
 					memcpy(index.name, tmp, lenDot);
 					index.name[lenDot] = '\0';
@@ -562,7 +565,7 @@ void Lexical::EvalAlias() {
 
 	} else if (sep2) {
 		if (!sep3) {
-			errorManager.ErrorCode(CODE_35);
+			ErrorManager::ErrorCode(CODE_35);
 		}
 		//With definition.
 		//check datatype and get val.
@@ -585,8 +588,8 @@ void Lexical::EvalAlias() {
 			memcpy(alias.type, val, len);
 			alias.type[len] = '\0';
 
-			if (global.CheckForDigits(val) == -1) {
-				if (global.CheckForAlpha(val) == 1) {
+			if (HelpClass::CheckForDigits(val) == -1) {
+				if (HelpClass::CheckForAlpha(val) == 1) {
 					Index_s index = { NULL, NULL, 0, 0 };
 					//Not checking if struct exist. Checking and mapping is carried out when user assign a value.
 					index.len = 0;
@@ -600,7 +603,7 @@ void Lexical::EvalAlias() {
 					bool isHit = false;
 					for (int i = 0; i != structsLen; ++i) {
 						CallableUnit_s *s = &structs[i];
-						if (global.StrCmp(s->name, index.type)) {
+						if (HelpClass::StrCmp(s->name, index.type)) {
 							//typedef struct members
 							parser.heap.TypedefStructMembers(index.type, index.name);
 							//typedef subroutines.
@@ -610,7 +613,7 @@ void Lexical::EvalAlias() {
 						}
 					}
 					if (!isHit) {
-						errorManager.ErrorCode(CODE_3510);
+						ErrorManager::ErrorCode(CODE_3510);
 					}
 				}
 			} else {
@@ -625,13 +628,13 @@ void Lexical::EvalAlias() {
 		alias.len = 0;
 
 		if (!sep3 && !offset && !isInitializingStructs) {
-			errorManager.ErrorCode(CODE_35);
+			ErrorManager::ErrorCode(CODE_35);
 		}
 	}
 
 	//alias name need to contain at least one letter.
 	if (alias.name[0] == '\0') {
-		errorManager.ErrorCode(CODE_31);
+		ErrorManager::ErrorCode(CODE_31);
 	}
 
 	char *parserVal = val;
@@ -645,18 +648,18 @@ void Lexical::EvalAlias() {
 			alias.len = len;
 
 			//identify type.
-			if (global.CheckForDigits(parserVal) == 1) {
+			if (HelpClass::CheckForDigits(parserVal) == 1) {
 				memcpy(alias.type, "int", 3);
 				alias.type[3] = '\0';
-			} else if (global.CheckForAlpha(parserVal) == 1) {
+			} else if (HelpClass::CheckForAlpha(parserVal) == 1) {
 				memcpy(alias.type, "string", 6);
 				alias.type[6] = '\0';
-			} else if (global.IsNegativeNumber(parserVal)) {
+			} else if (HelpClass::IsNegativeNumber(parserVal)) {
 				//Negative number.
 				memcpy(alias.type, "int", 3);
 				alias.type[3] = '\0';
 			} else {
-				errorManager.ErrorCode(CODE_3510);
+				ErrorManager::ErrorCode(CODE_3510);
 			}
 		}
 	} else {
@@ -666,8 +669,8 @@ void Lexical::EvalAlias() {
 	}
 
 	//Insert.
-	if (!offset && !isInitializingStructs && global.CheckForDigits(address) == -1) {
-		errorManager.ErrorCode(CODE_35);
+	if (!offset && !isInitializingStructs && HelpClass::CheckForDigits(address) == -1) {
+		ErrorManager::ErrorCode(CODE_35);
 	}
 
 	int i = atoi(address);
@@ -689,7 +692,7 @@ void Lexical::EvalDo() {
 
 	if (newLoop.start == -1) {
 		//Wrong syntax missing open bracket.
-		errorManager.ErrorCode(CODE_56);
+		ErrorManager::ErrorCode(CODE_56);
 	}
 
 	newLoop.stop = -1;
@@ -701,7 +704,7 @@ void Lexical::EvalDo() {
 void Lexical::EvalWhile() {
 	//type = 1 do while, type = 0 while.
 	char *res = parser.RegularExpression(expression);
-	if (global.StrCmp(res, "true")) {
+	if (HelpClass::StrCmp(res, "true")) {
 		//do while loop.
 		if (loop[loopLen].end == -1 && loop[loopLen].type == 1) {
 			Loop_s *l = &loop[loopLen];
@@ -752,7 +755,7 @@ void Lexical::EvalWhile() {
 			++loopLen;
 		}
 		//TODO stop är 1 behöver nollställas!
-	} else if (global.StrCmp(res, "false")) {
+	} else if (HelpClass::StrCmp(res, "false")) {
 		if (loopLen == 1) {
 			loop[loopLen].stop = 1; //stopping outer loop and continue to read.
 			//--loopLen;
@@ -762,12 +765,12 @@ void Lexical::EvalWhile() {
 	}
 }
 
-void Lexical::EvalCall(int len) {
+void Lexical::EvalCall(const int len) {
 	int found = 0;
 	int i;
 	for (i = 0; i != subroutinesLen; ++i) {
 		CallableUnit_s *s = &subroutines[i];
-		if (global.StrCmp(s->name, expression)) {
+		if (HelpClass::StrCmp(s->name, expression)) {
 			++callsLen;
 			calls[callsLen].pos = index - len;
 			int len = strlen(s->name);
@@ -854,9 +857,9 @@ void Lexical::EvalIf() {
 
 	char *res = parser.RegularExpression(expression);
 
-	if (global.StrCmp(res, "true")) {
+	if (HelpClass::StrCmp(res, "true")) {
 		cmpResult = 1;
-	} else if (global.StrCmp(res, "false")) {
+	} else if (HelpClass::StrCmp(res, "false")) {
 		cmpResult = 0;
 	} else {
 		//Something went completly wrong, DO CRASH!!!
@@ -934,16 +937,16 @@ char* Lexical::RegisterAllIncludes() {
 				}
 			}
 		} else {
-			errorManager.SetRegisteredFiles(files, lenFiles);
+			ErrorManager::SetRegisteredFiles(files, lenFiles);
 		}
 		++i;
 	}
 	return code;
 }
 
-void Lexical::RegisterFile(int start, int end, char *name) {
+void Lexical::RegisterFile(const int start, const int end, const char *name) {
 	if (lenFiles >= MAXINCLUDEDFILES) {
-		errorManager.ErrorCode(CODE_91);
+		ErrorManager::ErrorCode(CODE_91);
 	} else {
 		File_s file;
 		file.startPos = start + 1;
@@ -994,10 +997,6 @@ void Lexical::EvalCodeInsideStruct(char *structCode) {
 }
 
 void Lexical::EvalExpressionWithoutKeyword() {
-	char tmpLhs[INSTRUCTIONSIZE];
-	char tmpRhs[INSTRUCTIONSIZE];
-	char tmpStr[INSTRUCTIONSIZE];
-
 	char *eq = strstr(expression, "=");
 	if (eq) {
 		char *res = parser.RegularExpression(expression);
@@ -1031,7 +1030,6 @@ void Lexical::EvalExpressionWithoutKeyword() {
 
 void Lexical::SplitInstruction(char *instruction) {
 	char tmp[INSTRUCTIONSIZE];
-	char tmp2[INSTRUCTIONSIZE];
 	int isKeywordMissing = 1;
 	int len = 0;
 
@@ -1190,7 +1188,7 @@ void Lexical::GetInstructions() {
 	while (code[index] != '\0') {
 		//newline
 		if (code[index] == '\n') {
-			errorManager.AddLine(index);
+			ErrorManager::AddLine(index);
 		}
 
 		//Comments
@@ -1220,7 +1218,7 @@ void Lexical::GetInstructions() {
 		if (index == currentSubroutine.endPos) {
 			for (int i = 0; i != subroutinesLen; ++i) {
 				currentSubroutine = subroutines[i];
-				if (global.StrCmp(currentSubroutine.name, calls[callsLen].name)) {
+				if (HelpClass::StrCmp(currentSubroutine.name, calls[callsLen].name)) {
 					index = calls[callsLen].pos;
 					--callsLen;
 
@@ -1246,7 +1244,7 @@ void Lexical::GetInstructions() {
 					memcpy(instruction, code + startIndex, instructionLen);
 					instruction[instructionLen] = '\0';
 					startIndex = endIndex + 1;
-					errorManager.SetInstruction(instruction, index);
+					ErrorManager::SetInstruction(instruction, index);
 					SplitInstruction(instruction);
 				}
 			}

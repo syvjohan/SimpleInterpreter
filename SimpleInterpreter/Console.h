@@ -1,30 +1,34 @@
 #pragma once
 
-#include <iostream>
-#include <stdexcept>
 #include <windows.h>
+#include <cassert>
 
-static void SetConsoleSize(int x, int y) {
+static void SetConsoleSize() {
 	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTitle("Interpreter for Programming language Q");
 
+	CONSOLE_SCREEN_BUFFER_INFO sbInfo;
+	GetConsoleScreenBufferInfo(hStdOut, &sbInfo);
+
 	COORD coordinates;
-	coordinates.X = x;
-	coordinates.Y = y;
+	coordinates.X = 80;
+	coordinates.Y = 5000;
 
 	SMALL_RECT windowRect;
 	windowRect.Top = 0;
 	windowRect.Left = 0;
-	windowRect.Bottom = x - 1;
-	windowRect.Right = y - 1;
+	windowRect.Bottom = 48;
+	windowRect.Right = 79;
 
-	// Adjust buffer size:
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (!SetConsoleScreenBufferSize(handle, coordinates))
-		throw std::runtime_error("Unable to resize screen buffer.");
+	//set textbuffer size
+	assert(SetConsoleScreenBufferSize(hStdOut, coordinates));
 
-	// display as a maximized window
-	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
+	//change window size.
+	assert(SetConsoleWindowInfo(hStdOut, true, &windowRect));
+	
+	HWND hwnd = GetConsoleWindow();
+
+	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE);
 }
 
 

@@ -2,6 +2,9 @@
 #include "memoryLeak.h"
 #include "Trim.h"
 #include "ErrorCodes.h"
+#include "ErrorManager.h"
+#include "HelpClass.h"
+#include "HelpStructs.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,13 +24,13 @@ Heap::~Heap() {
 	}
 }
 
-void Heap::SetHeapSize(size_t size) {
+void Heap::SetHeapSize(const size_t size) {
 	if (heapIndex) {
-		errorManager.ErrorCode(CODE_15);
+		ErrorManager::ErrorCode(CODE_15);
 	}
 
 	if (size <= 0) {
-		errorManager.ErrorCode(CODE_14);
+		ErrorManager::ErrorCode(CODE_14);
 	}
 
 	heapIndex = DBG_NEW Index_s[size];
@@ -37,15 +40,15 @@ void Heap::SetHeapSize(size_t size) {
 	ExpandHeapIndexStruct();
 }
 
-void Heap::InsertAliasAt(int index, Alias_s alias) {
+void Heap::InsertAliasAt(const int index, const Alias_s alias) {
 	if (alias.len > 0 && index >= 0 && index < GetStackSize()) {
-		errorManager.ErrorCode(CODE_30);
+		ErrorManager::ErrorCode(CODE_30);
 	} else {
 		InsertAt(index, alias);
 	}
 }
 
-void Heap::InsertAt(int index, Alias_s alias) {
+void Heap::InsertAt(const int index, const Alias_s alias) {
 	// Heap overflow
 	if ((alias.len + index) <= heapSize) {
 		int len = 0;
@@ -61,12 +64,12 @@ void Heap::InsertAt(int index, Alias_s alias) {
 
 		//Insert value.
 		if (len > 0) {
-			if (global.StrCmp((char *)alias.type, "string")) {
+			if (HelpClass::StrCmp((char *)alias.type, "string")) {
 				memcpy(heapContainer + index, alias.value, len);
 
-			} else if (global.StrCmp(alias.type, "int")) {
+			} else if (HelpClass::StrCmp(alias.type, "int")) {
 				if (strlen(alias.value) > 9) {
-					errorManager.ErrorCode(CODE_3511);
+					ErrorManager::ErrorCode(CODE_3511);
 				}
 				int digits = atoi(alias.value);
 				memcpy(heapContainer + index, (char *)&digits, sizeof(int));
@@ -80,12 +83,12 @@ void Heap::InsertAt(int index, Alias_s alias) {
 		}
 	} else {
 		//Trying to write outside allocated memory.
-		errorManager.ErrorCode(CODE_10);
+		ErrorManager::ErrorCode(CODE_10);
 	}
 }
 
 //Specialcases for content inside struct.
-void Heap::InsertStructIndex(Index_s index) {
+void Heap::InsertStructIndex(const Index_s index) {
 	if (indexStructLen >= indexStructMax) {
 		ExpandHeapIndexStruct();
 	}
@@ -109,14 +112,14 @@ void Heap::ExpandHeapIndexStruct() {
 	}
 }
 
-int Heap::GetAddress(char *name) {
+int Heap::GetAddress(const char *name) {
 	int ret = -1;
 	int i = 0;
 	while (i != heapSize) {
-		if (global.StrCmp(heapIndex[i].name, name)) {
+		if (HelpClass::StrCmp(heapIndex[i].name, name)) {
 			ret = heapIndex[i].startPos;
 			break;
-		} else if (global.StrCmp(heapIndexStructs[i].name, name)) {
+		} else if (HelpClass::StrCmp(heapIndexStructs[i].name, name)) {
 			ret = heapIndexStructs[i].startPos;
 			break;
 		}
@@ -130,7 +133,7 @@ Alias_s Heap::GetAlias(const char *name) {
 	int i = 0;
 	int len = 0;
 	while (i != heapSize) {
-		if (global.StrCmp(heapIndex[i].name, name)) {
+		if (HelpClass::StrCmp(heapIndex[i].name, name)) {
 			len = strlen(heapIndex[i].name);
 			memcpy(alias.name, heapIndex[i].name, len);
 			alias.name[len] = '\0';
@@ -141,19 +144,19 @@ Alias_s Heap::GetAlias(const char *name) {
 			memcpy(alias.type, heapIndex[i].type, len);
 			alias.type[len] = '\0';
 
-			if (global.StrCmp(alias.type, "string")) {
+			if (HelpClass::StrCmp(alias.type, "string")) {
 				memcpy(alias.value, &heapContainer[heapIndex[i].startPos], alias.len);
 				alias.value[alias.len] = '\0';
-			} else if (global.StrCmp(alias.type, "int")) {
+			} else if (HelpClass::StrCmp(alias.type, "int")) {
 				//convert char to int and int to char
 				int dest;
 				memcpy(&dest, &heapContainer[i], sizeof(int));
 				sprintf(alias.value, "%i", dest);
 				
-				len = global.IntLength(dest);
+				len = HelpClass::IntLength(dest);
 
 				//is it negative
-				if (global.IsNegativeNumber(alias.value)) {
+				if (HelpClass::IsNegativeNumber(alias.value)) {
 					len += 1;
 				}
 
@@ -161,7 +164,7 @@ Alias_s Heap::GetAlias(const char *name) {
 				alias.len = sizeof(int);
 			}
 			break;
-		} else if (global.StrCmp(heapIndexStructs[i].name, name)) {
+		} else if (HelpClass::StrCmp(heapIndexStructs[i].name, name)) {
 			//structs
 			len = strlen(heapIndexStructs[i].name);
 			memcpy(alias.name, heapIndexStructs[i].name, len);
@@ -173,17 +176,17 @@ Alias_s Heap::GetAlias(const char *name) {
 			memcpy(alias.type, heapIndexStructs[i].type, len);
 			alias.type[len] = '\0';
 
-			if (global.StrCmp(alias.type, "string")) {
+			if (HelpClass::StrCmp(alias.type, "string")) {
 				memcpy(alias.value, &heapContainer[heapIndexStructs[i].startPos], alias.len);
 				alias.value[alias.len] = '\0';
-			} else if (global.StrCmp(alias.type, "int")) {
+			} else if (HelpClass::StrCmp(alias.type, "int")) {
 				//convert char to int and int to char
 				int dest;
 				memcpy(&dest, &heapContainer[heapIndexStructs[i].startPos], sizeof(int));
 				sprintf(alias.value, "%i", dest);
-				len = global.IntLength(dest);
+				len = HelpClass::IntLength(dest);
 				alias.value[len] = '\0';
-			} else if (!global.StrCmp(alias.type, "offset")) {
+			} else if (!HelpClass::StrCmp(alias.type, "offset")) {
 				int k = 0;
 				while (k != heapSize) {
 					Index_s s = heapIndexStructs[k];
@@ -192,15 +195,15 @@ Alias_s Heap::GetAlias(const char *name) {
 							memcpy(alias.type, heapIndexStructs[k].type, len);
 							alias.type[len] = '\0';
 
-							if (global.StrCmp(alias.type, "string")) {
+							if (HelpClass::StrCmp(alias.type, "string")) {
 								memcpy(alias.value, &heapContainer[heapIndexStructs[i].startPos], alias.len);
 								alias.value[alias.len] = '\0';
-							} else if (global.StrCmp(alias.type, "int")) {
+							} else if (HelpClass::StrCmp(alias.type, "int")) {
 								//convert char to int and int to char
 								int dest;
 								memcpy(&dest, &heapContainer[heapIndexStructs[i].startPos], sizeof(int));
 								sprintf(alias.value, "%i", dest);
-								len = global.IntLength(dest);
+								len = HelpClass::IntLength(dest);
 								alias.value[len] = '\0';
 								alias.len = sizeof(int);
 							}
@@ -229,15 +232,15 @@ Alias_s Heap::GetAlias(const int index) {
 	memcpy(alias.type, heapIndex[index].type, len);
 	alias.type[len] = '\0';
 
-	if (global.StrCmp(alias.type, "string")) {
+	if (HelpClass::StrCmp(alias.type, "string")) {
 		memcpy(alias.value, &heapContainer[heapIndex[index].startPos], alias.len);
 		alias.value[alias.len] = '\0';
-	} else if (global.StrCmp(alias.type, "int")) {
+	} else if (HelpClass::StrCmp(alias.type, "int")) {
 		//convert char to int and int to char
 		int dest;
 		memcpy(&dest, &heapContainer[index], sizeof(int));
 		sprintf(alias.value, "%i", dest);
-		len = global.IntLength(dest);
+		len = HelpClass::IntLength(dest);
 		alias.value[len] = '\0';
 		alias.len = sizeof(int);
 	}
@@ -247,7 +250,7 @@ Alias_s Heap::GetAlias(const int index) {
 Index_s Heap::GetStructIndex(const char *name) {
 	Index_s index = { NULL, NULL, 0, 0 };
 	for (int i = 0; i != indexStructLen; ++i) {
-		if (global.StrCmp(heapIndexStructs[i].name, name)) {
+		if (HelpClass::StrCmp(heapIndexStructs[i].name, name)) {
 			index = heapIndexStructs[i];
 			break;
 		}
@@ -264,7 +267,7 @@ void Heap::GetStructIndex(const char *type, Index_s *indexes, int &len) {
 			int len = strlen(name) - strlen(slash);
 			memcpy(tmpStr, name, len);
 			tmpStr[len] = '\0';
-			if (global.StrCmp(tmpStr, type)) {
+			if (HelpClass::StrCmp(tmpStr, type)) {
 				indexes[lenRetIndexes] = heapIndexStructs[i];
 				++lenRetIndexes;
 			}
@@ -273,9 +276,9 @@ void Heap::GetStructIndex(const char *type, Index_s *indexes, int &len) {
 	len = lenRetIndexes;
 }
 
-void Heap::UpdateHeapIndex(Index_s index) {
+void Heap::UpdateHeapIndex(const Index_s index) {
 	for (int i = 0; i != heapSize; ++i) {
-		if (global.StrCmp(heapIndex[i].name, index.name)) {
+		if (HelpClass::StrCmp(heapIndex[i].name, index.name)) {
 			heapIndex[i].len = index.len;
 			heapIndex[i].startPos = index.startPos;
 			int lenType = strlen(index.type);
@@ -286,9 +289,9 @@ void Heap::UpdateHeapIndex(Index_s index) {
 	}
 }
 
-bool Heap::UpdateStructIndex(Index_s index, char *searchName) {
+bool Heap::UpdateStructIndex(const Index_s index, const char *searchName) {
 	for (int i = 0; i != indexStructLen; ++i) {
-		if (global.StrCmp(heapIndexStructs[i].name, searchName)) {
+		if (HelpClass::StrCmp(heapIndexStructs[i].name, searchName)) {
 			heapIndexStructs[i].len = index.len;
 			heapIndexStructs[i].startPos = index.startPos;
 			int lenType = strlen(index.type);
@@ -304,26 +307,26 @@ bool Heap::UpdateStructIndex(Index_s index, char *searchName) {
 	return false;
 }
 
-bool Heap::FindStructIndex(Index_s index) {
+bool Heap::FindStructIndex(const Index_s index) {
 	for (int i = 0; i != indexStructLen; ++i) {
-		if (global.StrCmp(heapIndexStructs[i].name, index.name)) {
+		if (HelpClass::StrCmp(heapIndexStructs[i].name, index.name)) {
 			return true;
 		}
 	}
 	return false;
 }
 
-Index_s Heap::FindStructIndex(char *name) {
+Index_s Heap::FindStructIndex(const char *name) {
 	Index_s index = { NULL, NULL, NULL, 0 };
 	for (int i = 0; i != indexStructLen; ++i) {
-		if (global.StrCmp(heapIndexStructs[i].name, name)) {
+		if (HelpClass::StrCmp(heapIndexStructs[i].name, name)) {
 			return heapIndexStructs[i];
 		}
 	}
 	return index;
 }
 
-void Heap::TypedefStructMembers(char *searchName, char *extendName) {
+void Heap::TypedefStructMembers(const char *searchName, const char *extendName) {
 	Index_s buffer[1024];
 	int bufferLen = 0;
 	int len1 = 0;
@@ -374,15 +377,15 @@ void Heap::TypedefStructMembers(char *searchName, char *extendName) {
 	}
 }
 
-void Heap::UpdateStructHeaderPointer(Index_s index) {
+void Heap::UpdateStructHeaderPointer(const Index_s index) {
 	char buffer[INSTRUCTIONSIZE];
-	bool res = global.FindSubStrRev(buffer, index.name, ".");
+	bool res = HelpClass::FindSubStrRev(buffer, index.name, ".");
 	if (res) {
 		int len = strlen(buffer) - 1;
 		buffer[len] = '\0';
 		for (int i = 0; i != indexStructLen; ++i) {
 			Index_s *currentIndex = &heapIndexStructs[i];
-			if (global.StrCmp(currentIndex->name, buffer) && currentIndex->type[0] == '\0') {
+			if (HelpClass::StrCmp(currentIndex->name, buffer) && currentIndex->type[0] == '\0') {
 				currentIndex->startPos = index.startPos;
 
 				len = strlen(index.type);
@@ -397,7 +400,7 @@ void Heap::UpdateStructHeaderPointer(Index_s index) {
 }
 
 char* Heap::GetFullNameStructMember(char *lastname) {
-	bool andFound = global.FindAnd(lastname);
+	bool andFound = HelpClass::FindAnd(lastname);
 
 	char searchName[NAMESIZE];
 	int lenSearchName = strlen(lastname);
@@ -423,7 +426,7 @@ char* Heap::GetFullNameStructMember(char *lastname) {
 				memcpy(buffer, name + k +1, len);
 				buffer[len] = '\0';
 
-				if (global.StrCmp(buffer, searchName)) {
+				if (HelpClass::StrCmp(buffer, searchName)) {
 					if (andFound) {
 						len = strlen(name);
 						memcpy(buffer, "&", 1);
@@ -440,18 +443,18 @@ char* Heap::GetFullNameStructMember(char *lastname) {
 	return NULL;
 }
 
-void Heap::InitializeHeap(size_t size) {
+void Heap::InitializeHeap(const size_t size) {
 	SetHeapSize(size);
 	heapStartPos = 0;
 }
 
-void Heap::CreateStack(size_t size) {
+void Heap::CreateStack(const size_t size) {
 	if (GetStackSize() > 0) {
-		errorManager.ErrorCode(CODE_16);
+		ErrorManager::ErrorCode(CODE_16);
 	}
 
 	if (size <= 0) {
-		errorManager.ErrorCode(CODE_13);
+		ErrorManager::ErrorCode(CODE_13);
 	}
 
 	SetStackSize(size);
@@ -459,12 +462,12 @@ void Heap::CreateStack(size_t size) {
 
 	if (GetStackSize() > heapSize) {
 		//Stack cannot be bigger then heap.
-		errorManager.ErrorCode(CODE_12);
+		ErrorManager::ErrorCode(CODE_12);
 	}
 	heapStartPos = heapSize - GetStackSize();
 }
 
-void Heap::PushTop(Alias_s alias) {
+void Heap::PushTop(const Alias_s alias) {
 	if (!IsStackOverflow(GetStackLen() +1, alias.len)) {
 		if (GetStackLen() > 0) {
 			InsertAt(GetStackLen() + 1, alias);
@@ -475,7 +478,7 @@ void Heap::PushTop(Alias_s alias) {
 	}
 }
 
-void Heap::PushAt(int index, Alias_s alias) {
+void Heap::PushAt(const int index, const Alias_s alias) {
 	if (!IsStackOverflow(index, alias.len)) {
 		InsertAt(index, alias);
 	}
@@ -498,7 +501,7 @@ Alias_s Heap::GetTop() {
 	return alias;
 }
 
-Alias_s Heap::GetAt(int index) {
+Alias_s Heap::GetAt(const int index) {
 	Alias_s alias = { NULL, NULL, NULL, 0 };
 	if (!IsStackOverflow(index, 0)) {
 		alias = GetAlias(index);
@@ -535,9 +538,9 @@ void Heap::PopTop() {
 	}
 }
 
-bool Heap::IsStackOverflow(int index, int len) {
+bool Heap::IsStackOverflow(const int index, const int len) {
 	if (index + len >= (GetStackSize() +2) || index < 0) {
-		errorManager.ErrorCode(CODE_11);
+		ErrorManager::ErrorCode(CODE_11);
 	}
 	return false;
 }

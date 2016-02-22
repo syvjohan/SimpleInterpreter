@@ -2,30 +2,13 @@
 #define LEXICAL_H
 
 #include "Defines.h"
-#include "Global.h"
 #include "Parser.h"
-#include "ErrorManager.h"
+#include "HelpStructs.h" //TODO Remove this include structs are forward declared but it aint working for some strange reason....
 
-struct CallableUnit_s {
-	char name[NAMESIZE];
-	int startPos = -1;
-	int endPos = -1;
-};
-
-struct Call_s {
-	int pos;
-	char name[NAMESIZE];
-};
-
-struct Loop_s {
-	int start = -1;
-	int end = -1;
-	int stop = -1;
-	int type = -1;
-};
-
-class Global;
-class ErrorManager;
+struct File_s;
+struct CallableUnit_s;
+struct Call_s;
+struct Loop_s;
 
 class Lexical {
 	public:
@@ -37,11 +20,11 @@ class Lexical {
 		void GetInstructions();
 		void SplitInstruction(char *instruction);
 
-		void RegisterAllSubroutines(void);
-		void RegisterAllStructs(void);
-		char* RegisterAllIncludes(void);
-		void RegisterFile(int start, int end, char *name);
-		int CalculateLinenumbersInFile(int start, int end);
+		void RegisterAllSubroutines();
+		void RegisterAllStructs();
+		char* RegisterAllIncludes();
+		void RegisterFile(const int start, const int end, const char *name);
+		int CalculateLinenumbersInFile(const int start, const int end);
 
 	private:
 		void AllocateMem();
@@ -50,10 +33,10 @@ class Lexical {
 		void ResetIndex();
 
 		void UpdateSubroutinesIndexes();
-		void ExpandSubroutineSize(void);
-		void ExpandCallsSize(void);
-		void TypedefSubroutines(char *searchName, char *extendName);
-		void TypedefSubroutinesMembers(char *searchName, char *extendName);
+		void ExpandSubroutineSize();
+		void ExpandCallsSize();
+		void TypedefSubroutines(char *searchName, const char *extendName);
+		void TypedefSubroutinesMembers(char *searchName, const char *extendName);
 
 		void UpdateStructsIndexes();
 		void ExpandStructsSize();
@@ -62,7 +45,7 @@ class Lexical {
 		void EvalDo();
 		void EvalName();
 		void EvalWhile();
-		void EvalCall(int len);
+		void EvalCall(const int len);
 		void EvalIf();
 		void EvalStk();
 		void EvalPrint();
@@ -114,7 +97,5 @@ class Lexical {
 		int lenFiles = 0;
 
 		Parser parser;
-		Global global;
-		ErrorManager errorManager;
 };
 #endif //!LEXICAL_H

@@ -1,11 +1,13 @@
-#include "Global.h"
+#include "HelpClass.h"
+#include "HelpStructs.h"
+
 #include <cmath>
 #include <limits.h>
 
-Global::Global() {}
-Global::~Global() {}
+HelpClass::HelpClass() {}
+HelpClass::~HelpClass() {}
 
-bool Global::StrCmp(const char *cStr1, const char *cStr2) {
+bool HelpClass::StrCmp(const char *cStr1, const char *cStr2) {
 	if (cStr1 == NULL || cStr2 == NULL) {
 		return false;
 	}
@@ -24,7 +26,7 @@ bool Global::StrCmp(const char *cStr1, const char *cStr2) {
 	return true;
 }
 
-const char* Global::Strstrr(const char *in, const char *find) {
+const char* HelpClass::Strstrr(const char *in, const char *find) {
 	int inLength = strlen(in);
 	int findLength = strlen(find);
 
@@ -54,7 +56,7 @@ const char* Global::Strstrr(const char *in, const char *find) {
 	return NULL;
 }
 
-bool Global::FindSubStrRev(char *dest, const char* src, const char *find) {
+bool HelpClass::FindSubStrRev(char *dest, const char* src, const char *find) {
 	const char *result = Strstrr(src, find);
 
 	if (result) {
@@ -69,7 +71,7 @@ bool Global::FindSubStrRev(char *dest, const char* src, const char *find) {
 	return false;
 }
 
-int Global::CheckForAlpha(const char *cStr) {
+int HelpClass::CheckForAlpha(const char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (!((cStr[i] >= 'a' && cStr[i] <= 'z') || (cStr[i] >= 'A' && cStr[i] <= 'Z'))) {
@@ -80,7 +82,7 @@ int Global::CheckForAlpha(const char *cStr) {
 	return 1;
 }
 
-int Global::CheckForDigits(const char *cStr) {
+int HelpClass::CheckForDigits(const char *cStr) {
 	int i = 0;
 	if (cStr[0] == '\0') { return -1; }
 	while (cStr[i] != '\0') {
@@ -92,7 +94,7 @@ int Global::CheckForDigits(const char *cStr) {
 	return 1;
 }
 
-int Global::CheckAliasNameConversion(const char *cStr) {
+int HelpClass::CheckAliasNameConversion(const char *cStr) {
 	if (!((cStr[0] >= 'a' && cStr[0] <= 'z') || (cStr[0] >= 'A' && cStr[0] <= 'Z'))) {
 		return -1;
 	}
@@ -112,14 +114,14 @@ int Global::CheckAliasNameConversion(const char *cStr) {
 	return -1;
 }
 
-int Global::IntLength(int x) {
+int HelpClass::IntLength(int x) {
 	if (x == 0) {
 		return 1;
 	}
 	return floor(log10(abs(abs(x)))) + 1;
 }
 
-void Global::ReplaceDotsWithSlashes(char *cStr) {
+void HelpClass::ReplaceDotsWithSlashes(char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (cStr[i] == '.') {
@@ -129,7 +131,7 @@ void Global::ReplaceDotsWithSlashes(char *cStr) {
 	}
 }
 
-bool Global::FindAnd(char *cStr) {
+bool HelpClass::FindAnd(char *cStr) {
 	int i = 0;
 	while (cStr[i] != '\0') {
 		if (cStr[i] == '&') {
@@ -140,7 +142,7 @@ bool Global::FindAnd(char *cStr) {
 	return false;
 }
 
-bool Global::IsNegativeNumber(const char *cStr) {
+bool HelpClass::IsNegativeNumber(const char *cStr) {
 	Operator_s op0 = FindOperator(cStr, 0);
 	if (op0.op[0] == '-' && op0.pos == 0) {
 		Operator_s op1 = FindOperator(cStr, op0.len);
@@ -151,7 +153,7 @@ bool Global::IsNegativeNumber(const char *cStr) {
 	return false;
 }
 
-Operator_s Global::FindOperator(const char *cStr, const int startPos) {
+Operator_s HelpClass::FindOperator(const char *cStr, const int startPos) {
 	int len = strlen(cStr);
 	int pl = INT_MAX;
 	int mi = INT_MAX;
@@ -273,7 +275,7 @@ Operator_s Global::FindOperator(const char *cStr, const int startPos) {
 	return newOp;
 }
 
-bool Global::IsTextString(char *cStr) {
+bool HelpClass::IsTextString(char *cStr) {
 	char *txtStart = strstr(cStr, "\"");
 	if (txtStart) {
 		char *txtEnd = strstr(txtStart + 1, "\"");
@@ -284,7 +286,7 @@ bool Global::IsTextString(char *cStr) {
 	return false;
 }
 
-int Global::FindComment(char *cStr) {
+int HelpClass::FindComment(char *cStr) {
 	int len = strlen(cStr);
 	for (int i = 0; i < len; ++i) {
 		if (cStr[i] == '/' && cStr[i + 1] == '*') {

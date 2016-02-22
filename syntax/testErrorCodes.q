@@ -29,7 +29,7 @@
 /*:alias 1s : #32 = 12345;*/
 
 /*CODE_32*/
-/*:print(aliasName); Not working fix later!!!*/
+/*:print(aliasName);*/
 
 /*CODE_34*/
 /*:alias string #32 = "hej";*/
@@ -44,7 +44,7 @@
 /*:alias var : #32 = hej;*/
 /*:alias var : #32 = 12g4k5;*/
 /*:alias var : #32;
-var = 12g4k5;*/
+&var = 12g4k5;*/
 
 /*CODE_3511*/
 /*:alias var : #32 = 9999999999;*/
@@ -90,7 +90,7 @@ var = 12g4k5;*/
 var = 12345;*/
 
 /*CODE_71*/
-/* = 12345;*/
+ /*= 12345;*/
 
 /*CODE_72*/
 /*12345 = ;*/
@@ -105,7 +105,7 @@ var = 12345;*/
 /*OK*/
 
 /*CODE_100*/
-/*:if(2 == "2");*/
+/*:if(2 == "2") { :print("ERROR"); } :else { :print("Success"); }*/
 
 
 

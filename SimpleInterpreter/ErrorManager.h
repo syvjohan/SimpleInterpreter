@@ -1,31 +1,29 @@
 #pragma once
 
-#include "Defines.h"
-#include "Global.h"
+#include "HelpClass.h"
 
 enum ERRORCODES;
+struct File_s;
 
 class ErrorManager {
 	public:
 		ErrorManager();
 		~ErrorManager();
 
-		void ErrorCode(ERRORCODES errorCode);
-		void SetInstruction(char *instruction, int index);
-		void SetRegisteredFiles(File_s *files, int len);
-		void AddLine(int index);
+		static void ErrorCode(const ERRORCODES errorCode);
+		static void SetInstruction(const char *instruction, const int index);
+		static void SetRegisteredFiles(const File_s *files, const int len);
+		static void AddLine(const int index);
+
 	private:
-		void PrintMessage(char *errorCode, char *msg);
-		//int CalculateLinenumber(char *filename);
-		char* FindFile();
-		char instruction[INSTRUCTIONSIZE];
-		int index = 0;
-		int lines = 0;
+		static void PrintMessage(const char *errorCode, const char *msg);
+		static char* FindFile();
 
-		File_s files[MAXINCLUDEDFILES];
-		int lenFiles = 0;
-		int fileIndex = 0;
+		static int index;
+		static char instruction[INSTRUCTIONSIZE];
+		static int lines;
 
-		Global global;
+		static File_s files[MAXINCLUDEDFILES];
+		static int lenFiles;
+		static int fileIndex;
 };
-

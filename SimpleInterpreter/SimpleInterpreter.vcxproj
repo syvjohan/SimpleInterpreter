@@ -67,7 +67,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ErrorManager.cpp" />
-    <ClCompile Include="Global.cpp" />
+    <ClCompile Include="HelpClass.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="Lexical.cpp" />
     <ClCompile Include="main.cpp" />
@@ -78,9 +78,10 @@
     <ClInclude Include="Defines.h" />
     <ClInclude Include="ErrorCodes.h" />
     <ClInclude Include="ErrorManager.h" />
+    <ClInclude Include="HelpStructs.h" />
     <ClInclude Include="IStack.h" />
     <ClInclude Include="memoryLeak.h" />
-    <ClInclude Include="Global.h" />
+    <ClInclude Include="HelpClass.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Lexical.h" />
     <ClInclude Include="Parser.h" />

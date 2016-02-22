@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "ErrorManager.h"
 #include "Lexical.h"
 #include "memoryLeak.h"
 #include "Console.h"
@@ -9,7 +8,7 @@
 int main(void) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	//SetConsoleSize(80, 80);
+	SetConsoleSize();
 
 	Lexical lexical;
 
