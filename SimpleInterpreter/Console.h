@@ -12,7 +12,7 @@ static void SetConsoleSize() {
 
 	COORD coordinates;
 	coordinates.X = 80;
-	coordinates.Y = 5000;
+	coordinates.Y = 1000;
 
 	SMALL_RECT windowRect;
 	windowRect.Top = 0;

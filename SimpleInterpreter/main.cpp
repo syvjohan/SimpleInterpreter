@@ -10,7 +10,7 @@ int main(void) {
 
 	SetConsoleSize();
 
-	Lexical lexical;
+	Partitioning::Lexical lexical;
 
 	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.q";
 	char *code = lexical.ReadFile(path);

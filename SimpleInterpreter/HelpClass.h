@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
-struct Operator_s;
+namespace Global {
+	struct Operator_s;
 
-class HelpClass {
-	public:
+	class HelpClass {
+		public:
 		HelpClass();
 		~HelpClass();
 		static bool StrCmp(const char *cStr1, const char *cStr2);
@@ -25,4 +26,5 @@ class HelpClass {
 		static Operator_s FindOperator(const char *cStr, const int startPos);
 		static bool IsTextString(char *cStr);
 		static int FindComment(char *cStr);
-};
+	};
+}

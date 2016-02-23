@@ -5,13 +5,16 @@
 #include "Parser.h"
 #include "HelpStructs.h" //TODO Remove this include structs are forward declared but it aint working for some strange reason....
 
-struct File_s;
-struct CallableUnit_s;
-struct Call_s;
-struct Loop_s;
+namespace Global {
+	struct File_s;
+	struct CallableUnit_s;
+	struct Call_s;
+	struct Loop_s;
+}
 
-class Lexical {
-	public:
+namespace Partitioning {
+	class Lexical {
+		public:
 		Lexical();
 		~Lexical();
 
@@ -26,7 +29,7 @@ class Lexical {
 		void RegisterFile(const int start, const int end, const char *name);
 		int CalculateLinenumbersInFile(const int start, const int end);
 
-	private:
+		private:
 		void AllocateMem();
 		void CreateStack();
 
@@ -65,7 +68,7 @@ class Lexical {
 		int endIndex = 0;
 		int instructionLen = 0;
 
-		Loop_s loop[LOOPMAX];
+		Global::Loop_s loop[LOOPMAX];
 		int loopLen = 0;
 
 		int ignore = 0;
@@ -75,27 +78,28 @@ class Lexical {
 		int cmpResult = 0;
 
 		//Before parsing: store subroutines indexes.
-		CallableUnit_s *subroutines;
+		Global::CallableUnit_s *subroutines;
 		int subroutinesLen = 0;
 		int subroutinesMax = 0;
 
 		//while parsing: calling subroutines.
-		CallableUnit_s currentSubroutine;
-		Call_s *calls;
+		Global::CallableUnit_s currentSubroutine;
+		Global::Call_s *calls;
 		int callsMax = 0;
 		int callsLen = -1;
 
 		//Before parsing: store structs indexes.
-		CallableUnit_s *structs;
+		Global::CallableUnit_s *structs;
 		int structsLen = 0;
 		int structsMax = 0;
 		char currentStructName[NAMESIZE];
 		bool isInitializingStructs = false;
 
 		//track files for indexing.
-		File_s files[MAXINCLUDEDFILES];
+		Global::File_s files[MAXINCLUDEDFILES];
 		int lenFiles = 0;
 
-		Parser parser;
-};
+		Partitioning::Parser parser;
+	};
+}
 #endif //!LEXICAL_H
