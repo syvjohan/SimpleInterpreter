@@ -71,5 +71,11 @@
     <ClInclude Include="HelpStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HelpHeaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorHeaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,21 +1,20 @@
 #include "ErrorManager.h"
 #include "ErrorCodes.h"
-#include "memoryLeak.h"
 #include "Console.h"
-#include "HelpStructs.h"
+#include "HelpHeaders.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
+#include <conio.h>
 
 namespace Error {
 	char ErrorManager::instruction[INSTRUCTIONSIZE];
 	int ErrorManager::index = 0;
-	int ErrorManager::lines = 0;
+	int ErrorManager::linesInclude = 0;
+	int ErrorManager::linesMain = 0;
 
 	Global::File_s ErrorManager::files[MAXINCLUDEDFILES];
 	int ErrorManager::lenFiles = 0;
-	int ErrorManager::fileIndex = 0;
+	int ErrorManager::fileIndex = -1;
+	int ErrorManager::lenFileIndexes = 0;
 
 	ErrorManager::ErrorManager() {}
 
@@ -28,12 +27,26 @@ namespace Error {
 		char *name = ErrorManager::FindFile();
 
 		printf("\nIn file: %s", name);
-		printf("\nLine: %i.", ErrorManager::lines);
+
+		printf("\nLine: %i.", ErrorManager::GetLines(name));
 
 		printf("\nDescription: %s\n", msg);
 		printf("\n%s\n\n", ErrorManager::instruction);
 
-		system("pause");
+		printf("Press any key to exit!");
+
+		if (KeyPressed()) {
+			exit(0);
+		}
+	}
+
+	bool ErrorManager::KeyPressed() {
+		char chk;
+		chk = _getch();
+		if (chk != '\0') {
+			return true;
+		}
+		return false;
 	}
 
 	void ErrorManager::SetInstruction(const char *inst, const int i) {
@@ -50,30 +63,60 @@ namespace Error {
 	}
 
 	char* ErrorManager::FindFile() {
-		/*for (int i = 0; i != lenFiles; ++i) {
-			if (index > files[i].startPos && index < files[i].endPos) {
-			return files[i].name;
-			}
-			}
-			return "main.q";*/
-
 		if (ErrorManager::fileIndex == -1) {
 			return ".main.q";
 		}
+		return ErrorManager::files[fileIndex].name;
+	}
 
-		return ErrorManager::files[fileIndex - 1].name;
-
+	int ErrorManager::GetLines(char *name) {
+		int ret = 0;
+		if (Global::HelpClass::StrCmp(name, ".main.q")) {
+			ret = linesMain + 1;
+		} else {
+			ret = linesInclude;
+		}
+		return ret;
 	}
 
 	void ErrorManager::AddLine(const int index) {
-		for (int i = ErrorManager::fileIndex; i != ErrorManager::lenFiles; ++i) {
-			if (index >= ErrorManager::files[i].startPos && index <= ErrorManager::files[i].endPos) {
-				ErrorManager::fileIndex++;
-				ErrorManager::lines = 1; //restart counter because we enter a new file.
+		int newIndex = index;
+		newIndex += 3;
+		bool fileFound = false;
+		bool indexFound = false;
+
+		for (int i = 0; i != ErrorManager::lenFiles; ++i) {
+			Global::File_s *file = &ErrorManager::files[i];
+			//check if index is inside some of the files.
+			if (newIndex >= file->startPos && newIndex <= file->endPos) {
+				//Check if line already has been stored.
+				for (int k = 0; k != ErrorManager::lenFileIndexes; ++k) {
+					if (file->index[k] == index) {
+						indexFound = true; //Index is inside loop.
+						break;
+					}
+				}
+
+				if (!indexFound) {
+					file->index[lenFileIndexes] = index;
+				}
+
+				ErrorManager::lenFileIndexes++;
+				if (newIndex == file->startPos) {
+					++linesMain;
+					ErrorManager::fileIndex = i;
+				}
+				ErrorManager::linesInclude++;
+				fileFound = true;
 				break;
 			}
 		}
-		ErrorManager::lines++;
+		if (!fileFound) {
+			fileIndex = -1;
+			++linesMain;
+
+			ErrorManager::linesInclude = 0; //restart counter because we are going to enter a new file or stay in .main.q.
+		}		
 	}
 
 	void ErrorManager::ErrorCode(const ERRORCODES errorCode) {
@@ -199,7 +242,7 @@ namespace Error {
 				ErrorManager::PrintMessage("CODE_56", "No code inserted");
 				break;
 			case CODE_60:
-				ErrorManager::PrintMessage("CODE_60", "No code inserted");
+				ErrorManager::PrintMessage("CODE_60", "Stack: Stack unsupported stack command.");
 				break;
 			case CODE_61:
 				ErrorManager::PrintMessage("CODE_61", "No code inserted");

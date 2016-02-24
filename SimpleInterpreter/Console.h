@@ -31,15 +31,14 @@ static void SetConsoleSize() {
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE);
 }
 
-
 static void ConsoleBackgroundAndTextColors(int ForgC, int BackC) {
 	WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);
 	
 	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	
 	COORD coordinates;
-	coordinates.X = 0;
-	coordinates.Y = 0;
+	coordinates.X = 80;
+	coordinates.Y = 1000;
 
 	DWORD count;
 

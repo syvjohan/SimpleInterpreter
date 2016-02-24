@@ -1,14 +1,6 @@
 #include "Parser.h"
-#include "Trim.h"
-#include "ErrorCodes.h"
-#include "ErrorManager.h"
-#include "HelpClass.h"
-#include "HelpStructs.h"
-
-#include <cassert>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "HelpHeaders.h"
+#include "ErrorHeaders.h"
 
 namespace Partitioning {
 	Parser::Parser() {}
@@ -483,6 +475,7 @@ namespace Partitioning {
 				alias = heap.GetTop();
 			} else {
 				//unsupported stack command.
+				Error::ErrorManager::ErrorCode(Error::CODE_60);
 			}
 
 		} else if (address && !isAdress) {

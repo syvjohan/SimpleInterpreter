@@ -77,7 +77,9 @@
     <ClInclude Include="Console.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="ErrorCodes.h" />
+    <ClInclude Include="ErrorHeaders.h" />
     <ClInclude Include="ErrorManager.h" />
+    <ClInclude Include="HelpHeaders.h" />
     <ClInclude Include="HelpStructs.h" />
     <ClInclude Include="IStack.h" />
     <ClInclude Include="memoryLeak.h" />

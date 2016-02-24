@@ -85,6 +85,10 @@
 /*:subroutine testSub
 	:alias var : offset(0);*/
 
+/*CODE_60*/
+/*:alias var : #32 = :stk.get();*/
+/*:stk.get();*/
+
 /*CODE_66*/
 /*:alias var : #32 = "Hello";
 var = 12345;*/

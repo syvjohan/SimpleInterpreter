@@ -1,14 +1,6 @@
 #include "Heap.h"
-#include "memoryLeak.h"
-#include "Trim.h"
-#include "ErrorCodes.h"
-#include "ErrorManager.h"
-#include "HelpClass.h"
-#include "HelpStructs.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
+#include "HelpHeaders.h"
+#include "ErrorHeaders.h"
 
 namespace Memory {
 	Heap::Heap() {}

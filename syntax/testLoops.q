@@ -4,7 +4,6 @@
 :print("thirdWhileLoop");
 :stk.pushAt(0, 0);
 :while(:stk.getAt(0) != 1) {
-
 		:print("thirdInnerWhileLoop");
 		:stk.pushAt(5, 0);
 		:while(:stk.getAt(5) != 3) {
@@ -13,12 +12,10 @@
 		}
 		:print("______________________________________________");
 
-
 	:print(:stk.getAt(0));
 	:stk.pushAt(0, :stk.getAt(0) +1);
 }
 :print("______________________________________________");
-
 
 :print("firstWhileLoop");
 :stk.pushAt(0, 0);

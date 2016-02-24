@@ -3,7 +3,7 @@
 
 #include "Defines.h"
 #include "Parser.h"
-#include "HelpStructs.h" //TODO Remove this include structs are forward declared but it aint working for some strange reason....
+#include "HelpStructs.h" //TODO! Remove this include Helpstructs.h are forward declared but it aint working for some strange reason....
 
 namespace Global {
 	struct File_s;

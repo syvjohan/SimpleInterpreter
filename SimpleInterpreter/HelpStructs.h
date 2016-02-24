@@ -52,5 +52,6 @@ namespace Global {
 		int startPos = -1;
 		int endPos = -1;
 		int numberOfLines = -1;
+		int *index;
 	};
 }

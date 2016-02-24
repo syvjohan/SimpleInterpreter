@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "Lexical.h"
-#include "memoryLeak.h"
+#include "HelpHeaders.h"
 #include "Console.h"
+
+bool KeyPressed();
 
 int main(void) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -21,7 +20,7 @@ int main(void) {
 	lexical.RegisterAllStructs();
 	lexical.RegisterAllSubroutines();
 
-	//Need to be set again because of struct and subroutines registration.
+	//Need to be set again because of includes, struct and subroutines registration.
 	lexical.SetCode(code);
 	lexical.GetInstructions();
 

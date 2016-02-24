@@ -1,12 +1,7 @@
 #include "Lexical.h"
-#include "Trim.h"
-#include "ErrorCodes.h"
-#include "memoryLeak.h"
-#include "ErrorManager.h"
-#include "HelpClass.h"
-#include "HelpStructs.h"
+#include "HelpHeaders.h"
+#include "ErrorHeaders.h"
 
-#include <iostream>
 #include <errno.h>
 
 namespace Partitioning {
@@ -815,6 +810,9 @@ namespace Partitioning {
 
 		} else if (getTop) {
 			parser.StackGetTop();
+		} else {
+			//unsupported stack command.
+			Error::ErrorManager::ErrorCode(Error::CODE_60);
 		}
 	}
 
@@ -937,11 +935,10 @@ namespace Partitioning {
 						RegisterFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
 					}
 				}
-			} else {
-				Error::ErrorManager::SetRegisteredFiles(files, lenFiles);
 			}
 			++i;
 		}
+		Error::ErrorManager::SetRegisteredFiles(files, lenFiles);
 		return code;
 	}
 
@@ -950,6 +947,8 @@ namespace Partitioning {
 			Error::ErrorManager::ErrorCode(Error::CODE_91);
 		} else {
 			Global::File_s file;
+
+			file.index = DBG_NEW int[fileSize];
 			file.startPos = start + 1;
 			file.endPos = end;
 			int lenName = strlen(name);
