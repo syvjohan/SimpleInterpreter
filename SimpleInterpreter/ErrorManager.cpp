@@ -24,7 +24,7 @@ namespace Error {
 		ConsoleBackgroundAndTextColors(4, 0);
 		printf("\nERROR: %s.", errorCode);
 
-		char *name = ErrorManager::FindFile();
+		const char *name = ErrorManager::FindFile();
 
 		printf("\nIn file: %s", name);
 
@@ -36,13 +36,13 @@ namespace Error {
 		printf("Press any key to exit!");
 
 		if (KeyPressed()) {
+			delete[] files->index;
 			exit(0);
 		}
 	}
 
 	bool ErrorManager::KeyPressed() {
-		char chk;
-		chk = _getch();
+		const char chk = _getch();
 		if (chk != '\0') {
 			return true;
 		}
@@ -50,7 +50,7 @@ namespace Error {
 	}
 
 	void ErrorManager::SetInstruction(const char *inst, const int i) {
-		int len = strlen(inst);
+		const int len = strlen(inst);
 		memcpy(ErrorManager::instruction, inst, len);
 		ErrorManager::instruction[len] = '\0';
 
@@ -69,7 +69,7 @@ namespace Error {
 		return ErrorManager::files[fileIndex].name;
 	}
 
-	int ErrorManager::GetLines(char *name) {
+	int ErrorManager::GetLines(const char *name) {
 		int ret = 0;
 		if (Global::HelpClass::StrCmp(name, ".main.q")) {
 			ret = linesMain + 1;
@@ -99,11 +99,11 @@ namespace Error {
 
 				if (!indexFound) {
 					file->index[lenFileIndexes] = index;
+					ErrorManager::lenFileIndexes++;
 				}
 
-				ErrorManager::lenFileIndexes++;
 				if (newIndex == file->startPos) {
-					++linesMain;
+					//++linesMain;
 					ErrorManager::fileIndex = i;
 				}
 				ErrorManager::linesInclude++;
@@ -116,7 +116,13 @@ namespace Error {
 			++linesMain;
 
 			ErrorManager::linesInclude = 0; //restart counter because we are going to enter a new file or stay in .main.q.
-		}		
+		}	
+	}
+
+	void ErrorManager::ResetLineCounters() {
+		linesInclude = 0;
+		linesMain = 0;
+		lenFileIndexes = 0;
 	}
 
 	void ErrorManager::ErrorCode(const ERRORCODES errorCode) {
@@ -260,7 +266,7 @@ namespace Error {
 				ErrorManager::PrintMessage("CODE_65", "No code inserted");
 				break;
 			case CODE_66:
-				ErrorManager::PrintMessage("CODE_66", "Expression: Lhs need to be a modifiable value(&);");
+				ErrorManager::PrintMessage("CODE_66", "Expression: Lhs need to be a modifiable value(&) or a memory address(#).");
 				break;
 			case CODE_70:
 				ErrorManager::PrintMessage("CODE_70", "No code inserted");

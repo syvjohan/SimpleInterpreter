@@ -7,7 +7,7 @@
 :print("getTop(): ");
 :print(:stk.getTop());
 
-:print("","memory #0 - #10: ");
+:print("","memory #0 - #10: Hello World.");
 :print(#0);
 :print("");
 

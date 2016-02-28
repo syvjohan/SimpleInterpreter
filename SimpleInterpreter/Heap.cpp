@@ -6,14 +6,14 @@ namespace Memory {
 	Heap::Heap() {}
 
 	Heap::~Heap() {
-		if (heapIndex) {
-			delete[] heapIndex;
-			heapIndex = NULL;
-		}
-
 		if (heapContainer) {
 			delete[] heapContainer;
 			heapContainer = NULL;
+		}
+
+		if (heapIndex) {
+			delete[] heapIndex;
+			heapIndex = NULL;
 		}
 	}
 
@@ -64,13 +64,13 @@ namespace Memory {
 					if (strlen(alias.value) > 9) {
 						Error::ErrorManager::ErrorCode(Error::CODE_3511);
 					}
-					int digits = atoi(alias.value);
+					const int digits = atoi(alias.value);
 					memcpy(heapContainer + index, (char *)&digits, sizeof(int));
 				}
 			}
 
 			if (strlen(alias.name) > 0) {
-				int len = strlen(alias.name);
+				const int len = strlen(alias.name);
 				memcpy((heapIndex + index)->name, alias.name, len);
 				heapIndex[index].name[len] = '\0';
 			}
@@ -127,6 +127,7 @@ namespace Memory {
 		int len = 0;
 		while (i != heapSize) {
 			if (Global::HelpClass::StrCmp(heapIndex[i].name, name)) {
+				Global::Index_s *index = &heapIndex[i];
 				len = strlen(heapIndex[i].name);
 				memcpy(alias.name, heapIndex[i].name, len);
 				alias.name[len] = '\0';
@@ -216,6 +217,11 @@ namespace Memory {
 		Global::Alias_s alias = { NULL, NULL, NULL, 0 };
 		int len = strlen(heapIndex[index].name);
 
+		//Alias does not exist
+		if (len > heapSize) {
+			return alias;
+		}
+
 		memcpy(alias.name, heapIndex[index].name, len);
 		alias.name[len] = '\0';
 
@@ -233,11 +239,21 @@ namespace Memory {
 			int dest;
 			memcpy(&dest, &heapContainer[index], sizeof(int));
 			sprintf(alias.value, "%i", dest);
-			len = Global::HelpClass::IntLength(dest);
+			//Is negative.
+			if (dest < 0) {
+				len = Global::HelpClass::IntLength(dest) +1;
+			} else {
+				len = Global::HelpClass::IntLength(dest);
+			}
+
 			alias.value[len] = '\0';
 			alias.len = sizeof(int);
 		}
 		return alias;
+	}
+
+	const char Heap::GetValueAt(const int memoryAddress) {
+		return heapContainer[memoryAddress];
 	}
 
 	Global::Index_s Heap::GetStructIndex(const char *name) {
@@ -287,11 +303,11 @@ namespace Memory {
 			if (Global::HelpClass::StrCmp(heapIndexStructs[i].name, searchName)) {
 				heapIndexStructs[i].len = index.len;
 				heapIndexStructs[i].startPos = index.startPos;
-				int lenType = strlen(index.type);
+				const int lenType = strlen(index.type);
 				memcpy(&heapIndexStructs[i].type, index.type, lenType);
 				heapIndexStructs[i].type[lenType] = '\0';
 
-				int lenName = strlen(index.name);
+				const int lenName = strlen(index.name);
 				memcpy(&heapIndexStructs[i].name, index.name, lenName);
 				heapIndexStructs[i].name[lenName] = '\0';
 				return true;
@@ -326,7 +342,7 @@ namespace Memory {
 		int len2 = 0;
 		for (int i = 0; i != indexStructLen; ++i) {
 			Global::Index_s *s = &heapIndexStructs[i];
-			char *res = strstr(s->name, searchName);
+			const char *res = strstr(s->name, searchName);
 			if (res) {
 				char *findDot = strstr(s->name, ".");
 				if (findDot) {
@@ -372,7 +388,7 @@ namespace Memory {
 
 	void Heap::UpdateStructHeaderPointer(const Global::Index_s index) {
 		char buffer[INSTRUCTIONSIZE];
-		bool res = Global::HelpClass::FindSubStrRev(buffer, index.name, ".");
+		const bool res = Global::HelpClass::FindSubStrRev(buffer, index.name, ".");
 		if (res) {
 			int len = strlen(buffer) - 1;
 			buffer[len] = '\0';
@@ -392,11 +408,11 @@ namespace Memory {
 		}
 	}
 
-	char* Heap::GetFullNameStructMember(char *lastname) {
-		bool andFound = Global::HelpClass::FindAnd(lastname);
+	char* Heap::GetFullNameStructMember(const char *lastname) {
+		const bool andFound = Global::HelpClass::FindAnd((char *)lastname);
 
 		char searchName[NAMESIZE];
-		int lenSearchName = strlen(lastname);
+		const int lenSearchName = strlen(lastname);
 		memcpy(searchName, lastname, lenSearchName);
 		searchName[lenSearchName] = '\0';
 
@@ -406,7 +422,7 @@ namespace Memory {
 		int len = 0;
 		int firstDot = 0;
 		int lenFirstWord = 0;
-		for (int i = 0; i != indexStructLen; ++i) {
+		for (int i = indexStructLen -1; i >= 0; --i) {
 			char *name = heapIndexStructs[i].name;
 			int k = strlen(name);
 			while (k != 0) {

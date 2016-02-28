@@ -9,14 +9,6 @@ namespace Global {
 	HelpClass::~HelpClass() {}
 
 	bool HelpClass::StrCmp(const char *cStr1, const char *cStr2) {
-		if (cStr1 == NULL || cStr2 == NULL) {
-			return false;
-		}
-
-		if (cStr1 == 0 || cStr2 == 0) {
-			return false;
-		}
-
 		int i = 0;
 		while (cStr1[i] != '\0' || cStr2[i] != '\0') {
 			if (cStr1[i] != cStr2[i]) {
@@ -27,7 +19,7 @@ namespace Global {
 		return true;
 	}
 
-	const char* HelpClass::Strstrr(const char *in, const char *find) {
+	const char* HelpClass::Strstr(const char *in, const char *find) {
 		int inLength = strlen(in);
 		int findLength = strlen(find);
 
@@ -57,8 +49,94 @@ namespace Global {
 		return NULL;
 	}
 
+	bool HelpClass::FindSubStr(char *dest, const char* src, const char *find) {
+		const char *result = Strstrr(src, find);
+
+		if (result) {
+			const int length = result - src + 2;
+
+			memcpy(dest, result, length);
+			dest[length] = '\0';
+
+			return true;
+		}
+
+		return false;
+	}
+
+	const char* HelpClass::Strstrr(const char *cStr, const char *sub) {		
+		int len = strlen(cStr) -1;
+		int subLen = strlen(sub) -1;
+		int k = subLen;
+		
+		for (int i = len; i >= 0; --i) {
+			//first occurance.
+			if (cStr[i] == sub[k]) {
+				for (int k = subLen; k != -1; --k) {
+					char c1 = cStr[i];
+					char c2 = sub[k];
+					if (cStr[i] == sub[k]) {
+						if (k == 0) {
+							return cStr + i;
+						}
+						--i;
+					} else {
+						k = subLen;
+						break;
+					}
+				}
+			}
+		}
+		
+		return NULL;
+		
+		//
+		//for (int i = len; i >= 0; --i) {
+		//	if (cStr[i] == sub[subLen]) {
+		//		while (k >= 0) {
+		//			if (k == 0) {
+		//				const char *c = cStr + i;
+		//				printf("dsd");
+		//				//return cStr + i;
+		//			} else if (cStr[i] != sub[k]) {
+		//				k = subLen;
+		//				break;
+		//			} else {
+		//				--i;
+		//				--k;
+		//			}
+		//		}
+		//	}
+		//}
+
+		//int len = strlen(cStr);
+		//int sublen = strlen(sub);
+
+		//for (int i = 0; i < len; ++i) {
+
+		//	int j = i;
+		//	while (cStr[j] == sub[j - i]) {
+		//		++j;
+		//	}
+
+		//	if ((j - i) == sublen) {
+		//		return cStr + i;
+		//	}
+		//}
+	}
+
 	bool HelpClass::FindSubStrRev(char *dest, const char* src, const char *find) {
 		const char *result = Strstrr(src, find);
+		if (result) {
+			const int len = strlen(result);
+			memcpy(dest, result, len);
+			dest[len] = '\0';
+			return true;
+		}
+
+		return false;
+		
+		/*const char *result = Strstrr(src, find);
 
 		if (result) {
 			const int length = result - src + 1;
@@ -69,7 +147,7 @@ namespace Global {
 			return true;
 		}
 
-		return false;
+		return false;*/
 	}
 
 	int HelpClass::CheckForAlpha(const char *cStr) {
@@ -115,7 +193,7 @@ namespace Global {
 		return -1;
 	}
 
-	int HelpClass::IntLength(int x) {
+	int HelpClass::IntLength(const int x) {
 		if (x == 0) {
 			return 1;
 		}
@@ -132,7 +210,7 @@ namespace Global {
 		}
 	}
 
-	bool HelpClass::FindAnd(char *cStr) {
+	bool HelpClass::FindAnd(const char *cStr) {
 		int i = 0;
 		while (cStr[i] != '\0') {
 			if (cStr[i] == '&') {
@@ -146,79 +224,72 @@ namespace Global {
 	bool HelpClass::IsNegativeNumber(const char *cStr) {
 		Operator_s op0 = FindOperator(cStr, 0);
 		if (op0.op[0] == '-' && op0.pos == 0) {
-			Operator_s op1 = FindOperator(cStr, op0.len);
-			if (op1.len == 0) {
-				return true;
-			}
+			return true;
 		}
 		return false;
 	}
 
 	Operator_s HelpClass::FindOperator(const char *cStr, const int startPos) {
 		int len = strlen(cStr);
-		int pl = INT_MAX;
-		int mi = INT_MAX;
-		int di = INT_MAX;
-		int mu = INT_MAX;
-		int eq = INT_MAX;
-		int cmpEq = INT_MAX;
-		int cmpNEq = INT_MAX;
-		int cmpBi = INT_MAX;
-		int cmpSm = INT_MAX;
+		int pl = -1;
+		int mi = -1;
+		int di = -1;
+		int mu = -1;
+		int eq = -1;
+		int cmpEq = -1;
+		int cmpNEq = -1;
+		int cmpBi = -1;
+		int cmpSm = -1;
 
 		char buffer[INSTRUCTIONSIZE];
 
-		if (FindSubStrRev(buffer, cStr + startPos, "=")) {
+		if (FindSubStrRev(buffer, cStr, "==")) {
 			if (buffer) {
-				eq = strlen(buffer) - 1;
+				cmpEq = len - strlen(buffer) +1;
+			}
+		} else if (FindSubStrRev(buffer, cStr, "!=")) {
+			if (buffer) {
+				cmpNEq = len - strlen(buffer) +1;
+			}
+		} else if (FindSubStrRev(buffer, cStr, "=")) {
+			if (buffer) {
+				eq = len - strlen(buffer);
 			}
 		}
 
-		if (FindSubStrRev(buffer, cStr + startPos, "+")) {
+		if (FindSubStrRev(buffer, cStr, "*")) {
 			if (buffer) {
-				pl = strlen(buffer) - 1;
+				mu = len - strlen(buffer);
 			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, "-")) {
+		} 
+		
+		if (FindSubStrRev(buffer, cStr, "/")) {
 			if (buffer) {
-				mi = strlen(buffer) - 1;
+				di = len - strlen(buffer);
 			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, "*")) {
+		} 
+		
+		if (FindSubStrRev(buffer, cStr, "+")) {
 			if (buffer) {
-				mu = strlen(buffer) - 1;
+				pl = len - strlen(buffer);
 			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, "/")) {
+		} 
+		
+		if (FindSubStrRev(buffer, cStr, "-")) {
 			if (buffer) {
-				di = strlen(buffer) - 1;
+				mi = len - strlen(buffer);
 			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, ">")) {
+		} 
+		
+		if (FindSubStrRev(buffer, cStr, ">")) {
 			if (buffer) {
-				cmpBi = strlen(buffer) - 1;
+				cmpBi = len - strlen(buffer);
 			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, "<")) {
+		} 
+		
+		if (FindSubStrRev(buffer, cStr, "<")) {
 			if (buffer) {
-				cmpSm = strlen(buffer) - 1;
-			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, "==")) {
-			if (buffer) {
-				cmpEq = strlen(buffer) - 1;
-			}
-		}
-
-		if (FindSubStrRev(buffer, cStr + startPos, "!=")) {
-			if (buffer) {
-				cmpNEq = strlen(buffer) - 1;
+				cmpSm = len - strlen(buffer);
 			}
 		}
 
@@ -227,59 +298,59 @@ namespace Global {
 		newOp.pos = -1;
 		newOp.len = 0;
 
-		if (pl < mi && pl < di && pl < mu && pl < eq && pl < cmpEq && pl < cmpNEq && pl < cmpBi && pl < cmpSm) {
+		if (pl > mi && pl > di && pl > mu && pl > eq && pl > cmpEq && pl > cmpNEq && pl > cmpBi && pl > cmpSm) {
 			newOp.pos = pl;
-			memcpy(newOp.op, buffer + pl, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
-		} else if (mi < pl && mi < di && mi < mu && mi < eq && mi < cmpEq && mi < cmpNEq && mi < cmpBi && mi < cmpSm) {
+		} else if (mi > pl && mi > di && mi > mu && mi > eq && mi > cmpEq && mi > cmpNEq && mi > cmpBi && mi > cmpSm) {
 			newOp.pos = mi;
-			memcpy(newOp.op, buffer + mi, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
-		} else if (di < pl && di < mi && di < mu && di < eq && di < cmpEq && di < cmpNEq && di < cmpBi && di < cmpSm) {
+		} else if (di > pl && di > mi && di > mu && di > eq && di > cmpEq && di > cmpNEq && di > cmpBi && di > cmpSm) {
 			newOp.pos = di;
-			memcpy(newOp.op, buffer + di, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
-		} else if (mu < pl && mu < di && mu < mi && mu < eq && mu < cmpEq && mu < cmpNEq && mu < cmpBi && mu < cmpSm) {
+		} else if (mu > pl && mu > di && mu > mi && mu > eq && mu > cmpEq && mu > cmpNEq && mu > cmpBi && mu > cmpSm) {
 			newOp.pos = mu;
-			memcpy(newOp.op, buffer + mu, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
-		} else if (eq < pl && eq < mu && eq < di && eq < mi && eq < cmpEq && eq < cmpNEq && eq < cmpBi && eq < cmpSm) {
+		} else if (eq > pl && eq > mu && eq > di && eq > mi && eq > cmpEq && eq > cmpNEq && eq > cmpBi && eq > cmpSm) {
 			newOp.pos = eq;
-			memcpy(newOp.op, buffer + eq, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
-		} else if (cmpEq < pl && cmpEq < mu && cmpEq < di && cmpEq < mi && cmpEq < cmpNEq && cmpEq < cmpBi && cmpEq < cmpSm) {
+		} else if (cmpEq > pl && cmpEq > mu && cmpEq > di && cmpEq > mi && cmpEq > cmpNEq && cmpEq > cmpBi && cmpEq > cmpSm) {
 			newOp.pos = cmpEq;
-			memcpy(newOp.op, buffer + cmpEq - 1, 2);
+			memcpy(newOp.op, buffer, 2);
 			newOp.op[2] = '\0';
 			newOp.len = 2;
-		} else if (cmpNEq < pl && cmpNEq < mu && cmpNEq < di && cmpNEq < mi && cmpNEq < cmpEq && cmpNEq < cmpBi && cmpNEq < cmpSm) {
+		} else if (cmpNEq > pl && cmpNEq > mu && cmpNEq > di && cmpNEq > mi && cmpNEq > cmpEq && cmpNEq > cmpBi && cmpNEq > cmpSm) {
 			newOp.pos = cmpNEq;
-			memcpy(newOp.op, buffer + cmpNEq - 1, 2);
+			memcpy(newOp.op, buffer, 2);
 			newOp.op[2] = '\0';
 			newOp.len = 2;
-		} else if (cmpBi < pl && cmpBi < mu && cmpBi < di && cmpBi < mi && cmpBi < cmpEq && cmpBi < cmpNEq && cmpBi < cmpSm) {
+		} else if (cmpBi > pl && cmpBi > mu && cmpBi > di && cmpBi > mi && cmpBi > cmpEq && cmpBi > cmpNEq && cmpBi > cmpSm) {
 			newOp.pos = cmpBi;
-			memcpy(newOp.op, buffer + cmpBi, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
-		} else if (cmpSm < pl && cmpSm < mu && cmpSm < di && cmpSm < mi && cmpSm < cmpEq && cmpSm < cmpNEq && cmpSm < cmpBi) {
+		} else if (cmpSm > pl && cmpSm > mu && cmpSm > di && cmpSm > mi && cmpSm > cmpEq && cmpSm > cmpNEq && cmpSm > cmpBi) {
 			newOp.pos = cmpSm;
-			memcpy(newOp.op, buffer + cmpSm, 1);
+			memcpy(newOp.op, buffer, 1);
 			newOp.op[1] = '\0';
 			newOp.len = 1;
 		}
 		return newOp;
 	}
 
-	bool HelpClass::IsTextString(char *cStr) {
-		char *txtStart = strstr(cStr, "\"");
+	bool HelpClass::IsTextString(const char *cStr) {
+		const char *txtStart = strstr(cStr, "\"");
 		if (txtStart) {
-			char *txtEnd = strstr(txtStart + 1, "\"");
+			const char *txtEnd = strstr(txtStart + 1, "\"");
 			if (txtEnd) {
 				return true;
 			}
@@ -287,8 +358,8 @@ namespace Global {
 		return false;
 	}
 
-	int HelpClass::FindComment(char *cStr) {
-		int len = strlen(cStr);
+	int HelpClass::FindComment(const char *cStr) {
+		const int len = strlen(cStr);
 		for (int i = 0; i < len; ++i) {
 			if (cStr[i] == '/' && cStr[i + 1] == '*') {
 				for (int k = i; k < len; ++k) {
@@ -299,5 +370,31 @@ namespace Global {
 			}
 		}
 		return 0;
+	}
+
+	void HelpClass::EvalNegtiveExpression(char *buffer, const char *cStr) {
+		int len = strlen(cStr);
+		Operator_s op0 = FindOperator(cStr, 0);
+		if (op0.pos == -1) {
+			return;
+		}
+		memcpy(buffer, cStr, op0.pos);
+
+		Operator_s op1 = FindOperator(buffer, 0);
+		char op[1];
+		if (op0.op[0] == '-' && op1.op[0] == '-') {
+			op[0] = '+';
+		} else if ((op0.op[0] == '-' && op1.op[0] == '+') || (op0.op[0] == '+' && op1.op[0] == '-')) {
+			op[0] = '-';
+		} else if (op0.op[0] == '-' && op1.op[0] == '=') {
+			memcpy(buffer, cStr, len);
+			buffer[len] = '\0';
+			return;
+		}
+		
+		memcpy(buffer, cStr, op0.pos -1);
+		memcpy(buffer + op0.pos - 1, op, 1);
+		memcpy(buffer + op0.pos, cStr + op0.pos +1, len - op0.pos);
+		buffer[len - 1] = '\0';
 	}
 }

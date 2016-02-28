@@ -14,35 +14,6 @@
 :alias sum : #55 = 0;
 
 
-:call sub;
-:print("sub: ");
-:if(sum == 5) { :print("Success"); } :else { :print("ERROR"); }
-:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
-:if(val1 == 3) { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
-
-:call add;
-:print("add: ");
-:if(sum == 11) { :print("Success"); } :else { :print("ERROR"); }
-:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
-:if(val1 == 3) { :print("Success"); }  :else { :print("ERROR"); }
-:print("______________________________________________");
-
-:call mul;
-:print("mul: ");
-:if(sum == 24) { :print("Success"); }  :else { :print("ERROR"); }
-:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); } 
-:if(val1 == 3) { :print("Success"); }  :else { :print("ERROR"); }
-:print("______________________________________________");
-
-:call div;
-:print("div: ");
-:if(sum == 2) { :print("Success"); } :else { :print("ERROR"); } 
-:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
-:if(val1 == 3) { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
-
-
 :subroutine subReverseOrder { &sum = val1 - val2; };
 
 :subroutine addReverseOrder { &sum = val1 + val2; };
@@ -75,13 +46,42 @@
 :print("______________________________________________");
 
 
+:call sub;
+:print("sub: ");
+:if(sum == 5) { :print("Success"); } :else { :print("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
+:if(val1 == 3) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
+:call add;
+:print("add: ");
+:if(sum == 11) { :print("Success"); } :else { :print("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
+:if(val1 == 3) { :print("Success"); }  :else { :print("ERROR"); }
+:print("______________________________________________");
+
+:call mul;
+:print("mul: ");
+:if(sum == 24) { :print("Success"); }  :else { :print("ERROR"); }
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); } 
+:if(val1 == 3) { :print("Success"); }  :else { :print("ERROR"); }
+:print("______________________________________________");
+
+:call div;
+:print("div: ");
+:if(sum == 2) { :print("Success"); } :else { :print("ERROR"); } 
+:if(val2 == 8) { :print("Success"); } :else { :print("ERROR"); }
+:if(val1 == 3) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
+
 :subroutine subNegative { &sum = val1 - val2Negative; };
 
 :subroutine addNegative { &sum = val1 + val2Negative; };
 
-:subroutine mulNegative { &sum = val1 * val2Negative; };
-
 :subroutine divNegative { &sum = val1 / val2Negative; };
+
+:subroutine mulNegative { &sum = val1 * val2Negative; };
 
 :call subNegative;
 :print("subNegative");
@@ -96,27 +96,27 @@
 :print("______________________________________________");
 
 
-:call mulNegative;
-:print("mulNegative");
-:if(#55 == -24) { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
-
-
 :call divNegative;
 :print("divNegative");
 :if(#55 == 0) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
 
 
+:call mulNegative;
+:print("mulNegative");
+:if(#55 == -24) { :print("Success"); } :else { :print("ERROR"); }
+:print("______________________________________________");
+
+
 :subroutine nestedSubroutineCall {
 		:call sub;
-		:stk.pushAt(4, sum);
+		:stk.pushAt(0, sum);
 		:call add;
-		&sum = sum + :stk.getAt(4); /*5 + 11 = 16*/
+		&sum = sum + :stk.getTop(); /*10 + 11 = 21*/
 };
 
 :print("nestedSubroutineCall: ");
 :call nestedSubroutineCall;
 
-:if(sum == 16) { :print("Success"); } :else { :print("ERROR"); }
+:if(sum == 21) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");

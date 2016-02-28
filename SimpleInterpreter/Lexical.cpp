@@ -57,15 +57,15 @@ namespace Partitioning {
 		return readCode;
 	}
 
-	void Lexical::SetCode(char *cStr) {
-		code = cStr;
+	void Lexical::SetCode(const char *cStr) {
+		code = (char *)cStr;
 	}
 
 	void Lexical::AllocateMem() {
 		Global::trimText(expression);
 
 		//Allocate heap memory.
-		int s = atoi(expression);
+		const int s = atoi(expression);
 		parser.heap.InitializeHeap(s);
 	}
 
@@ -73,7 +73,7 @@ namespace Partitioning {
 		Global::trimText(expression);
 
 		//Create stack on heap
-		int s = atoi(expression);
+		const int s = atoi(expression);
 		parser.heap.CreateStack(s);
 	}
 
@@ -140,11 +140,11 @@ namespace Partitioning {
 					code[i + 9] == 'n' && code[i + 10] == 'e') {
 					char *findSub = code + i + 11;
 
-					char *findOpenBracket = strstr(findSub, "{");
-					char *findCloseBracket = strstr(findSub, "}");
+					const char *findOpenBracket = strstr(findSub, "{");
+					const char *findCloseBracket = strstr(findSub, "}");
 
 					//Close bracket missing.
-					char *findWrongOpenBracket = strstr(findOpenBracket + 1, "{");
+					const char *findWrongOpenBracket = strstr(findOpenBracket + 1, "{");
 					if (findWrongOpenBracket) {
 						if (findWrongOpenBracket < findCloseBracket) {
 							Error::ErrorManager::ErrorCode(Error::CODE_52);
@@ -178,7 +178,7 @@ namespace Partitioning {
 							Error::ErrorManager::ErrorCode(Error::CODE_50);
 						}
 
-						char *ret = strstr(findSub, "};");
+						const char *ret = strstr(findSub, "};");
 						if (ret) {
 							Global::CallableUnit_s subroutine;
 							subroutine.endPos = ret - code;
@@ -240,8 +240,8 @@ namespace Partitioning {
 					code[i + 5] == 'c' && code[i + 6] == 't') {
 					char *findStruct = code + i + 7;
 
-					char *findOpenBracket = strstr(findStruct, "{");
-					char *findCloseBracket = strstr(findStruct, "};");
+					const char *findOpenBracket = strstr(findStruct, "{");
+					const char *findCloseBracket = strstr(findStruct, "};");
 
 					//Open bracket missing.
 					if (findCloseBracket) {
@@ -351,7 +351,7 @@ namespace Partitioning {
 		RegisterAllSubroutines();
 	}
 
-	void Lexical::TypedefSubroutines(char *searchName, const char *extendName) {
+	void Lexical::TypedefSubroutines(const char *searchName, const char *extendName) {
 		char str[NAMESIZE];
 		int len1 = 0;
 		int len2 = 0;
@@ -378,7 +378,7 @@ namespace Partitioning {
 		}
 	}
 
-	void Lexical::TypedefSubroutinesMembers(char *searchName, const char *extendName) {
+	void Lexical::TypedefSubroutinesMembers(const char *searchName, const char *extendName) {
 		char buffer[2048];
 		char instruction[INSTRUCTIONSIZE];
 		char newSearchName[NAMESIZE];
@@ -464,10 +464,10 @@ namespace Partitioning {
 	void Lexical::EvalAlias() {
 		int len = strlen(expression);
 		char *sep1 = strstr(expression, ":");
-		char *sep2 = strstr(expression, "=");
-		char *sep3 = strstr(expression, "#");
-		char *offset = strstr(expression, "offset(");
-		char *identifyType = strstr(expression, "\"");
+		const char *sep2 = strstr(expression, "=");
+		const char *sep3 = strstr(expression, "#");
+		const char *offset = strstr(expression, "offset(");
+		const char *identifyType = strstr(expression, "\"");
 
 		char address[ADDRESSSIZE];
 		int lenAddress;
@@ -528,7 +528,7 @@ namespace Partitioning {
 				int lenIndexes = 0;
 				parser.heap.GetStructIndex(tmp, indexes, lenIndexes);
 				for (int i = 0; i != lenIndexes; ++i) {
-					char *name = indexes[i].name;
+					const char *name = indexes[i].name;
 					const char *slash = strstr(name, ".");
 					int lenDot = strlen(slash) - 1;
 
@@ -644,13 +644,13 @@ namespace Partitioning {
 				alias.len = len;
 
 				//identify type.
-				if (Global::HelpClass::CheckForDigits(parserVal) == 1) {
+				if (Global::HelpClass::CheckForDigits(alias.value) == 1) {
 					memcpy(alias.type, "int", 3);
 					alias.type[3] = '\0';
-				} else if (Global::HelpClass::CheckForAlpha(parserVal) == 1) {
+				} else if (Global::HelpClass::CheckForAlpha(alias.value) == 1) {
 					memcpy(alias.type, "string", 6);
 					alias.type[6] = '\0';
-				} else if (Global::HelpClass::IsNegativeNumber(parserVal)) {
+				} else if (Global::HelpClass::IsNegativeNumber(alias.value)) {
 					//Negative number.
 					memcpy(alias.type, "int", 3);
 					alias.type[3] = '\0';
@@ -669,7 +669,7 @@ namespace Partitioning {
 			Error::ErrorManager::ErrorCode(Error::CODE_35);
 		}
 
-		int i = atoi(address);
+		const int i = atoi(address);
 
 		parser.heap.InsertAliasAt(i, alias);
 	}
@@ -699,7 +699,7 @@ namespace Partitioning {
 
 	void Lexical::EvalWhile() {
 		//type = 1 do while, type = 0 while.
-		char *res = parser.RegularExpression(expression);
+		const char *res = parser.RegularExpression(expression);
 		if (Global::HelpClass::StrCmp(res, "true")) {
 			//do while loop.
 			if (loop[loopLen].end == -1 && loop[loopLen].type == 1) {
@@ -787,12 +787,12 @@ namespace Partitioning {
 
 	void Lexical::EvalStk() {
 		Global::trimBothParanthesis(expression);
-		char *popTop = strstr(expression, "popTop");
-		char *pop = strstr(expression, "pop");
-		char *pushAt = strstr(expression, "pushAt");
-		char *pushTop = strstr(expression, "pushTop");
-		char *getAt = strstr(expression, "getAt");
-		char *getTop = strstr(expression, "getTop");
+		const char *popTop = strstr(expression, "popTop");
+		const char *pop = strstr(expression, "pop");
+		const char *pushAt = strstr(expression, "pushAt");
+		const char *pushTop = strstr(expression, "pushTop");
+		const char *getAt = strstr(expression, "getAt");
+		const char *getTop = strstr(expression, "getTop");
 
 		if (popTop) {
 			parser.StackPopTop();
@@ -823,14 +823,14 @@ namespace Partitioning {
 
 		for (int i = 0; i != len; ++i) {
 			if (parts[i].type == 2) {
-				char *and = strstr(parts[i].part, "&");
-				char *adress = strstr(parts[i].part, "#");
+				const char *and = strstr(parts[i].part, "&");
+				const char *adress = strstr(parts[i].part, "#");
 				if (and /*|| adress*/) {
 					parser.isAdress = true;
 				}
 
 				parts[i].part[parts[i].len] = '\0';
-				char *out = parser.RegularExpression(parts[i].part);
+				const char *out = parser.RegularExpression(parts[i].part);
 				char s[VALUESIZE];
 				int len = strlen(out);
 				memcpy(s, out, len);
@@ -854,14 +854,15 @@ namespace Partitioning {
 	void Lexical::EvalIf() {
 		Global::trimBothParanthesis(expression);
 
-		char *res = parser.RegularExpression(expression);
+		const char *res = parser.RegularExpression(expression);
 
 		if (Global::HelpClass::StrCmp(res, "true")) {
 			cmpResult = 1;
 		} else if (Global::HelpClass::StrCmp(res, "false")) {
 			cmpResult = 0;
 		} else {
-			//Something went completly wrong, DO CRASH!!!
+			//Something went completly wrong.
+			Error::ErrorManager::ErrorCode(Error::CODE_80);
 		}
 	}
 
@@ -963,7 +964,7 @@ namespace Partitioning {
 		}
 	}
 
-	int Lexical::CalculateLinenumbersInFile(int start, int end) {
+	int Lexical::CalculateLinenumbersInFile(const int start, const int end) {
 		int counter = 0;
 		for (int i = start; i != end; ++i) {
 			if (code[i] == '\n') {
@@ -973,33 +974,33 @@ namespace Partitioning {
 		return counter;
 	}
 
-	bool Lexical::IsCorrectFileType(char *cStr) {
-		char *fileType = strstr(cStr, ".q");
+	bool Lexical::IsCorrectFileType(const char *cStr) {
+		const char *fileType = strstr(cStr, ".q");
 		if (fileType) {
 			return true;
 		}
 		return false;
 	}
 
-	bool Lexical::IsCorrectMainFileType(char *cStr) {
-		char *fileType = strstr(cStr, ".main.q");
+	bool Lexical::IsCorrectMainFileType(const char *cStr) {
+		const char *fileType = strstr(cStr, ".main.q");
 		if (fileType) {
 			return true;
 		}
 		return false;
 	}
 
-	void Lexical::EvalCodeInsideStruct(char *structCode) {
-		char *oldCode = code;
+	void Lexical::EvalCodeInsideStruct(const char *structCode) {
+		const char *oldCode = code;
 		SetCode(structCode);
 		GetInstructions();
 		SetCode(oldCode);
 	}
 
 	void Lexical::EvalExpressionWithoutKeyword() {
-		char *eq = strstr(expression, "=");
+		const char *eq = strstr(expression, "=");
 		if (eq) {
-			char *res = parser.RegularExpression(expression);
+			const char *res = parser.RegularExpression(expression);
 
 			/*int len0 = 0;
 			int len1 = 0;

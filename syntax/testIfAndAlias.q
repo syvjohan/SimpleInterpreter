@@ -14,22 +14,20 @@
 :if(n1 == 15) { :print("Success"); } :else { :print("ERRROR"); }
 :print("______________________________________________");
 
-
 :if(#32 +1 == "e") { :print("Success"); } :else { :print("ERROR"); }
-:if(&str +1 == "e") { :print("Success"); } :else { :print("ERROR"); }
 
 /* < > Jämför längderna på textsträngarna eller storleken på heltal*/
 :if("n1" < "number") { :print("Success"); } :else { :print("ERROR"); }
 
 :if("100" > "n1") { :print("Success"); } :else { :print("ERROR"); }
 
-:if(n1 < number) { :print("true"); } :else { :print("Success"); }
+:if(n1 < number) { :print("ERROR"); } :else { :print("Success"); }
 
-:if(100 > n1) { :print("true"); } :else { :print("Success"); 
+:if(100 > n1) { :print("Success"); } :else { :print("ERROR"); 
 
 :if(n1 == number) { :print("Success"); } :else { :print("ERRROR"); } 
 
-:if(n1 != number) { :print("true"); } :else { :print("Success"); }
+:if(n1 != number) { :print("ERROR"); } :else { :print("Success"); }
 
 :if("number" == "number") { :print("Success"); } :else { :print("ERRROR"); }
 

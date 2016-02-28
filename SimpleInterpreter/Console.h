@@ -11,13 +11,13 @@ static void SetConsoleSize() {
 	GetConsoleScreenBufferInfo(hStdOut, &sbInfo);
 
 	COORD coordinates;
-	coordinates.X = 80;
-	coordinates.Y = 1000;
+	coordinates.X = 80; // size of line.
+	coordinates.Y = 1000; //Number of lines.
 
 	SMALL_RECT windowRect;
 	windowRect.Top = 0;
 	windowRect.Left = 0;
-	windowRect.Bottom = 48;
+	windowRect.Bottom = 60;
 	windowRect.Right = 79;
 
 	//set textbuffer size
@@ -26,15 +26,15 @@ static void SetConsoleSize() {
 	//change window size.
 	assert(SetConsoleWindowInfo(hStdOut, true, &windowRect));
 	
-	HWND hwnd = GetConsoleWindow();
+	const HWND hwnd = GetConsoleWindow();
 
 	SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE);
 }
 
 static void ConsoleBackgroundAndTextColors(int ForgC, int BackC) {
-	WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);
+	const WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);
 	
-	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	const HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	
 	COORD coordinates;
 	coordinates.X = 80;

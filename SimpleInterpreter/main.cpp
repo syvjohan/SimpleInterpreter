@@ -1,12 +1,11 @@
 #include "Lexical.h"
 #include "HelpHeaders.h"
+#include "ErrorHeaders.h"
 #include "Console.h"
-
-bool KeyPressed();
 
 int main(void) {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
+	
 	SetConsoleSize();
 
 	Partitioning::Lexical lexical;
@@ -17,7 +16,10 @@ int main(void) {
 	lexical.SetCode(code);
 	code = lexical.RegisterAllIncludes();
 	lexical.SetCode(code);
+
 	lexical.RegisterAllStructs();
+
+	//Error::ErrorManager::ResetLineCounters();
 	lexical.RegisterAllSubroutines();
 
 	//Need to be set again because of includes, struct and subroutines registration.

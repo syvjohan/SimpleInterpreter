@@ -11,7 +11,6 @@
 			:stk.pushAt(5, :stk.getAt(5) +1);
 		}
 		:print("______________________________________________");
-
 	:print(:stk.getAt(0));
 	:stk.pushAt(0, :stk.getAt(0) +1);
 }
