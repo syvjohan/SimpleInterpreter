@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HelpClass.h"
+#include "Defines.h"
 
 namespace Global {
 	struct File_s;
@@ -22,17 +22,15 @@ namespace Error {
 		private:
 			static void PrintMessage(const char *errorCode, const char *msg);
 			static char* FindFile();
-			static int GetLines(const char *name);
+			static int GetLines();
 			static bool KeyPressed();
 
-			static int index;
 			static char instruction[INSTRUCTIONSIZE];
-			static int linesInclude;
-			static int linesMain;
+			static int lines;
 
 			static Global::File_s files[MAXINCLUDEDFILES];
 			static int lenFiles;
 			static int fileIndex;	
-			static int lenFileIndexes;
+
 	};
 }

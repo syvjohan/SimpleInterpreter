@@ -17,7 +17,7 @@ static void SetConsoleSize() {
 	SMALL_RECT windowRect;
 	windowRect.Top = 0;
 	windowRect.Left = 0;
-	windowRect.Bottom = 60;
+	windowRect.Bottom = 40;
 	windowRect.Right = 79;
 
 	//set textbuffer size

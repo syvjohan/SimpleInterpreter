@@ -7,18 +7,20 @@
 
 namespace Error {
 	char ErrorManager::instruction[INSTRUCTIONSIZE];
-	int ErrorManager::index = 0;
-	int ErrorManager::linesInclude = 0;
-	int ErrorManager::linesMain = 0;
+	int ErrorManager::lines = 1;
 
 	Global::File_s ErrorManager::files[MAXINCLUDEDFILES];
 	int ErrorManager::lenFiles = 0;
-	int ErrorManager::fileIndex = -1;
-	int ErrorManager::lenFileIndexes = 0;
+	int ErrorManager::fileIndex = 0;
 
 	ErrorManager::ErrorManager() {}
 
-	ErrorManager::~ErrorManager() {}
+	ErrorManager::~ErrorManager() {
+		for (int i = 0; i != lenFiles; ++i) {
+			delete[] files[i].index;
+			files[i].index = NULL;
+		}
+	}
 
 	void ErrorManager::PrintMessage(const char *errorCode, const char *msg) {
 		ConsoleBackgroundAndTextColors(4, 0);
@@ -28,7 +30,7 @@ namespace Error {
 
 		printf("\nIn file: %s", name);
 
-		printf("\nLine: %i.", ErrorManager::GetLines(name));
+		printf("\nLine: %i.", ErrorManager::GetLines());
 
 		printf("\nDescription: %s\n", msg);
 		printf("\n%s\n\n", ErrorManager::instruction);
@@ -53,76 +55,70 @@ namespace Error {
 		const int len = strlen(inst);
 		memcpy(ErrorManager::instruction, inst, len);
 		ErrorManager::instruction[len] = '\0';
-
-		ErrorManager::index = i;
 	}
 
 	void ErrorManager::SetRegisteredFiles(const Global::File_s *f, const int len) {
 		memcpy(ErrorManager::files, f, len * sizeof(Global::File_s));
-		ErrorManager::lenFiles = len;
+		ErrorManager::lenFiles = len -1;
+		ErrorManager::fileIndex = lenFiles; //Initialize fileIndex to 'main.q'.
 	}
 
 	char* ErrorManager::FindFile() {
-		if (ErrorManager::fileIndex == -1) {
-			return ".main.q";
-		}
 		return ErrorManager::files[fileIndex].name;
 	}
 
-	int ErrorManager::GetLines(const char *name) {
-		int ret = 0;
-		if (Global::HelpClass::StrCmp(name, ".main.q")) {
-			ret = linesMain + 1;
-		} else {
-			ret = linesInclude;
-		}
-		return ret;
+	int ErrorManager::GetLines() {
+		return lines;
 	}
 
 	void ErrorManager::AddLine(const int index) {
-		int newIndex = index;
-		newIndex += 3;
-		bool fileFound = false;
-		bool indexFound = false;
+		int updatedIndex = index + 3;
+		bool isFileFound = false;
+		bool isLinenumberFound = false;
+		Global::File_s *file;
 
-		for (int i = 0; i != ErrorManager::lenFiles; ++i) {
-			Global::File_s *file = &ErrorManager::files[i];
-			//check if index is inside some of the files.
-			if (newIndex >= file->startPos && newIndex <= file->endPos) {
-				//Check if line already has been stored.
-				for (int k = 0; k != ErrorManager::lenFileIndexes; ++k) {
-					if (file->index[k] == index) {
-						indexFound = true; //Index is inside loop.
+		for (int i = 0; i <= lenFiles; ++i) {
+			file = &files[i];
+			if (updatedIndex >= file->startPos && updatedIndex <= file->endPos) {
+				//Inside file.
+				fileIndex = i; // Index to file we are in.
+				isFileFound = true; //is inside file
+
+				//Has line been entered earlier?
+				for (int k = 0; k <= file->lenIndex; ++k) {
+					int l = file->index[k];
+					if (l == index) {
+						lines = l;
+						isLinenumberFound = true;
 						break;
+					} 
+				}
+
+				if (!isLinenumberFound) {
+					//HACKS! problem is that when we enter index for include it's not adding a line inside main file.
+					//Therefore everytime we enter a include we add an extra line to main.q.
+					if (!Global::HelpClass::StrCmp(file->name, "main.q")) {
+						if (file->lenIndex == 0) {
+							files[lenFiles].currentLinenumber += 1;
+						}
 					}
-				}
+					file->index[file->lenIndex] = index;
 
-				if (!indexFound) {
-					file->index[lenFileIndexes] = index;
-					ErrorManager::lenFileIndexes++;
+					file->currentLinenumber += 1;
+					lines = file->currentLinenumber;
+					++file->lenIndex;
 				}
-
-				if (newIndex == file->startPos) {
-					//++linesMain;
-					ErrorManager::fileIndex = i;
-				}
-				ErrorManager::linesInclude++;
-				fileFound = true;
 				break;
 			}
 		}
-		if (!fileFound) {
-			fileIndex = -1;
-			++linesMain;
 
-			ErrorManager::linesInclude = 0; //restart counter because we are going to enter a new file or stay in .main.q.
-		}	
+		if (!isFileFound) {
+			fileIndex = lenFiles; //Resets file index.
+		}
 	}
 
 	void ErrorManager::ResetLineCounters() {
-		linesInclude = 0;
-		linesMain = 0;
-		lenFileIndexes = 0;
+		lines = 0;
 	}
 
 	void ErrorManager::ErrorCode(const ERRORCODES errorCode) {

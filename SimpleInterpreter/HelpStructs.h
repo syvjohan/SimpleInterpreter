@@ -47,11 +47,17 @@ namespace Global {
 		int len;
 	};
 
+	struct Pair_s {
+		int first = 0;
+		int second = 0;
+	};
+
 	struct File_s {
 		char name[PATHSIZE];
 		int startPos = -1;
 		int endPos = -1;
-		int numberOfLines = -1;
 		int *index;
+		int currentLinenumber = 0;
+		int lenIndex = 0;
 	};
 }

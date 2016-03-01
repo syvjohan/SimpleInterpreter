@@ -939,6 +939,7 @@ namespace Partitioning {
 			}
 			++i;
 		}
+		RegisterFile(0, fileSize, "main.q"); //Register .main.q file
 		Error::ErrorManager::SetRegisteredFiles(files, lenFiles);
 		return code;
 	}
@@ -956,7 +957,7 @@ namespace Partitioning {
 			memcpy(file.name, name, lenName);
 			file.name[lenName] = '\0';
 
-			file.numberOfLines = CalculateLinenumbersInFile(file.startPos, file.endPos);
+			//file.numberOfLines = CalculateLinenumbersInFile(file.startPos, file.endPos);
 
 			files[lenFiles] = file;
 
@@ -964,15 +965,15 @@ namespace Partitioning {
 		}
 	}
 
-	int Lexical::CalculateLinenumbersInFile(const int start, const int end) {
-		int counter = 0;
-		for (int i = start; i != end; ++i) {
-			if (code[i] == '\n') {
-				++counter;
-			}
-		}
-		return counter;
-	}
+	//int Lexical::CalculateLinenumbersInFile(const int start, const int end) {
+	//	int counter = 0;
+	//	for (int i = start; i != end; ++i) {
+	//		if (code[i] == '\n') {
+	//			++counter;
+	//		}
+	//	}
+	//	return counter;
+	//}
 
 	bool Lexical::IsCorrectFileType(const char *cStr) {
 		const char *fileType = strstr(cStr, ".q");

@@ -1,8 +1,0 @@
-:alias andraFilen : #32 = "andraFilen"; 
-:struct Calculator {
-	:alias res : offset(0);
-	:alias valFirst : offset(4);
-	:alias valSecond : offset(8);
-
-	:subroutine add { &res = valFirst + valSecond; };
-};

@@ -1,9 +1,0 @@
-:alias tredjeFilen : #32 = "tredjeFilen"; 
-:print("thirdDoWhile");
-:stk.pushAt(5, 0);
-:do { 
-	:print(:stk.getAt(5));
-	:stk.pushAt(5, :stk.getAt(5) +1);
-
-} :while(:stk.getAt(5) != 3);
-:print("______________________________________________");

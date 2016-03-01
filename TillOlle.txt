@@ -1,0 +1,7 @@
+Hej!
+
+För att ändra filen som programmet läser ifrån öppna main.cpp och ändra path på rad 13.
+
+Den är nu inställd på att läsa syntax/test.q vilken inkluderar resterande filer i syntax mappen.
+Samtliga inkluderade filer avser att testa programmet.
+Innehållet i filen testErrorCodes.q innehåller test fall som får interpretern att krascha. Samtliga testfall i filen är utkommenterade.

@@ -24,7 +24,6 @@
 }
 :print("______________________________________________");
 
-
 :print("secondwhileLoop");
 :stk.pushAt(5, 0);
 :while(:stk.getAt(5) != 3) {
