@@ -11,7 +11,12 @@ int main(void) {
 	Partitioning::Lexical lexical;
 
 	const char *path = "C:\\Programmering\\SimpleInterpreter\\syntax\\test.q";
-	char *code = lexical.ReadFile(path);
+	
+	const size_t size = lexical.CalculateFileSize(path);
+	lexical.fileSize = size;
+	char *code = DBG_NEW char[size]; //deleted inside Lexical.cpp destructor.
+	
+	lexical.ReadFile(code, path);
 
 	lexical.SetCode(code);
 	code = lexical.RegisterAllIncludes();
@@ -19,7 +24,6 @@ int main(void) {
 
 	lexical.RegisterAllStructs();
 
-	//Error::ErrorManager::ResetLineCounters();
 	lexical.RegisterAllSubroutines();
 
 	//Need to be set again because of includes, struct and subroutines registration.

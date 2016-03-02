@@ -11,6 +11,11 @@ namespace Memory {
 			heapContainer = NULL;
 		}
 
+		if (heapIndexStructs) {
+			delete[] heapIndexStructs;
+			heapIndexStructs = NULL;
+		}
+
 		if (heapIndex) {
 			delete[] heapIndex;
 			heapIndex = NULL;
@@ -43,7 +48,7 @@ namespace Memory {
 
 	void Heap::InsertAt(const int index, const Global::Alias_s alias) {
 		// Heap overflow
-		if ((alias.len + index) <= heapSize) {
+		if ((alias.len + index) < heapSize) {
 			int len = 0;
 			//data type
 			len = strlen(alias.type);
@@ -65,6 +70,7 @@ namespace Memory {
 						Error::ErrorManager::ErrorCode(Error::CODE_3511);
 					}
 					const int digits = atoi(alias.value);
+					//assert(index >= 0 && index < heapSize - sizeof(int));
 					memcpy(heapContainer + index, (char *)&digits, sizeof(int));
 				}
 			}
@@ -241,7 +247,7 @@ namespace Memory {
 			sprintf(alias.value, "%i", dest);
 			//Is negative.
 			if (dest < 0) {
-				len = Global::HelpClass::IntLength(dest) +1;
+				len = Global::HelpClass::IntLength(dest) + 1;
 			} else {
 				len = Global::HelpClass::IntLength(dest);
 			}
@@ -422,7 +428,7 @@ namespace Memory {
 		int len = 0;
 		int firstDot = 0;
 		int lenFirstWord = 0;
-		for (int i = indexStructLen -1; i >= 0; --i) {
+		for (int i = indexStructLen - 1; i >= 0; --i) {
 			char *name = heapIndexStructs[i].name;
 			int k = strlen(name);
 			while (k != 0) {

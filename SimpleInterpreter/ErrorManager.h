@@ -18,7 +18,6 @@ namespace Error {
 			static void SetInstruction(const char *instruction, const int index);
 			static void SetRegisteredFiles(const Global::File_s *files, const int len);
 			static void AddLine(const int index);
-			static void ResetLineCounters();
 		private:
 			static void PrintMessage(const char *errorCode, const char *msg);
 			static char* FindFile();

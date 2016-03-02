@@ -18,7 +18,8 @@ namespace Partitioning {
 			Lexical();
 			~Lexical();
 
-			char* ReadFile(const char *path);
+			void ReadFile(char *buffer, const char *path);
+			size_t CalculateFileSize(const char *path);
 			void SetCode(const char *cStr);
 			void GetInstructions();
 			void SplitInstruction(char *instruction);
@@ -29,6 +30,7 @@ namespace Partitioning {
 			void RegisterFile(const int start, const int end, const char *name);
 			int CalculateLinenumbersInFile(const int start, const int end);
 
+			size_t fileSize;
 		private:
 			void AllocateMem();
 			void CreateStack();
@@ -61,7 +63,6 @@ namespace Partitioning {
 			void ResetLoopArray();
 
 			char *code;
-			size_t fileSize;
 
 			int index = 0;
 			int startIndex = 0;

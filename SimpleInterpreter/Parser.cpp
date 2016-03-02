@@ -256,7 +256,7 @@ namespace Partitioning {
 		Global::Alias_s aliasLhs = ParseKeywords((char *)lhs);
 		const Global::Alias_s aliasRhs = ParseKeywords((char *)rhs);
 		
-		if (Global::HelpClass::StrCmp(op, "=")) {
+		if (Global::HelpClass::StrCmp(op, "=") && aliasLhs.name[0] != '\0') {
 			//Updates alias
 			if (lhs[0] == '&' || lhs[0] == '#') {
 				SetDatatype(&aliasLhs, aliasRhs); //Change type in parameter 1.
@@ -695,6 +695,8 @@ namespace Partitioning {
 
 	void Parser::UpdateAlias(Global::Alias_s *alias) {
 		const int address = heap.GetAddress(alias->name); //String.string.pPair.first
+		assert(address != -1);
+
 		heap.InsertAliasAt(address, *alias);			 //String.pPair.second
 	}
 

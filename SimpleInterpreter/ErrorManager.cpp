@@ -13,14 +13,12 @@ namespace Error {
 	int ErrorManager::lenFiles = 0;
 	int ErrorManager::fileIndex = 0;
 
-	ErrorManager::ErrorManager() {}
-
-	ErrorManager::~ErrorManager() {
-		for (int i = 0; i != lenFiles; ++i) {
-			delete[] files[i].index;
-			files[i].index = NULL;
-		}
+	ErrorManager::ErrorManager() {
+		files->index = NULL;
+	
 	}
+
+	ErrorManager::~ErrorManager() {}
 
 	void ErrorManager::PrintMessage(const char *errorCode, const char *msg) {
 		ConsoleBackgroundAndTextColors(4, 0);
@@ -38,7 +36,6 @@ namespace Error {
 		printf("Press any key to exit!");
 
 		if (KeyPressed()) {
-			delete[] files->index;
 			exit(0);
 		}
 	}
@@ -115,10 +112,6 @@ namespace Error {
 		if (!isFileFound) {
 			fileIndex = lenFiles; //Resets file index.
 		}
-	}
-
-	void ErrorManager::ResetLineCounters() {
-		lines = 0;
 	}
 
 	void ErrorManager::ErrorCode(const ERRORCODES errorCode) {

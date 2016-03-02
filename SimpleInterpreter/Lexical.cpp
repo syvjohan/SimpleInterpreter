@@ -24,9 +24,21 @@ namespace Partitioning {
 			delete[] calls;
 			calls = NULL;
 		}
+
+		if (structs) {
+			delete[] structs;
+			structs = NULL;
+		}
+
+		for (int i = lenFiles - 1; i >= 0; --i) {
+			if (files[i].index) {
+				delete[] files[i].index;
+				files[i].index = NULL;
+			}
+		}
 	}
 
-	char* Lexical::ReadFile(const char *path) {
+	size_t Lexical::CalculateFileSize(const char *path) {
 		FILE *file;
 		file = fopen(path, "r");
 
@@ -37,24 +49,31 @@ namespace Partitioning {
 
 		//get size of file.
 		fseek(file, 0, SEEK_END);
-		fileSize = ftell(file);
+		size_t size = ftell(file);
 		fseek(file, 0, SEEK_SET);
+		
+		return size +1;
+	}
 
-		//allocate sizeof file +1.
-		char *readCode = DBG_NEW char[fileSize + 1];
+	void Lexical::ReadFile(char *buffer, const char *path) {
+		FILE *file;
+		file = fopen(path, "r");
+
+		if (file == NULL) {
+			printf("Error CODE_90: Wrong file path,\n");
+			perror(path);
+		}
 
 		//read file into string
 		int c;
 		int i = 0;
 		while ((c = fgetc(file)) != EOF) {
-			readCode[i] = (char)c;
+			buffer[i] = (char)c;
 			++i;
 		}
-		readCode[i] = '\0';
+		buffer[i] = '\0';
 
 		fclose(file);
-
-		return readCode;
 	}
 
 	void Lexical::SetCode(const char *cStr) {
@@ -381,7 +400,7 @@ namespace Partitioning {
 	void Lexical::TypedefSubroutinesMembers(const char *searchName, const char *extendName) {
 		char buffer[2048];
 		char instruction[INSTRUCTIONSIZE];
-		char newSearchName[NAMESIZE];
+		char newSearchName[STRUCTNAMESIZE];
 		Global::Operator_s op;
 		int len1 = 0;
 		int len2 = 0;
@@ -902,21 +921,25 @@ namespace Partitioning {
 						Global::trimNewline(path);
 						Global::trimBothParanthesis(path);
 						Global::trimText(path);
-						char *extendedCode = ReadFile(path);
-						int lenExtended = strlen(extendedCode);
+
+						const int size = CalculateFileSize(path);
+						char *extendedCode = DBG_NEW char[size];
+						ReadFile(extendedCode, path);
+
+						const int lenExtended = strlen(extendedCode);
 
 						char *codeBefore = DBG_NEW char[lenCode];
-						int lenCodeBefore = foundInclude - code - lenInclude;
+						const int lenCodeBefore = foundInclude - code - lenInclude;
 						memcpy(codeBefore, code, lenCodeBefore);
 						codeBefore[lenCodeBefore] = '\0';
 
 						char *codeAfter = DBG_NEW char[lenCode];
 						offset += lenCodeBefore;
-						int lenCodeAfter = abs(lenCode - offset);
+						const int lenCodeAfter = abs(lenCode - offset);
 						memcpy(codeAfter, code + offset, lenCodeAfter);
 						codeAfter[lenCodeAfter] = '\0';
 
-						delete code;
+						delete[] code;
 						code = NULL;
 						code = DBG_NEW char[lenCode + lenExtended];
 						memcpy(code, codeBefore, lenCodeBefore);
@@ -929,8 +952,12 @@ namespace Partitioning {
 
 						fileSize = lenCode;
 
+						delete[] extendedCode;
+						extendedCode = NULL;
 						delete[] codeAfter;
+						codeAfter = NULL;
 						delete[] codeBefore;
+						codeBefore = NULL;
 
 						//register file indexes.
 						RegisterFile(lenCodeBefore + 1, lenCodeBefore + lenExtended, path);
@@ -957,23 +984,11 @@ namespace Partitioning {
 			memcpy(file.name, name, lenName);
 			file.name[lenName] = '\0';
 
-			//file.numberOfLines = CalculateLinenumbersInFile(file.startPos, file.endPos);
-
 			files[lenFiles] = file;
 
 			++lenFiles;
 		}
 	}
-
-	//int Lexical::CalculateLinenumbersInFile(const int start, const int end) {
-	//	int counter = 0;
-	//	for (int i = start; i != end; ++i) {
-	//		if (code[i] == '\n') {
-	//			++counter;
-	//		}
-	//	}
-	//	return counter;
-	//}
 
 	bool Lexical::IsCorrectFileType(const char *cStr) {
 		const char *fileType = strstr(cStr, ".q");
@@ -1001,32 +1016,7 @@ namespace Partitioning {
 	void Lexical::EvalExpressionWithoutKeyword() {
 		const char *eq = strstr(expression, "=");
 		if (eq) {
-			const char *res = parser.RegularExpression(expression);
-
-			/*int len0 = 0;
-			int len1 = 0;
-			len0 = strlen(eq) -1;
-			memcpy(tmpRhs, eq +1, len0);
-			tmpRhs[len0] = '\0';
-			char *resRhs = parser.regularExpression(tmpRhs);
-			memcpy(buffer, resRhs, strlen(buffer));
-
-			len1 = strlen(expression) - len0 -1;
-			memcpy(tmpLhs, expression, len1);
-			tmpLhs[len1] = '\0';
-			char *resLhs = parser.regularExpression(tmpLhs);
-
-			len0 = strlen(resLhs);
-			memcpy(tmpStr, resLhs, len0);
-			memcpy(tmpStr + len0, "=", 1);
-			len0 += 1;
-
-			len1 = strlen(resRhs);
-			memcpy(tmpStr + len0, buffer, len1);
-			len0 += len1;
-			tmpStr[len0] = '\0';
-
-			parser.calculateResult(tmpStr);*/
+			parser.RegularExpression(expression);
 		}
 	}
 
