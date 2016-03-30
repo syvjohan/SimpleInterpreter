@@ -69,3 +69,6 @@
 
 } :while(:stk.getAt(5) != 3);
 :print("______________________________________________");
+
+/* Erase all elements on Stack */
+:stk.popTop();

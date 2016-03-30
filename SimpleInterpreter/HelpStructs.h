@@ -4,14 +4,14 @@
 
 namespace Global {
 	struct CallableUnit_s {
-		char name[NAMESIZE];
+		char name[ NAMESIZE ];
 		int startPos = -1;
 		int endPos = -1;
 	};
 
 	struct Call_s {
 		int pos;
-		char name[NAMESIZE];
+		char name[ NAMESIZE ];
 	};
 
 	struct Loop_s {
@@ -22,28 +22,28 @@ namespace Global {
 	};
 
 	struct Alias_s {
-		char name[NAMESIZE];
-		char type[TYPESIZE];
-		char value[VALUESIZE];
+		char name[ NAMESIZE ];
+		char type[ TYPESIZE ];
+		char value[ VALUESIZE ];
 		int len;
 	};
 
 	struct Parts_s {
-		char part[OUTPUTSIZE];
+		char part[ OUTPUTSIZE ];
 		int type; //1 = text. 2 = logic.
 		int len;
 	};
 
 	struct Index_s {
-		char name[NAMESIZE];
-		char type[TYPESIZE];
+		char name[ NAMESIZE ];
+		char type[ TYPESIZE ];
 		int startPos;
 		int len;
 	};
 
 	struct Operator_s {
 		int pos;
-		char op[3];
+		char op[ 3 ];
 		int len;
 	};
 
@@ -53,7 +53,7 @@ namespace Global {
 	};
 
 	struct File_s {
-		char name[PATHSIZE];
+		char name[ PATHSIZE ];
 		int startPos = -1;
 		int endPos = -1;
 		int *index;

@@ -78,3 +78,22 @@
 :print("getAt(#21): ");
 :print(:stk.getAt(21));
 :print("");
+
+/* Erase all elements on Stack */
+:stk.popTop();
+:stk.popTop();
+:stk.popTop();
+:stk.popTop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+:stk.pop();
+
+
+

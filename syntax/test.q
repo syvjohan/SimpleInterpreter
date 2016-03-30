@@ -1,28 +1,27 @@
 :sysMemAllocHeap 64;
 :sysCreateStack 32;
 
+:include("C:\Programmering\SimpleInterpreter\syntax\testIfAndAlias.q"); 
+
 /*:include("C:\Programmering\SimpleInterpreter\syntax\testErrorCodes.q");*/
 
+:include("C:\Programmering\SimpleInterpreter\syntax\testSubroutines.q");
 
-
-:alias var : #32 = "Alias between includes";
 :include("C:\Programmering\SimpleInterpreter\syntax\testMathExpression.q");
 
 :include("C:\Programmering\SimpleInterpreter\syntax\testStack.q");
-:alias var : #32 = "Alias between includes";
-
-:include("C:\Programmering\SimpleInterpreter\syntax\testIfAndAlias.q"); 
 
 :include("C:\Programmering\SimpleInterpreter\syntax\testLoops.q");
-:alias var : #32 = "Alias between includes";
 
-:stk.pushAt(5, 0);
-:while(:stk.getAt(5) != 3) { 
-	:stk.pushAt(5, :stk.getAt(5) +1);
-}
+/*:include("C:\Programmering\SimpleInterpreter\syntax\testStructs.q");*/
 
-:include("C:\Programmering\SimpleInterpreter\syntax\testSubroutines.q");
-:alias var : #32 = "Alias between includes";
+/* :include("C:\Programmering\SimpleInterpreter\syntax\Assignment1.q"); */
+/* :include("C:\Programmering\SimpleInterpreter\syntax\Assignment2.q"); */
+/* :include("C:\Programmering\SimpleInterpreter\syntax\Assignment3.q"); */
+/* :include("C:\Programmering\SimpleInterpreter\syntax\Assignment4.q"); */
+/* :include("C:\Programmering\SimpleInterpreter\syntax\Assignment5.q"); */ 
+/* include("C:\Programmering\SimpleInterpreter\syntax\Assignment6.q"); */
+/* :include("C:\Programmering\SimpleInterpreter\syntax\fibonacci.q"); */
 
 :print(" ");
 :print("End of test files!		");

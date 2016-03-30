@@ -13,7 +13,6 @@
 :alias val2Negative : #51 = -8;
 :alias sum : #55 = 0;
 
-
 :subroutine subReverseOrder { &sum = val1 - val2; };
 
 :subroutine addReverseOrder { &sum = val1 + val2; };
@@ -24,25 +23,25 @@
 
 :call subReverseOrder;
 :print("subReverseOrder");
-:if(sum == -5) { :print("Success"); } :else { :prin("ERROR"); }
+:if(sum == -5) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
 
 
 :call addReverseOrder;
 :print("addReverseOrder");
-:if(sum == 11) { :print("Success"); } :else { :prin("ERROR"); }
+:if(sum == 11) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
 
 
 :call mulReverseOrder;
 :print("mulReverseOrder");
-:if(sum == 24) { :print("Success"); } :else { :prin("ERROR"); }
+:if(sum == 24) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
 
 
 :call divReverseOrder;
 :print("divReverseOrder");
-:if(sum == 0) { :print("Success"); } :else { :prin("ERROR"); }
+:if(sum == 0) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
 
 
@@ -75,6 +74,7 @@
 :print("______________________________________________");
 
 
+
 :subroutine subNegative { &sum = val1 - val2Negative; };
 
 :subroutine addNegative { &sum = val1 + val2Negative; };
@@ -82,6 +82,21 @@
 :subroutine divNegative { &sum = val1 / val2Negative; };
 
 :subroutine mulNegative { &sum = val1 * val2Negative; };
+
+
+:subroutine nestedSubroutineCall {
+		:call sub;
+		:stk.pushTop(sum);
+		:call add;
+		&sum = sum + :stk.getTop(); /*5 + 11 = 16*/
+};
+
+:print("nestedSubroutineCall: ");
+:call nestedSubroutineCall;
+
+:if(sum == 16) { :print("Success"); } :else { :print("ERROR"); }
+:stk.popTop();
+:print("______________________________________________");
 
 :call subNegative;
 :print("subNegative");
@@ -107,16 +122,3 @@
 :if(#55 == -24) { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
 
-
-:subroutine nestedSubroutineCall {
-		:call sub;
-		:stk.pushAt(0, sum);
-		:call add;
-		&sum = sum + :stk.getTop(); /*10 + 11 = 21*/
-};
-
-:print("nestedSubroutineCall: ");
-:call nestedSubroutineCall;
-
-:if(sum == 21) { :print("Success"); } :else { :print("ERROR"); }
-:print("______________________________________________");
