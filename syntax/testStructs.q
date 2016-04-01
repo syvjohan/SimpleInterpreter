@@ -20,10 +20,9 @@
 
 }; /*No typedef needed underlying layer will automaticle create a typedef String*/
 
-
+/*
 :alias string : #33 = String;
 &string.pPair.first = "firstPair";
-&string.pPair.second = "secondPair";
 &string.cStr = "hej";
 &string.len = 3;
 
@@ -41,6 +40,7 @@
 :if(string.pPair.second == "secondPair") { :print("Success"); } :else { :print("ERROR"); }
 :if(string.pPair.first == "firstPair") { :print("Success"); } :else { :print("ERROR"); }
 :print("______________________________________________");
+*/
 
 :alias calc : #33 = Calculator;
 &calc.valFirst = 2;

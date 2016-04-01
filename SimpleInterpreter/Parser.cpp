@@ -597,14 +597,14 @@ namespace Partitioning {
 			return alias;
 		}
 
-		const char *structName = heap.GetFullNameStructMember( exp );
+		const char *structName = heap.GetFullNameStructMember( exp ); //&String.string.pPair.first
 		if( structName ) {
 			int len = strlen( structName );
 			memcpy( exp, structName, len );
 			exp[ len ] = '\0';
 		}
 
-		Global::Alias_s a = heap.GetAlias( exp ); //Calculator.calc.valSecond
+		Global::Alias_s a = heap.GetAlias( exp );
 		const char *stack = strstr( exp, ":stk" );
 		char *hashtag = strstr( exp, "#" );
 		char *and = strstr( exp, "&" );
@@ -645,7 +645,7 @@ namespace Partitioning {
 				Error::ErrorManager::ErrorCode( Error::CODE_60 );
 			}
 
-		} else if( hashtag /*&& !isAdress*/ ) {
+		} else if( hashtag ) {
 			Global::trimBothParanthesis( hashtag );
 			len = strlen( hashtag ) - 1;
 			memcpy( tmpStr, hashtag + 1, len );
@@ -663,7 +663,7 @@ namespace Partitioning {
 				}
 			}
 
-		} else if( hashtag /*&& isAdress*/ ) {
+		} else if( hashtag ) {
 			Global::trimBothParanthesis( hashtag );
 			len = strlen( hashtag ) - 1;
 			memcpy( alias.type, "address", 7 );
@@ -674,7 +674,7 @@ namespace Partitioning {
 
 			alias.len = strlen( alias.value );
 
-		} else if( !and && dot /*&& !isAdress*/ ) {
+		} else if( !and && dot ) {
 			int lenRhs = strlen( dot ) - 1;
 			memcpy( tmpRhs, dot + 1, lenRhs );
 			tmpRhs[ lenRhs ] = '\0';
@@ -696,14 +696,14 @@ namespace Partitioning {
 
 			alias = heap.GetAlias( tmpStr );
 
-		} else if( and && !dot/* && !isAdress*/ ) {
+		} else if( and && !dot ) {
 			Global::trimBothParanthesis( and );
 			len = strlen( and ) - 1;
 			memcpy( tmpStr, and + 1, len );
 			tmpStr[ len ] = '\0';
 			alias = heap.GetAlias( tmpStr );
 
-		} else if( and && !dot /*&& isAdress*/ ) {
+		} else if( and && !dot ) {
 			Global::trimBothParanthesis( and );
 			len = strlen( and ) - 1;
 			memcpy( tmpStr, and + 1, len );
@@ -715,7 +715,7 @@ namespace Partitioning {
 			const int digits = heap.GetAddress( tmpStr );
 			sprintf( alias.value, "%d", digits );
 
-		} else if( and && dot /*&& !isAdress*/ ) {
+		} else if( and && dot ) {
 			Global::trimBothParanthesis( and );
 
 			//struct

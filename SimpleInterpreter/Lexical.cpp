@@ -278,8 +278,8 @@ namespace Partitioning {
 	}
 
 	//*****
-	//Lexical::ExpandSubroutineSize
-	//Makes it possible to call a subroutine that has been declared after it is called.
+	//Lexical::RegisterAllStructs
+	//Makes it possible to call a Struct that has been declared after it is called.
 	//*****
 	void Lexical::RegisterAllStructs() {
 		bool insideComment = false;
