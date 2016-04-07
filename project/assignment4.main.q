@@ -1,5 +1,8 @@
 :print("--------------Assignment4.q--------------");
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :alias str : #36 = "this is a test str";
 :alias len : #32;
 

@@ -1,6 +1,9 @@
 :print("--------------Assignment2.q--------------");
 /* Simulate a "buffer overflow"(use loop).. */
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :alias str : #33 = "Hello World"; 
 :stk.pushTop( 0 );
 

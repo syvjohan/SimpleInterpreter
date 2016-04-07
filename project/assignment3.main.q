@@ -1,5 +1,8 @@
 :print("--------------Assignment3.q--------------");
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :alias sum : #33;
 :stk.pushTop( 2 );
 :stk.pushAt( 4, 3 );

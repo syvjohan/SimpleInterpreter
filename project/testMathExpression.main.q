@@ -1,5 +1,8 @@
 :print("--------------TestMathExpressions.q--------------");
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :alias var : #32;
 :print(#32 + 1 = 10, "Correct result is 10");
 

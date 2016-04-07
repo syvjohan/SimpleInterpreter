@@ -1,5 +1,8 @@
 /* Fibinacci implemented with recursion and Stack */
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :stk.pushTop( 0 ); /* Sum */
 :stk.pushAt(4, 0); /* First number */
 :stk.pushAt(9, 1); /* Second number */

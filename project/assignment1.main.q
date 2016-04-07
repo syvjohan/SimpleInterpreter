@@ -1,6 +1,9 @@
 :print("--------------Assignment1.q--------------");
 /* Simulate  a "stack overflow"(use recursion). */
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :call stackoverflow;
 
 :subroutine stackoverflow {

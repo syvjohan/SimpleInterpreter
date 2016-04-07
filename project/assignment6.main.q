@@ -1,4 +1,8 @@
 :print("--------------Assignment6.q--------------");
+
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :struct myStruct {
 		:alias len : offset( 0 );
 		:alias str : offset( 4 );

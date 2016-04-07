@@ -69,6 +69,7 @@
     <ClCompile Include="ErrorManager.cpp" />
     <ClCompile Include="HelpClass.cpp" />
     <ClCompile Include="Heap.cpp" />
+    <ClCompile Include="Manager.cpp" />
     <ClCompile Include="Lexical.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Parser.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="ErrorManager.h" />
     <ClInclude Include="HelpHeaders.h" />
     <ClInclude Include="HelpStructs.h" />
+    <ClInclude Include="Manager.h" />
     <ClInclude Include="IStack.h" />
     <ClInclude Include="memoryLeak.h" />
     <ClInclude Include="HelpClass.h" />

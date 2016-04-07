@@ -62,6 +62,8 @@ namespace Partitioning {
 		size_t size = ftell( file );
 		fseek( file, 0, SEEK_SET );
 
+		fclose(file);
+
 		return size + 1;
 	}
 
@@ -87,6 +89,17 @@ namespace Partitioning {
 		buffer[ i ] = '\0';
 
 		fclose( file );
+	}
+
+	//*****
+	//Lexical::IsMainFile
+	//*****
+	bool Lexical::IsMainFile( const char *path ) {
+		const char *foundMain = strstr( path, ".main" );
+		if ( foundMain ) {
+			return true;
+		}
+		return false;
 	}
 
 	//*****
@@ -1001,7 +1014,12 @@ namespace Partitioning {
 
 						const int size = CalculateFileSize( path );
 						char *extendedCode = DBG_NEW char[ size ];
-						ReadFile( extendedCode, path );
+						if ( !IsMainFile( path ) ) {
+							ReadFile( extendedCode, path );
+						} else {
+							//Cannot include a main file inside another main file.
+							Error::ErrorManager::ErrorCode( Error::CODE_101 );
+						}
 
 						const int lenExtended = strlen( extendedCode );
 
@@ -1075,17 +1093,6 @@ namespace Partitioning {
 	//*****
 	bool Lexical::IsCorrectFileType( const char *cStr ) {
 		const char *fileType = strstr( cStr, ".q" );
-		if( fileType ) {
-			return true;
-		}
-		return false;
-	}
-
-	//*****
-	//Lexical::IsCorrectMainFileType
-	//*****
-	bool Lexical::IsCorrectMainFileType( const char *cStr ) {
-		const char *fileType = strstr( cStr, ".main.q" );
 		if( fileType ) {
 			return true;
 		}

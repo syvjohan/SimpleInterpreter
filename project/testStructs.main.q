@@ -1,5 +1,8 @@
 :print("--------------TestStructs.q--------------");
 
+:sysMemAllocHeap 64;
+:sysCreateStack 32;
+
 :struct Pair {
 	:alias first : offset(0);
 	:alias second : offset(9);

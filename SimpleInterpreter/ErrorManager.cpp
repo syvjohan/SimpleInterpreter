@@ -44,7 +44,7 @@ namespace Error {
 
 		printf( "Press any key to exit!" );
 
-		if( KeyPressed() ) {
+		if ( KeyPressed() ) {
 			exit( 0 );
 		}
 	}
@@ -53,8 +53,7 @@ namespace Error {
 	//ErrorManager::KeyPressed
 	//*****
 	bool ErrorManager::KeyPressed() {
-		const char chk = _getch();
-		if( chk != '\0' ) {
+		if ( _getch() != '\0' ) {
 			return true;
 		}
 		return false;
@@ -339,7 +338,7 @@ namespace Error {
 				ErrorManager::PrintMessage( "CODE_100", "Compare: Cannot compare digits and string" );
 				break;
 			case CODE_101:
-				ErrorManager::PrintMessage( "CODE_101", "No code inserted" );
+				ErrorManager::PrintMessage( "CODE_101", "Include: cannot include a main file into another main file." );
 				break;
 			case CODE_102:
 				ErrorManager::PrintMessage( "CODE_102", "No code inserted" );

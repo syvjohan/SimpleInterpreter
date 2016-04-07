@@ -19,6 +19,7 @@ namespace Partitioning {
 		~Lexical();
 
 		void ReadFile( char *buffer, const char *path );
+		bool IsMainFile( const char *path );
 		size_t CalculateFileSize( const char *path );
 		void SetCode( const char *cStr );
 		void GetInstructions();
@@ -58,7 +59,6 @@ namespace Partitioning {
 		void EvalExpressionWithoutKeyword();
 
 		bool IsCorrectFileType( const char *cStr );
-		bool IsCorrectMainFileType( const char *cStr );
 
 		void ResetLoopArray();
 
