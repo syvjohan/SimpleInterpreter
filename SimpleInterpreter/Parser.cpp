@@ -569,6 +569,10 @@ namespace Partitioning {
 			//Traverse string with pointer arithmetic
 			int offset = atoi(aliasRhs.value);
 			int len = strlen( aliasLhs.value ) - offset;
+			if ( len <= 0 ) {
+				Error::ErrorManager::ErrorCode( Error::CODE_32 );
+			}
+
 			memcpy(tmpStr, aliasLhs.value + offset, len);
 			tmpStr[len] = '\0';
 		

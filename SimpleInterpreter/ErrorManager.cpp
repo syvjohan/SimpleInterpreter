@@ -73,7 +73,7 @@ namespace Error {
 	//*****
 	void ErrorManager::SetRegisteredFiles( const Global::File_s *f, const int len ) {
 		memcpy( ErrorManager::files, f, len * sizeof( Global::File_s ) );
-		ErrorManager::lenFiles = len - 1;
+		ErrorManager::lenFiles = len -1;
 		ErrorManager::fileIndex = lenFiles; //Initialize fileIndex to 'main.q'.
 	}
 
@@ -88,7 +88,7 @@ namespace Error {
 	//ErrorManager::GetLines
 	//*****
 	int ErrorManager::GetLines() {
-		return lines;
+		return lines + 1;
 	}
 
 	//*****
