@@ -1,15 +1,12 @@
 :print("--------------Assignment2.q--------------");
-/* Simulate a "buffer overflow"(use loop).. */
+/* Create a "buffer overflow"(use loop).. */
 
-:sysMemAllocHeap 64;
-:sysCreateStack 32;
+:sysMemAllocHeap 32;
 
-:alias str : #33 = "Hello World"; 
-:stk.pushTop( 0 );
+:alias str : #0 = "Hello World "; 
 
 :do {
+	&str = str + "again ";
+	:print(str);
 
-	:stk.pushAt( 0, :stk.getTop() + 6 );
-	&str + :stk.getTop() = "again ";
-
-} :while(&str + :stk.getTop() != 64); 
+} :while(#33 != "a"); 

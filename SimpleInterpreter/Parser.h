@@ -33,6 +33,7 @@ namespace Partitioning {
 		void StackPushAt( const char *cStr );
 		void StackPushTop( const char *cStr );
 		Global::Alias_s StackGetAt( const char *cStr );
+		Global::Alias_s StackGetSize();
 		Global::Alias_s StackGetTop();
 
 		Global::Operator_s findOperator( const char *cStr, const int startPos );

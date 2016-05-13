@@ -15,6 +15,7 @@ namespace Memory {
 		virtual void PushAt( const int index, const Global::Alias_s alias ) = 0;
 		virtual Global::Alias_s GetTop() = 0;
 		virtual Global::Alias_s GetAt( const int index ) = 0;
+		virtual Global::Alias_s GetSize() = 0;
 		virtual void PopTop() = 0;
 		virtual void Pop() = 0;
 

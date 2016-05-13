@@ -1,4 +1,4 @@
-/* Fibinacci implemented with while loop and alias */
+/* Fibonacci implemented with while loop and alias */
 
 :sysMemAllocHeap 64;
 :sysCreateStack 32;

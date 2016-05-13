@@ -892,6 +892,7 @@ namespace Partitioning {
 		const char *pushAt = strstr( expression, "pushAt" );
 		const char *pushTop = strstr( expression, "pushTop" );
 		const char *getAt = strstr( expression, "getAt" );
+		const char *getSize = strstr( expression, "getSize" );
 		const char *getTop = strstr( expression, "getTop" );
 
 		if( popTop ) {
@@ -908,7 +909,11 @@ namespace Partitioning {
 		} else if( getAt ) {
 			parser.StackGetAt( getAt );
 
-		} else if( getTop ) {
+		}
+		else if ( getSize ) {
+			parser.StackGetSize();
+		}
+		else if ( getTop ) {
 			parser.StackGetTop();
 		} else {
 			//unsupported stack command.

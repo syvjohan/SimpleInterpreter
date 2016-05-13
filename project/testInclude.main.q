@@ -6,9 +6,5 @@
 
 :include("C:\Programmering\SimpleInterpreter\project\testSubroutines.q");
 
-:include("C:\Programmering\SimpleInterpreter\project\testStack.q");
-
-:include("C:\Programmering\SimpleInterpreter\project\testLoops.q"); 
-
 :print(" ");
 :print("End of test files!		");

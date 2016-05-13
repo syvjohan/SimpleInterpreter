@@ -1,4 +1,4 @@
-/* Fibinacci implemented with recursion and alias */
+/* Fibonacci implemented with recursion and alias */
 
 :sysMemAllocHeap 64;
 

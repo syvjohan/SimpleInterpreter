@@ -1,31 +1,20 @@
-/* Fibinacci implemented with recursion and Stack */
+/* Fibonacci implemented with recursion and Stack */
 
-:sysMemAllocHeap 64;
-:sysCreateStack 32;
+:sysMemAllocHeap 128;
+:sysCreateStack 128; 
 
-:stk.pushTop( 0 ); /* Sum */
-:stk.pushAt(4, 0); /* First number */
-:stk.pushAt(9, 1); /* Second number */
+:call fibonacci;
 
-:print(:stk.getAt(4), :stk.getAt(9)); /* Print first 2 numbers 0, 1 */
-:call calcFib; 
+:subroutine fibonacci {
 
-:subroutine calcFib {
-	/* sum = first + second */
-	:stk.pushAt(0, :stk.getAt(4) + :stk.getAt(9));
+	:if( :stk.getSize() == 0 ) {
+		:stk.pushTop( 0 );
+		:stk.pushTop( 1 );
+	} :else {
+		:stk.pushTop( :stk.getTop() + :stk.getAt( 1 ) );
+	}
 
-	/* if sum < stop number */
-	:if(:stk.getAt(0) < 300) {
-		:print(:stk.getAt(0)); /* print sum */
-
-		/* first = second */
-		:stk.pushAt(4, :stk.getAt(9));
-
-		/* second = sum */
-		:stk.pushAt(9, :stk.getAt(0));
-
-		:call calcFib;
+	:if( :stk.getSize() < 30 ) {
+		:call fibonacci; /* Recursive call */
 	}
 };
-
-/* Result is: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233 */

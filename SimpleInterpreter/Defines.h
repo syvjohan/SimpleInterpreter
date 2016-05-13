@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Global {
-#define NAMESIZE 32
+#define NAMESIZE 64
 #define STRUCTNAMESIZE 64
 #define ADDRESSSIZE 16
 #define VALUESIZE 256

@@ -70,9 +70,12 @@ void Manager::Input() {
 
 	char buffer[PATHSIZE];
 	fgets( buffer, PATHSIZE, stdin ); //read input from console(path).
-
+	char *cStr = "assignment2.main.q";
+	int len = strlen( cStr );
+	memcpy( buffer, cStr, 25 );
+	buffer[25] = '\0';
 	//Remove enter (\n).
-	buffer[strlen( buffer ) - 1] = '\0';
+	//buffer[strlen( buffer ) - 1] = '\0';
 	if ( IsCorrectMainFileType( buffer ) ) {
 		char path[PATHSIZE * 5];
 		CreateFilePath( path, (const char *)buffer ); //Get current directory and create a new path.

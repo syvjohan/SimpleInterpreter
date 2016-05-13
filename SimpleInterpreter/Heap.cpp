@@ -555,7 +555,16 @@ namespace Memory {
 			} else {
 				InsertAt( GetStackLen(), alias );
 			}
-			SetStackLen( GetStackLen() + alias.len );
+
+			//set stack length
+			int len = 0;
+			if ( Global::HelpClass::StrCmp( alias.type, "int" ) ) {
+					len = 4;
+			}
+			else {
+				len = strlen( alias.value );
+			}
+			SetStackLen( GetStackLen() + len );
 		}
 	}
 
@@ -563,8 +572,38 @@ namespace Memory {
 	//Heap::PushAt
 	//*****
 	void Heap::PushAt( const int index, const Global::Alias_s alias ) {
-		if( !IsStackOverflow( index, alias.len ) ) {
-			InsertAt( index, alias );
+		int counter = index;
+		int offset = 0;
+		int len = GetStackLen();
+		if( !IsStackOverflow( index, len ) ) {
+
+			for ( int i = len; i >= 0; --i ) {
+				if ( heapIndex[i].startPos < 0 ) {
+					--len;
+				}
+				else {
+					--counter;
+					if ( counter < 0) {
+						offset = i;
+						break;
+					}
+				}
+			}
+
+			InsertAt( offset, alias );
+
+			if ( offset > GetStackLen() ) {
+				//set stack length
+				int len = 0;
+				if ( Global::HelpClass::StrCmp( heapIndex[index].type, "int" ) ) {
+					len = 4;
+				}
+				else {
+					len = heapIndex[index].len;
+				}
+
+				SetStackLen( GetStackLen() + len );
+			}
 		}
 	}
 
@@ -573,11 +612,12 @@ namespace Memory {
 	//*****
 	Global::Alias_s Heap::GetTop() {
 		int len = GetStackLen();
-		if( len > 0 ) { len -= 1; }
 		Global::Alias_s alias = { NULL, NULL, NULL, 0 };
+		if ( len == 0 ) { return alias; }
+
 		if( !IsStackOverflow( len, 0 ) ) {
 			for( int i = len; i >= 0; --i ) {
-				if( heapIndex[ i ].startPos != len ) {
+				if( heapIndex[ i ].startPos < 0 ) {
 					--len;
 				} else {
 					alias = GetAlias( i );
@@ -592,19 +632,57 @@ namespace Memory {
 	//Heap::GetAt
 	//*****
 	Global::Alias_s Heap::GetAt( const int index ) {
+		int counter = index;
+		int len = GetStackLen();
 		Global::Alias_s alias = { NULL, NULL, NULL, 0 };
-		if( !IsStackOverflow( index, 0 ) ) {
-			alias = GetAlias( index );
+		if ( len == 0 ) { return alias; }
+
+		if ( !IsStackOverflow( len, 0 ) ) {
+			for ( int i = len; i >= 0; --i ) {
+				if ( heapIndex[i].startPos < 0 ) {
+					--len;
+				}
+				else {
+					--counter;
+					if ( counter < 0 ) {
+						alias = GetAlias( i );
+						break;
+					}
+				}
+			}
 		}
 		return alias;
 	}
+
+	//*****
+	//Heap::GetSize
+	//*****
+	Global::Alias_s Heap::GetSize() {
+		Global::Alias_s alias = { NULL, NULL, NULL, 0 };
+		int len = GetStackLen();
+		int size = 0;
+		for ( int i = len; i >= 0; --i ) {
+			if ( heapIndex[i].startPos >=  0 ) {
+				++size;
+			}
+		}
+
+		sprintf( alias.value, "%d", size );
+		
+		memcpy( alias.type, "int", 3 );
+		alias.type[3] = '\0';
+
+		alias.len = strlen( alias.value );
+
+		return alias;
+	}
+
 
 	//*****
 	//Heap::Pop
 	//*****
 	void Heap::Pop() {
 		if( GetStackLen() > 0 ) {
-			SetStackLen( GetStackLen() - 1 );
 			Global::Alias_s alias = { NULL, NULL, NULL, 0 };
 			int len = GetStackLen();
 			for( int i = len; i >= 0; --i ) {
@@ -614,7 +692,15 @@ namespace Memory {
 					alias = GetAlias( i );
 					alias.len -= 1;
 					alias.value[ alias.len ] = '\0';
-					InsertAt( i, alias );
+					if ( alias.len != 0 ) {
+						InsertAt( i, alias );
+					}
+					else {
+						SetStackLen( GetStackLen() - 1 );
+					}
+
+					SetStackLen( GetStackLen() - 1 );
+
 					break;
 				}
 			}
@@ -626,11 +712,27 @@ namespace Memory {
 	//*****
 	void Heap::PopTop() {
 		for( int i = GetStackLen(); i >= 0; --i ) {
-			if( heapIndex[ i ].startPos != GetStackLen() ) {
-				SetStackLen( GetStackLen() - 1 );
-			} else {
-				break;
-			}
+			if( heapIndex[ i ].startPos >= 0 ) {
+				//set stack length
+				int len = 0;
+				if ( Global::HelpClass::StrCmp( heapIndex[i].type, "int" ) ) {
+					len = 4;
+				}
+				else {
+					len = heapIndex[i].len;
+				}
+
+				if ( GetStackLen() - len < 0 ) {
+					SetStackLen( 0 );
+					heapIndex[i].startPos = INT_MIN;
+					break;
+				}
+				else {
+					SetStackLen( GetStackLen() - len );
+					heapIndex[i].startPos = INT_MIN;
+					break;
+				}
+			} 
 		}
 	}
 

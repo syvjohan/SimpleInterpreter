@@ -61,7 +61,7 @@ namespace Partitioning {
 
 			if( identifyType ) {
 				memcpy( alias.type, "string", 6 );
-				alias.type[ len ] = '\0';
+				alias.type[ 6 ] = '\0';
 				alias.len = len;
 
 			} else if( Global::HelpClass::CheckForDigits( resRhs ) == 1 && identifyType == NULL ) {
@@ -94,6 +94,7 @@ namespace Partitioning {
 		len = strlen( res );
 
 		Global::Alias_s alias;
+		alias.len = len;
 		if( identifyType ) {
 			memcpy( alias.type, "string", 6 );
 			alias.type[ 6 ] = '\0';
@@ -105,6 +106,13 @@ namespace Partitioning {
 
 			alias.len = len;
 		}
+		else {
+			memcpy( alias.type, "string", 6 );
+			alias.type[6] = '\0';
+
+			alias.len = len;
+		}
+
 		memcpy( alias.name, "\0", 1 );
 		memcpy( alias.value, res, alias.len );
 		alias.value[ alias.len ] = '\0';
@@ -129,6 +137,13 @@ namespace Partitioning {
 		}
 
 		return alias;
+	}
+
+	//*****
+	//Parser::StackGetSize
+	//*****
+	Global::Alias_s Parser::StackGetSize() {
+		return heap.GetSize();
 	}
 
 	//*****
@@ -628,6 +643,7 @@ namespace Partitioning {
 			const char *pushAt = strstr( stack, "pushAt" );
 			const char *pushTop = strstr( stack, "pushTop" );
 			const char *getAt = strstr( stack, "getAt" );
+			const char *getSize = strstr( stack, "getSize" );
 			const char *getTop = strstr( stack, "getTop" );
 
 			const char *identifyType = strstr( exp, "\"" );
@@ -644,6 +660,8 @@ namespace Partitioning {
 				alias = StackGetAt( getAt );
 			} else if( getTop ) {
 				alias = heap.GetTop();
+			} else if ( getSize ) {
+				alias = heap.GetSize();
 			} else {
 				//unsupported stack command.
 				Error::ErrorManager::ErrorCode( Error::CODE_60 );

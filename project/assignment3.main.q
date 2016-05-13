@@ -5,14 +5,14 @@
 
 :alias sum : #33;
 :stk.pushTop( 2 );
-:stk.pushAt( 4, 3 );
+:stk.pushTop( 3 );
 
 :call add;
 :print( sum );
 :print( &sum ); 
 
 :subroutine add {
-	&sum = :stk.getTop() + :stk.getAt( 4 );
+	&sum = :stk.getTop() + :stk.getAt( 1 );
 };
 
 /* Below is only for debugg mode */
