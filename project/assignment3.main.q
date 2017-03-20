@@ -1,6 +1,6 @@
 :print("--------------Assignment3.q--------------");
 
-:sysMemAllocHeap 64;
+:sysMemAllocGlobal 64;
 :sysCreateStack 32;
 
 :alias sum : #33;

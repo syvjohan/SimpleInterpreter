@@ -252,7 +252,6 @@ namespace Memory {
 	Global::Alias_s Heap::GetAlias( const int index ) {
 		Global::Alias_s alias = { NULL, NULL, NULL, 0 };
 		int len = strlen( heapIndex[ index ].name );
-
 		//Alias does not exist
 		if( len > heapSize ) {
 			return alias;

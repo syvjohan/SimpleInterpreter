@@ -1136,7 +1136,7 @@ namespace Partitioning {
 
 		const char *print = strstr( instruction, ":print(" );
 		char *WHILE = strstr( instruction, ":while" );
-		char *sysMemAllocHeap = strstr( instruction, ":sysMemAllocHeap" );
+		char *sysMemAllocGlobal = strstr( instruction, ":sysMemAllocGlobal" );
 		char *sysCreateStack = strstr( instruction, ":sysCreateStack" );
 		char *alias = strstr( instruction, ":alias" );
 		char *DO = strstr( instruction, ":do" );
@@ -1146,10 +1146,10 @@ namespace Partitioning {
 		char *subroutine = strstr( instruction, ":subroutine" );
 		char *stk = strstr( instruction, ":stk." );
 
-		if( sysMemAllocHeap ) {
-			keyword = ":sysMemAllocHeap";
-			len = strlen( sysMemAllocHeap ) - 16;
-			memcpy( tmp, sysMemAllocHeap + 16, len );
+		if( sysMemAllocGlobal ) {
+			keyword = ":sysMemAllocGlobal";
+			len = strlen( sysMemAllocGlobal ) - 18;
+			memcpy( tmp, sysMemAllocGlobal + 18, len );
 			tmp[ len ] = '\0';
 			expression = tmp;
 			AllocateMem();

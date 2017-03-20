@@ -70,12 +70,10 @@ void Manager::Input() {
 
 	char buffer[PATHSIZE];
 	fgets( buffer, PATHSIZE, stdin ); //read input from console(path).
-	char *cStr = "assignment2.main.q";
-	int len = strlen( cStr );
-	memcpy( buffer, cStr, 25 );
-	buffer[25] = '\0';
-	//Remove enter (\n).
-	//buffer[strlen( buffer ) - 1] = '\0';
+	
+	//DEBUG PURPOSE.
+	memcpy(buffer, "testing.main.q\n", 15);
+	buffer[15] = '\0';
 	if ( IsCorrectMainFileType( buffer ) ) {
 		char path[PATHSIZE * 5];
 		CreateFilePath( path, (const char *)buffer ); //Get current directory and create a new path.
@@ -111,8 +109,8 @@ bool Manager::IsCorrectMainFileType( const char *cStr ) {
 	const char *findDot = strstr( cStr, "." );
 	if ( findDot ) {
 		int len = strlen( findDot );
-		if ( len == 7 ) {
-			if ( Global::HelpClass::StrCmp(findDot, ".main.q") ) {
+		if ( len == 8 ) {
+			if ( Global::HelpClass::StrCmp(findDot, ".main.q\n") ) {
 				return true;
 			}
 		}
@@ -153,7 +151,7 @@ void Manager::CreateFilePath( char *buffer, const char *inputPath ) {
 	memcpy( buffer + len, "\\project\\", 11 );
 	len += 9;
 
-	int len2 = strlen( inputPath );
+	int len2 = strlen( inputPath ) -1; //Remove '\n'
 	memcpy( buffer + len, inputPath, len2 );	
 	buffer[len + len2] = '\0';
 }

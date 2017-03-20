@@ -1,7 +1,7 @@
 :print("--------------Assignment2.q--------------");
 /* Create a "buffer overflow"(use loop).. */
 
-:sysMemAllocHeap 32;
+:sysMemAllocGlobal 32;
 
 :alias str : #0 = "Hello World "; 
 
