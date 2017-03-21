@@ -140,13 +140,6 @@ namespace Partitioning {
 	}
 
 	//*****
-	//Parser::StackGetSize
-	//*****
-	Global::Alias_s Parser::StackGetSize() {
-		return heap.GetSize();
-	}
-
-	//*****
 	//Parser::StackGetTop
 	//*****
 	Global::Alias_s Parser::StackGetTop() {
@@ -643,7 +636,6 @@ namespace Partitioning {
 			const char *pushAt = strstr( stack, "pushAt" );
 			const char *pushTop = strstr( stack, "pushTop" );
 			const char *getAt = strstr( stack, "getAt" );
-			const char *getSize = strstr( stack, "getSize" );
 			const char *getTop = strstr( stack, "getTop" );
 
 			const char *identifyType = strstr( exp, "\"" );
@@ -660,8 +652,6 @@ namespace Partitioning {
 				alias = StackGetAt( getAt );
 			} else if( getTop ) {
 				alias = heap.GetTop();
-			} else if ( getSize ) {
-				alias = heap.GetSize();
 			} else {
 				//unsupported stack command.
 				Error::ErrorManager::ErrorCode( Error::CODE_60 );

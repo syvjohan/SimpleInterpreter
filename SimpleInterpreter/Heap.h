@@ -30,7 +30,6 @@ namespace Memory {
 		void PushAt( const int index, const Global::Alias_s alias );
 		Global::Alias_s GetTop();
 		Global::Alias_s GetAt( const int index );
-		Global::Alias_s GetSize();
 		void PopTop();
 		void Pop();
 		bool IsStackOverflow( const int index, const int len );

@@ -654,30 +654,6 @@ namespace Memory {
 	}
 
 	//*****
-	//Heap::GetSize
-	//*****
-	Global::Alias_s Heap::GetSize() {
-		Global::Alias_s alias = { NULL, NULL, NULL, 0 };
-		int len = GetStackLen();
-		int size = 0;
-		for ( int i = len; i >= 0; --i ) {
-			if ( heapIndex[i].startPos >=  0 ) {
-				++size;
-			}
-		}
-
-		sprintf( alias.value, "%d", size );
-		
-		memcpy( alias.type, "int", 3 );
-		alias.type[3] = '\0';
-
-		alias.len = strlen( alias.value );
-
-		return alias;
-	}
-
-
-	//*****
 	//Heap::Pop
 	//*****
 	void Heap::Pop() {
